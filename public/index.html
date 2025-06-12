@@ -151,10 +151,13 @@
         }
         .feedback-content {
             text-align: left;
-            line-height: 1.8;
+            line-height: 1.6;
             margin-bottom: 30px;
             color: #f0f0f0;
             white-space: pre-wrap;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -206,7 +209,7 @@
                 <div class="score" id="finalScore">75/100</div>
                 <div class="feedback-content" id="finalFeedback"></div>
                 <div class="report-actions">
-                    <button class="button" onclick="downloadReport()">📄 レポートをダウンロード</button>
+                    <button class="button" onclick="downloadReport()">📄 Word文書でレポートをダウンロード</button>
                     <button class="button" onclick="restart()">🔄 新しいセッションを開始</button>
                 </div>
             </div>
@@ -235,14 +238,31 @@
 
         // Initialize speech recognition
         function initSpeechRecognition() {
+            console.log('Initializing speech recognition...');
+            console.log('User Agent:', navigator.userAgent);
+            console.log('HTTPS:', location.protocol === 'https:');
+            console.log('webkitSpeechRecognition:', 'webkitSpeechRecognition' in window);
+            console.log('SpeechRecognition:', 'SpeechRecognition' in window);
+            
+            // Safari detection
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            console.log('Safari detected:', isSafari);
+            
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
+                console.log('Speech recognition initialized successfully');
                 
                 recognition.lang = 'en-US';
                 recognition.continuous = false;
                 recognition.interimResults = false;
                 recognition.maxAlternatives = 1;
+                
+                // Safari-specific settings
+                if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+                    console.log('Applying Safari-specific settings');
+                    recognition.continuous = false; // Force single utterance for Safari
+                }
                 
                 recognition.onstart = () => {
                     console.log('Speech recognition started');
@@ -283,7 +303,13 @@
             } else {
                 console.log('Speech recognition not supported');
                 document.getElementById('voiceButton').disabled = true;
-                document.getElementById('speechStatus').textContent = '⚠️ このブラウザは音声認識をサポートしていません';
+                
+                // Browser-specific error messages
+                if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
+                    document.getElementById('speechStatus').textContent = '⚠️ Safari: 音声認識は制限があります。Chrome/Edgeを推奨します';
+                } else {
+                    document.getElementById('speechStatus').textContent = '⚠️ このブラウザは音声認識をサポートしていません。Chrome/Edgeを使用してください';
+                }
             }
         }
 
@@ -301,24 +327,30 @@
         }
 
         function toggleRecording() {
+            console.log('toggleRecording called, isRecording:', isRecording);
+            console.log('recognition object:', recognition);
+            
             if (!recognition) {
                 showError('音声認識がサポートされていません');
                 return;
             }
 
             if (isRecording) {
+                console.log('Stopping recognition...');
                 recognition.stop();
                 document.getElementById('speechStatus').textContent = '🔄 音声認識を停止しています...';
             } else {
+                console.log('Starting recognition...');
                 document.getElementById('textResponse').value = '';
                 document.getElementById('speechStatus').textContent = '🎤 音声認識を開始しています...';
                 try {
                     recognition.start();
                     isRecording = true;
                     updateVoiceButton();
+                    console.log('Recognition started successfully');
                 } catch (error) {
                     console.error('Failed to start recognition:', error);
-                    showError('音声認識の開始に失敗しました');
+                    showError('音声認識の開始に失敗しました: ' + error.message);
                 }
             }
         }
@@ -364,6 +396,7 @@
 
         async function callAPI(endpoint, data) {
             try {
+                console.log(`Calling API: ${endpoint}`, data);
                 const response = await fetch(`/api/${endpoint}`, {
                     method: 'POST',
                     headers: {
@@ -377,7 +410,9 @@
                     throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
 
-                return await response.json();
+                const result = await response.json();
+                console.log(`API response from ${endpoint}:`, result);
+                return result;
             } catch (error) {
                 console.error('API call failed:', error);
                 throw error;
