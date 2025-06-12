@@ -18,7 +18,8 @@
     if (!isAuthenticated) {
             console.log('BLOCKING ACCESS - Authentication required');
             enforceAuthentication();
-        });
+        }
+    });
         
         function enforceAuthentication() {
             // Force hide all screens except auth
