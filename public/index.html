@@ -11,14 +11,13 @@
     <script>
         // Block access immediately
         let isAuthenticated = false;
-        const CORRECT_PASSWORD = '2025_July';
+        const CORRECT_PASSWORD = "2025_July";
         
         // Hide all content until authentication
         document.addEventListener('DOMContentLoaded', function() {
-            if (!isAuthenticated) {
-                console.log('BLOCKING ACCESS - Authentication required');
-                enforceAuthentication();
-            }
+    if (!isAuthenticated) {
+            console.log('BLOCKING ACCESS - Authentication required');
+            enforceAuthentication();
         });
         
         function enforceAuthentication() {
@@ -576,38 +575,7 @@
         }
 
         function checkPassword() {
-    const enteredPassword = document.getElementById('passwordInput').value.trim();
-    const errorDiv = document.getElementById('authError');
-    console.log('Password check attempt...');
-    if (enteredPassword === CORRECT_PASSWORD) {
-        console.log('Password correct, authenticating...');
-        isAuthenticated = true;
-        errorDiv.style.display = 'none';
-        const button = document.querySelector('.button.primary');
-        button.textContent = 'Authentication Success';
-        button.style.background = 'linear-gradient(135deg, #27AE60, #2ECC71)';
-        setTimeout(() => {
-            console.log('Transitioning to difficulty selection...');
-            const authScreen = document.getElementById('authScreen');
-            authScreen.style.display = 'none';
-            authScreen.classList.add('hidden');
-            const difficultyScreen = document.getElementById('difficultySelection');
-            difficultyScreen.style.display = 'block';
-            difficultyScreen.classList.remove('hidden');
-            console.log('Screen transition completed');
-        }, 1000);
-    } else {
-        console.log('Incorrect password');
-        errorDiv.style.display = 'block';
-        errorDiv.textContent = 'Incorrect password';
-        document.getElementById('passwordInput').value = '';
-        document.getElementById('passwordInput').focus();
-        errorDiv.style.animation = 'none';
-        setTimeout(() => {
-            errorDiv.style.animation = 'shake 0.5s ease-in-out';
-        }, 10);
-    }
-}
+    
             const enteredPassword = document.getElementById('passwordInput').value.trim();
             const errorDiv = document.getElementById('authError');
             
@@ -651,7 +619,7 @@
                     errorDiv.style.animation = 'shake 0.5s ease-in-out';
                 }, 10);
             }
-        
+        }
 
         function requireAuth() {
             if (!isAuthenticated) {
