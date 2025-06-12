@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+/* Difficulty Selection Styles */<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -397,15 +397,25 @@
         async function callAPI(endpoint, data) {
             try {
                 console.log(`Calling API: ${endpoint}`, data);
+                
+                // Add password to all API calls
+                const requestData = {
+                    ...data,
+                    password: CORRECT_PASSWORD
+                };
+                
                 const response = await fetch(`/api/${endpoint}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(requestData)
                 });
 
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('認証エラー: パスワードが無効です');
+                    }
                     const errorData = await response.json();
                     throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
@@ -575,6 +585,8 @@
         }
 
         function downloadReport() {
+            if (!requireAuth()) return;
+            
             const timestamp = new Date().toLocaleString('ja-JP');
             const reportContent = `AI English Learning - 学習レポート
 
@@ -605,6 +617,8 @@ ${sessionData.finalFeedback}
         }
 
         function restart() {
+            if (!requireAuth()) return;
+            
             currentTurn = 0;
             conversationHistory = [];
             currentScenario = '';
