@@ -511,7 +511,7 @@
     </div>
 
     <script>
-        // Global variables
+        // Global variables - defined only once
         let currentTurn = 0;
         let conversationHistory = [];
         let isRecording = false;
@@ -545,16 +545,23 @@
                 errorDiv.style.display = 'none';
                 
                 const button = document.querySelector('.button.primary');
-                const originalText = button.textContent;
                 button.textContent = 'Authentication Success';
                 button.style.background = 'linear-gradient(135deg, #27AE60, #2ECC71)';
                 
                 setTimeout(() => {
                     console.log('Transitioning to difficulty selection...');
-                    document.getElementById('authScreen').style.display = 'none';
-                    document.getElementById('authScreen').classList.add('hidden');
-                    document.getElementById('difficultySelection').style.display = 'block';
-                    document.getElementById('difficultySelection').classList.remove('hidden');
+                    
+                    // Hide auth screen
+                    const authScreen = document.getElementById('authScreen');
+                    authScreen.style.display = 'none';
+                    authScreen.classList.add('hidden');
+                    
+                    // Show difficulty selection
+                    const difficultyScreen = document.getElementById('difficultySelection');
+                    difficultyScreen.style.display = 'block';
+                    difficultyScreen.classList.remove('hidden');
+                    
+                    console.log('Screen transition completed');
                 }, 1000);
                 
             } else {
@@ -607,14 +614,18 @@
 
         function showScenarioSetup() {
             document.getElementById('difficultySelection').classList.add('hidden');
+            document.getElementById('difficultySelection').style.display = 'none';
             document.getElementById('setupSection').classList.remove('hidden');
+            document.getElementById('setupSection').style.display = 'block';
             initSpeechRecognition();
             updateProgress();
         }
 
         function backToDifficulty() {
             document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('setupSection').style.display = 'none';
             document.getElementById('difficultySelection').classList.remove('hidden');
+            document.getElementById('difficultySelection').style.display = 'block';
         }
 
         // Initialize speech recognition
@@ -636,8 +647,577 @@
                     document.getElementById('speechStatus').textContent = 'Listening...';
                 };
                 
-                recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript;
+        <!-- Difficulty Selection Screen -->
+        <div id="difficultySelection" class="hidden">
+            <div class="header">
+                <h1>Situational AI English</h1>
+            </div>
+            
+            <h2 style="text-align: center; margin-bottom: 30px; font-weight: 400;">Select Difficulty Level</h2>
+            
+            <div class="difficulty-options">
+                <div class="difficulty-card normal-mode" onclick="selectDifficulty('normal')">
+                    <h3>Normal Mode</h3>
+                    <p>Evaluates basic communication ability</p>
+                    <ul>
+                        <li>Focus on communication</li>
+                        <li>Minor grammar errors allowed</li>
+                        <li>Business tone check</li>
+                    </ul>
+                    <span class="recommended">Recommended: Beginner to Intermediate</span>
+                </div>
+                
+                <div class="difficulty-card hard-mode" onclick="selectDifficulty('hard')">
+                    <h3>Hard Mode</h3>
+                    <p>Demands high accuracy and expression</p>
+                    <ul>
+                        <li>Grammar accuracy focus</li>
+                        <li>Appropriate vocabulary selection</li>
+                        <li>Sophisticated business expressions</li>
+                    </ul>
+                    <span class="recommended">Recommended: Intermediate to Advanced</span>
+                </div>
+            </div>
+            
+            <div id="selectedDifficultyInfo" class="hidden" style="text-align: center; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+                <span id="selectedDifficultyDisplay" style="color: #4A90E2; font-weight: 500;"></span>
+            </div>
+            
+            <button class="button secondary hidden" id="continueToScenario" onclick="showScenarioSetup()">Continue to Scenario Setup</button>
+        </div>
+    </script>
+</body>
+</html>][0].transcript;
+                    document.getElementById('textResponse').value = transcript;
+                    document.getElementById('speechStatus').textContent = 'Recognition complete: ' + transcript;
+                    console.log('Speech recognition result:', transcript);
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    let errorMessage = 'Speech recognition error: ';
+                    switch(event.error) {
+                        case 'network':
+                            errorMessage += 'Network error';
+                            break;
+                        case 'not-allowed':
+                            errorMessage += 'Microphone access denied';
+                            break;
+                        case 'no-speech':
+                            errorMessage += 'No speech detected';
+                            break;
+                        default:
+                            errorMessage += event.error;
+                    }
+                    document.getElementById('speechStatus').textContent = errorMessage;
+                };
+                
+                recognition.onend = () => {
+                    console.log('Speech recognition ended');
+                    isRecording = false;
+                    updateVoiceButton();
+                };
+            } else {
+                console.log('Speech recognition not supported');
+                const voiceButton = document.getElementById('voiceButton');
+                if (voiceButton) {
+                    voiceButton.disabled = true;
+                    const speechStatus = document.getElementById('speechStatus');
+                    if (speechStatus) {
+                        speechStatus.textContent = 'Speech recognition not supported in this browser';
+                    }
+                }
+            }
+        }
+
+        function updateVoiceButton() {
+            const button = document.getElementById('voiceButton');
+            const text = document.getElementById('voiceButtonText');
+            
+            if (button && text) {
+                if (isRecording) {
+                    button.classList.add('recording');
+                    text.textContent = 'Stop Recording';
+                } else {
+                    button.classList.remove('recording');
+                    text.textContent = 'Voice Response';
+                }
+            }
+        }
+
+        function toggleRecording() {
+            if (!recognition) {
+                showError('Speech recognition not supported');
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+                const speechStatus = document.getElementById('speechStatus');
+                if (speechStatus) {
+                    speechStatus.textContent = 'Stopping speech recognition...';
+                }
+            } else {
+                document.getElementById('textResponse').value = '';
+                const speechStatus = document.getElementById('speechStatus');
+                if (speechStatus) {
+                    speechStatus.textContent = 'Starting speech recognition...';
+                }
+                try {
+                    recognition.start();
+                    isRecording = true;
+                    updateVoiceButton();
+                } catch (error) {
+                    console.error('Failed to start recognition:', error);
+                    showError('Failed to start speech recognition: ' + error.message);
+                }
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentTurn / 10) * 100;
+            const progressFill = document.getElementById('progressFill');
+            const progressFill2 = document.getElementById('progressFill2');
+            const turnCounter = document.getElementById('turnCounter');
+            const turnCounter2 = document.getElementById('turnCounter2');
+            
+            if (progressFill) progressFill.style.width = progress + '%';
+            if (progressFill2) progressFill2.style.width = progress + '%';
+            if (turnCounter) turnCounter.textContent = `Turn ${currentTurn} / 10`;
+            if (turnCounter2) turnCounter2.textContent = `Turn ${currentTurn} / 10`;
+        }
+
+        function addMessage(content, type) {
+            const conversation = document.getElementById('conversation');
+            if (!conversation) return;
+            
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = content;
+            conversation.appendChild(message);
+            conversation.scrollTop = conversation.scrollHeight;
+            
+            conversationHistory.push({
+                type: type,
+                content: content,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error') || document.getElementById('error2');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('hidden');
+                setTimeout(() => {
+                    errorDiv.classList.add('hidden');
+                }, 5000);
+            }
+        }
+
+        function showLoading(show = true) {
+            const loadingDiv = document.getElementById('waitingForAI') || document.getElementById('waitingForAI2');
+            if (loadingDiv) {
+                if (show) {
+                    loadingDiv.classList.remove('hidden');
+                } else {
+                    loadingDiv.classList.add('hidden');
+                }
+            }
+        }
+
+        async function callAPI(endpoint, data) {
+            try {
+                console.log(`Calling API: ${endpoint}`, data);
+                
+                const requestData = {
+                    ...data,
+                    password: CORRECT_PASSWORD,
+                    difficulty: currentDifficulty
+                };
+                
+                const response = await fetch(`/api/${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Authentication error: Invalid password');
+                    }
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log(`API response from ${endpoint}:`, result);
+                return result;
+            } catch (error) {
+                console.error('API call failed:', error);
+                throw error;
+            }
+        }
+
+        async function startLearning() {
+            if (!requireAuth()) return;
+            
+            const scenario = document.getElementById('scenario').value.trim();
+            if (!scenario) {
+                showError('Please enter a scenario');
+                return;
+            }
+
+            currentScenario = scenario;
+            sessionData.scenario = scenario;
+            sessionData.exchanges = [];
+            
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('setupSection').style.display = 'none';
+            document.getElementById('learningSection').classList.remove('hidden');
+            document.getElementById('learningSection').style.display = 'block';
+            
+            showLoading(true);
+            
+            try {
+                const result = await callAPI('start-conversation', { scenario });
+                
+                addMessage(result.response, 'ai');
+                
+                sessionData.exchanges.push({
+                    turn: currentTurn,
+                    aiMessage: result.response,
+                    userResponse: '',
+                    feedback: '',
+                    needsImprovement: false
+                });
+                
+                document.getElementById('responseSection').classList.remove('hidden');
+                showLoading(false);
+                
+            } catch (error) {
+                showError('Failed to start conversation: ' + error.message);
+                showLoading(false);
+                document.getElementById('learningSection').classList.add('hidden');
+                document.getElementById('learningSection').style.display = 'none';
+                document.getElementById('setupSection').classList.remove('hidden');
+                document.getElementById('setupSection').style.display = 'block';
+            }
+        }
+
+        async function submitResponse() {
+            if (!requireAuth()) return;
+            
+            const userResponse = document.getElementById('textResponse').value.trim();
+            if (!userResponse) {
+                showError('Please enter a response');
+                return;
+            }
+
+            addMessage(userResponse, 'user');
+            document.getElementById('responseSection').classList.add('hidden');
+            showLoading(true);
+
+            try {
+                const conversationContext = conversationHistory
+                    .slice(-4)
+                    .map(msg => `${msg.type}: ${msg.content}`)
+                    .join('\n');
+
+                const evaluationResult = await callAPI('evaluate-response', {
+                    userResponse,
+                    scenario: currentScenario,
+                    conversationContext,
+                    difficulty: currentDifficulty
+                });
+                
+                const feedback = evaluationResult.response;
+                addMessage(feedback, 'feedback');
+                
+                if (sessionData.exchanges.length > 0) {
+                    const lastExchange = sessionData.exchanges[sessionData.exchanges.length - 1];
+                    lastExchange.userResponse = userResponse;
+                    lastExchange.feedback = feedback;
+                }
+                
+                // Check if response needs improvement (more lenient criteria)
+                const needsImprovement = feedback.includes('以下のように修正') || 
+                                       feedback.includes('正しくは') ||
+                                       feedback.includes('間違っています') ||
+                                       feedback.includes('文法エラー');
+                
+                if (needsImprovement) {
+                    if (sessionData.exchanges.length > 0) {
+                        sessionData.exchanges[sessionData.exchanges.length - 1].needsImprovement = true;
+                    }
+                    
+                    document.getElementById('textResponse').value = '';
+                    const speechStatus = document.getElementById('speechStatus');
+                    if (speechStatus) speechStatus.textContent = '';
+                    document.getElementById('responseSection').classList.remove('hidden');
+                    showLoading(false);
+                } else {
+                    currentTurn++;
+                    updateProgress();
+                    
+                    if (currentTurn >= 10) {
+                        await generateFinalReport();
+                    } else {
+                        const continueResult = await callAPI('continue-conversation', {
+                            userResponse,
+                            scenario: currentScenario,
+                            conversationHistory: conversationHistory.slice(-6).map(msg => `${msg.type}: ${msg.content}`).join('\n')
+                        });
+                        
+                        addMessage(continueResult.response, 'ai');
+                        
+                        sessionData.exchanges.push({
+                            turn: currentTurn,
+                            aiMessage: continueResult.response,
+                            userResponse: '',
+                            feedback: '',
+                            needsImprovement: false
+                        });
+                        
+                        document.getElementById('textResponse').value = '';
+                        const speechStatus = document.getElementById('speechStatus');
+                        if (speechStatus) speechStatus.textContent = '';
+                        document.getElementById('responseSection').classList.remove('hidden');
+                        showLoading(false);
+                    }
+                }
+                
+            } catch (error) {
+                showError('Failed to evaluate response: ' + error.message);
+                document.getElementById('responseSection').classList.remove('hidden');
+                showLoading(false);
+            }
+        }
+
+        async function generateFinalReport() {
+            if (!requireAuth()) return;
+            
+            document.getElementById('learningSection').classList.add('hidden');
+            document.getElementById('learningSection').style.display = 'none';
+            showLoading(true);
+            
+            try {
+                const reportResult = await callAPI('generate-report', {
+                    scenario: currentScenario,
+                    difficulty: currentDifficulty,
+                    exchanges: sessionData.exchanges
+                });
+                
+                sessionData.finalScore = reportResult.score || 75;
+                sessionData.finalFeedback = reportResult.response;
+                
+                document.getElementById('finalScore').textContent = `${sessionData.finalScore}/100`;
+                document.getElementById('finalFeedback').textContent = sessionData.finalFeedback;
+                
+                showLoading(false);
+                document.getElementById('reportSection').classList.remove('hidden');
+                document.getElementById('reportSection').style.display = 'block';
+                
+            } catch (error) {
+                showError('Failed to generate report: ' + error.message);
+                showLoading(false);
+                sessionData.finalScore = 75;
+                sessionData.finalFeedback = 'Sorry, detailed report generation failed. However, your English learning effort was excellent. Please continue practicing.';
+                
+                document.getElementById('finalScore').textContent = `${sessionData.finalScore}/100`;
+                document.getElementById('finalFeedback').textContent = sessionData.finalFeedback;
+                document.getElementById('reportSection').classList.remove('hidden');
+                document.getElementById('reportSection').style.display = 'block';
+            }
+        }
+
+        function downloadReport() {
+            if (!requireAuth()) return;
+            
+            const timestamp = new Date().toLocaleString('en-US');
+            
+            // Word document HTML structure
+            const wordContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: "Segoe UI", Arial, sans-serif; line-height: 1.6; margin: 40px; color: #333; }
+        h1 { color: #2E5984; border-bottom: 3px solid #2E5984; padding-bottom: 10px; }
+        h2 { color: #2E5984; border-left: 5px solid #2E5984; padding-left: 15px; margin-top: 30px; }
+        h3 { color: #4A6FA5; margin-top: 25px; }
+        .header-info { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        .score-box { background-color: #e8f4fd; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
+        .score-large { font-size: 48px; font-weight: bold; color: #2E5984; }
+        .conversation-turn { margin-bottom: 25px; border-left: 3px solid #ddd; padding-left: 15px; }
+        .ai-message { background-color: #f0f8ff; padding: 12px; border-radius: 8px; margin: 8px 0; }
+        .user-message { background-color: #fff8f0; padding: 12px; border-radius: 8px; margin: 8px 0; }
+        .feedback-message { background-color: #f8f8f8; padding: 12px; border-radius: 8px; margin: 8px 0; font-style: italic; }
+        .message-label { font-weight: bold; color: #2E5984; margin-bottom: 5px; }
+        .stats-table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        .stats-table th, .stats-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        .stats-table th { background-color: #f2f2f2; font-weight: bold; }
+        .improvement-needed { color: #d9534f; font-weight: bold; }
+        .good-response { color: #5cb85c; font-weight: bold; }
+        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>Situational AI English - Learning Report</h1>
+    
+    <div class="header-info">
+        <p><strong>Learning Date:</strong> ${timestamp}</p>
+        <p><strong>Practice Scenario:</strong> ${sessionData.scenario}</p>
+        <p><strong>Completed Turns:</strong> ${currentTurn} / 10</p>
+        <p><strong>Difficulty Level:</strong> ${currentDifficulty === 'hard' ? 'Hard Mode' : 'Normal Mode'}</p>
+    </div>
+
+    <div class="score-box">
+        <h2>Overall Evaluation</h2>
+        <div class="score-large">${sessionData.finalScore}/100</div>
+    </div>
+
+    <h2>Comprehensive Feedback</h2>
+    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; white-space: pre-wrap;">${sessionData.finalFeedback}</div>
+
+    <h2>Conversation History</h2>
+    ${sessionData.exchanges.map((exchange, index) => `
+        <div class="conversation-turn">
+            <h3>Turn ${index + 1}</h3>
+            
+            <div class="ai-message">
+                <div class="message-label">AI:</div>
+                ${exchange.aiMessage}
+            </div>
+            
+            ${exchange.userResponse ? `
+                <div class="user-message">
+                    <div class="message-label">Your Response:</div>
+                    ${exchange.userResponse}
+                </div>
+            ` : '<div style="color: #999; font-style: italic;">(No response)</div>'}
+            
+            ${exchange.feedback ? `
+                <div class="feedback-message">
+                    <div class="message-label">Feedback:</div>
+                    ${exchange.feedback}
+                </div>
+            ` : ''}
+            
+            <div style="margin-top: 10px;">
+                <span class="${exchange.needsImprovement ? 'improvement-needed' : 'good-response'}">
+                    ${exchange.needsImprovement ? 'Improvement needed' : 'Good response'}
+                </span>
+            </div>
+        </div>
+    `).join('')}
+
+    <h2>Learning Statistics</h2>
+    <table class="stats-table">
+        <tr><th>Item</th><th>Result</th></tr>
+        <tr><td>Completed Turns</td><td>${currentTurn} / 10</td></tr>
+        <tr><td>Responses Needing Improvement</td><td>${sessionData.exchanges.filter(e => e.needsImprovement).length} times</td></tr>
+        <tr><td>Successful First Attempts</td><td>${sessionData.exchanges.filter(e => !e.needsImprovement && e.userResponse).length} times</td></tr>
+        <tr><td>Overall Success Rate</td><td>${Math.round((sessionData.exchanges.filter(e => !e.needsImprovement && e.userResponse).length / Math.max(sessionData.exchanges.filter(e => e.userResponse).length, 1)) * 100)}%</td></tr>
+        <tr><td>Selected Difficulty</td><td>${currentDifficulty === 'hard' ? 'Hard Mode' : 'Normal Mode'}</td></tr>
+    </table>
+
+    <h2>Learning Recommendations</h2>
+    <ul>
+        <li>Continue regular practice</li>
+        <li>Try various business scenarios</li>
+        <li>Focus on grammar and vocabulary foundation</li>
+        <li>Actively use voice communication features</li>
+        <li>Practice areas that needed improvement in this session</li>
+        ${currentDifficulty === 'hard' ? '<li>Great job challenging yourself with Hard Mode! High standards lead to improvement.</li>' : '<li>After building your foundation in Normal Mode, try Hard Mode for additional challenge.</li>'}
+    </ul>
+
+    <div class="footer">
+        <p>Generated by Situational AI English</p>
+        <p>developed by T.H.</p>
+        <p>${new Date().toISOString()}</p>
+    </div>
+</body>
+</html>`;
+
+            try {
+                // Save as Word document
+                const blob = new Blob(['\ufeff', wordContent], { 
+                    type: 'application/msword;charset=utf-8' 
+                });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Situational_AI_English_Report_${new Date().toISOString().split('T')[0]}.doc`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                // Success message
+                showError('Word document download complete!');
+                
+            } catch (error) {
+                console.error('Download failed:', error);
+                showError('Failed to download report');
+            }
+        }
+
+        function restart() {
+            if (!requireAuth()) return;
+            
+            currentTurn = 0;
+            conversationHistory = [];
+            currentScenario = '';
+            currentDifficulty = 'normal';
+            sessionData = {
+                scenario: '',
+                difficulty: 'normal',
+                exchanges: [],
+                finalScore: 0,
+                finalFeedback: ''
+            };
+            
+            const scenario = document.getElementById('scenario');
+            const textResponse = document.getElementById('textResponse');
+            const conversation = document.getElementById('conversation');
+            const speechStatus = document.getElementById('speechStatus');
+            
+            if (scenario) scenario.value = '';
+            if (textResponse) textResponse.value = '';
+            if (conversation) conversation.innerHTML = '';
+            if (speechStatus) speechStatus.textContent = '';
+            
+            updateProgress();
+            
+            // Reset to difficulty selection
+            document.getElementById('reportSection').classList.add('hidden');
+            document.getElementById('reportSection').style.display = 'none';
+            document.getElementById('learningSection').classList.add('hidden');
+            document.getElementById('learningSection').style.display = 'none';
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('setupSection').style.display = 'none';
+            document.getElementById('difficultySelection').classList.remove('hidden');
+            document.getElementById('difficultySelection').style.display = 'block';
+            
+            // Clear difficulty selection
+            document.querySelectorAll('.difficulty-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.getElementById('selectedDifficultyInfo').classList.add('hidden');
+            document.getElementById('continueToScenario').classList.add('hidden');
+            
+            if (isRecording && recognition) {
+                recognition.stop();
+            }
+            isRecording = false;
+            updateVoiceButton();
+        }
+    </script>][0].transcript;
                     document.getElementById('textResponse').value = transcript;
                     document.getElementById('speechStatus').textContent = 'Recognition complete: ' + transcript;
                     console.log('Speech recognition result:', transcript);
