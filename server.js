@@ -12,35 +12,47 @@ app.use(express.static('public'));
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Function to call Gemini API
+// Function to call Gemini API (Gemini 1.5 Flash)
 async function callGeminiAPI(prompt, isEvaluation = false) {
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        console.log('Using Gemini 1.5 Flash model...');
+        
+        // Use Gemini 1.5 Flash model
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         
         // Add temperature settings for more consistent responses
         const generationConfig = {
-            temperature: isEvaluation ? 0.3 : 0.7, // Lower temperature for evaluations
+            temperature: isEvaluation ? 0.3 : 0.7,
             topK: 40,
             topP: 0.95,
-            maxOutputTokens: 1024,
+            maxOutputTokens: 2048,
         };
         
+        console.log('Sending request to Gemini API...');
         const result = await model.generateContent({
             contents: [{ role: "user", parts: [{ text: prompt }] }],
             generationConfig
         });
         
         const response = await result.response;
+        console.log('Gemini API response received successfully');
         return response.text();
     } catch (error) {
         console.error('Gemini API Error:', error);
+        
+        // More detailed error logging
+        if (error.status) {
+            console.error('API Status:', error.status);
+        }
+        if (error.message) {
+            console.error('API Message:', error.message);
+        }
+        
         throw new Error('AI service temporarily unavailable');
     }
 }
 
 // Improved Prompts
-
-// 1. Start Conversation Prompt
 function getStartConversationPrompt(scenario) {
     return `You are a professional business English conversation partner. 
 
@@ -61,7 +73,6 @@ EXAMPLE SCENARIOS:
 Please respond in English only.`;
 }
 
-// 2. Evaluate Response Prompt
 function getEvaluateResponsePrompt(userResponse, scenario, conversationContext) {
     return `You are a business English learning evaluator. Evaluate the user's response with these criteria:
 
@@ -104,7 +115,6 @@ Example bad feedback (avoid):
 "良い回答です。次の質問例：What do you think?" ← これは避ける`;
 }
 
-// 3. Continue Conversation Prompt
 function getContinueConversationPrompt(userResponse, scenario, conversationHistory) {
     return `You are a professional business conversation partner. Continue this conversation naturally.
 
@@ -127,7 +137,6 @@ Examples of good responses:
 Please respond in English only.`;
 }
 
-// 4. Generate Report Prompt
 function getGenerateReportPrompt(scenario, exchanges) {
     return `Generate a comprehensive learning report for this business English conversation session.
 
@@ -166,29 +175,11 @@ RESPONSE FORMAT (in Japanese):
 Keep the report encouraging but honest, focusing on practical improvement areas.`;
 }
 
-// 5. Fallback Prompt
-function getFallbackPrompt(userInput, context) {
-    return `You are a helpful business English assistant. The user is practicing business English conversation.
-
-USER INPUT: "${userInput}"
-CONTEXT: "${context}"
-
-Please provide an appropriate response in the format requested. If you cannot complete the specific task, provide a helpful alternative response that keeps the learning experience positive and productive.
-
-Default responses:
-- For conversation: Provide a simple business English response
-- For evaluation: "良い回答です。継続して練習を続けてください。"
-- For reports: Provide encouraging feedback with a score of 75/100
-
-Always maintain a supportive and professional tone.`;
-}
-
 // API Routes
-
-// Start conversation endpoint
 app.post('/api/start-conversation', async (req, res) => {
     try {
         const { scenario } = req.body;
+        console.log('Start conversation request:', { scenario });
         
         if (!scenario || scenario.trim().length === 0) {
             return res.status(400).json({ error: 'Scenario is required' });
@@ -197,42 +188,42 @@ app.post('/api/start-conversation', async (req, res) => {
         const prompt = getStartConversationPrompt(scenario);
         const response = await callGeminiAPI(prompt, false);
         
+        console.log('Start conversation success');
         res.json({ response: response.trim() });
     } catch (error) {
         console.error('Start conversation error:', error);
         
-        // Fallback response
         const fallbackResponse = "Hello! I'm ready to practice this business scenario with you. Please share your thoughts or questions about this situation.";
         res.json({ response: fallbackResponse });
     }
 });
 
-// Evaluate response endpoint
 app.post('/api/evaluate-response', async (req, res) => {
     try {
         const { userResponse, scenario, conversationContext } = req.body;
+        console.log('Evaluate response request:', { userResponse, scenario });
         
         if (!userResponse || userResponse.trim().length === 0) {
             return res.status(400).json({ error: 'User response is required' });
         }
 
         const prompt = getEvaluateResponsePrompt(userResponse, scenario, conversationContext);
-        const response = await callGeminiAPI(prompt, true); // Use evaluation mode
+        const response = await callGeminiAPI(prompt, true);
         
+        console.log('Evaluate response success');
         res.json({ response: response.trim() });
     } catch (error) {
         console.error('Evaluate response error:', error);
         
-        // Fallback response
         const fallbackResponse = "良い回答です。継続して練習を続けてください。";
         res.json({ response: fallbackResponse });
     }
 });
 
-// Continue conversation endpoint
 app.post('/api/continue-conversation', async (req, res) => {
     try {
         const { userResponse, scenario, conversationHistory } = req.body;
+        console.log('Continue conversation request:', { userResponse, scenario });
         
         if (!userResponse || userResponse.trim().length === 0) {
             return res.status(400).json({ error: 'User response is required' });
@@ -241,35 +232,36 @@ app.post('/api/continue-conversation', async (req, res) => {
         const prompt = getContinueConversationPrompt(userResponse, scenario, conversationHistory);
         const response = await callGeminiAPI(prompt, false);
         
+        console.log('Continue conversation success');
         res.json({ response: response.trim() });
     } catch (error) {
         console.error('Continue conversation error:', error);
         
-        // Fallback response
         const fallbackResponse = "That's interesting. Could you tell me more about your thoughts on this?";
         res.json({ response: fallbackResponse });
     }
 });
 
-// Generate report endpoint
 app.post('/api/generate-report', async (req, res) => {
     try {
         const { scenario, exchanges } = req.body;
+        console.log('Generate report request:', { scenario, exchangeCount: exchanges?.length });
         
         if (!exchanges || exchanges.length === 0) {
             return res.status(400).json({ error: 'Conversation data is required' });
         }
 
         const prompt = getGenerateReportPrompt(scenario, exchanges);
-        const response = await callGeminiAPI(prompt, true); // Use evaluation mode
+        const response = await callGeminiAPI(prompt, true);
         
-        // Extract score from response (basic parsing)
+        // Extract score from response
         let score = 75; // Default score
         const scoreMatch = response.match(/(\d+)\/100/);
         if (scoreMatch) {
             score = parseInt(scoreMatch[1]);
         }
         
+        console.log('Generate report success, score:', score);
         res.json({ 
             response: response.trim(),
             score: score 
@@ -277,8 +269,7 @@ app.post('/api/generate-report', async (req, res) => {
     } catch (error) {
         console.error('Generate report error:', error);
         
-        // Fallback response
-        const score = Math.max(60, Math.min(85, 75 + Math.random() * 10)); // Random score between 60-85
+        const score = Math.max(60, Math.min(85, 75 + Math.random() * 10));
         const fallbackResponse = `総合スコア: ${Math.round(score)}/100点
 
 【評価概要】
@@ -305,7 +296,9 @@ app.get('/api/health', (req, res) => {
     res.json({ 
         status: 'OK', 
         timestamp: new Date().toISOString(),
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
+        model: 'gemini-1.5-flash',
+        hasApiKey: !!process.env.GEMINI_API_KEY
     });
 });
 
@@ -330,9 +323,11 @@ app.use((req, res) => {
 
 // Start server
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`Gemini API configured: ${!!process.env.GEMINI_API_KEY}`);
+    console.log(`🚀 Server running on port ${port}`);
+    console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🤖 Model: gemini-1.5-flash`);
+    console.log(`🔑 Gemini API configured: ${!!process.env.GEMINI_API_KEY}`);
+    console.log(`🌐 Health check: http://localhost:${port}/api/health`);
 });
 
 module.exports = app;
