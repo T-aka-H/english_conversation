@@ -10,7 +10,7 @@
     },
     "dependencies": {
       "express": "^4.18.2",
-      "@google/generative-ai": "^0.1.3"
+      "@google/generative-ai": "^0.15.0"
     },
     "devDependencies": {
       "nodemon": "^3.0.1"
@@ -23,7 +23,8 @@
       "english",
       "learning",
       "conversation",
-      "business"
+      "business",
+      "gemini"
     ],
     "author": "Your Name",
     "license": "MIT"
