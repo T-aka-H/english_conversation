@@ -1,55 +1,251 @@
-// Enhanced security: Clear password from memory
-        function clearAuthData() {
-            const passwordInput = document.getElementById('passwordInput');
-            if (passwordInput) {
-                passwordInput.value = '';
-            }
-            // Reset authentication state
-            isAuthenticated = false;
-            console.log('🔄 Auth data cleared');
-        }        /* Difficulty Selection Styles */<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI English Learning</title>
+    <title>Situational AI English</title>
     <link rel="icon" href="data:,">
+    
+    <!-- IMMEDIATE AUTHENTICATION ENFORCEMENT -->
+    <script>
+        // Block access immediately
+        let isAuthenticated = false;
+        const CORRECT_PASSWORD = "2025_July";
+        
+        // Hide all content until authentication
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('BLOCKING ACCESS - Authentication required');
+            enforceAuthentication();
+        });
+        
+        function enforceAuthentication() {
+            // Force hide all screens except auth
+            const screens = ['difficultySelection', 'setupSection', 'learningSection', 'reportSection'];
+            screens.forEach(screenId => {
+                const screen = document.getElementById(screenId);
+                if (screen) {
+                    screen.style.display = 'none';
+                    screen.classList.add('hidden');
+                }
+            });
+            
+            // Force show auth screen
+            const authScreen = document.getElementById('authScreen');
+            if (authScreen) {
+                authScreen.style.display = 'block';
+                authScreen.classList.remove('hidden');
+            }
+            
+            // Focus password input
+            setTimeout(() => {
+                const passwordInput = document.getElementById('passwordInput');
+                if (passwordInput) {
+                    passwordInput.focus();
+                }
+            }, 100);
+        }
+    </script>
+    
     <style>
+        /* CRITICAL: Force authentication screen display */
+        #authScreen {
+            display: block !important;
+            visibility: visible !important;
+        }
+        
+        #difficultySelection,
+        #setupSection,
+        #learningSection,
+        #reportSection {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        
+        /* Base styles - Monochrome Cool Design */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            font-family: Arial, sans-serif; 
-            background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
             color: white; 
             padding: 20px; 
             min-height: 100vh;
         }
         .container { 
-            max-width: 480px; 
+            max-width: 600px; 
             margin: 0 auto; 
             background: rgba(255,255,255,0.05); 
-            padding: 30px; 
+            padding: 40px; 
             border-radius: 20px; 
             border: 1px solid rgba(255,255,255,0.1);
         }
+        
+        /* Authentication Styles */
+        .auth-container {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .auth-form {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .input-group label {
+            display: block;
+            color: #ffffff;
+            margin-bottom: 8px;
+            font-weight: 400;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 16px;
+            color: white;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #4A90E2;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .auth-error {
+            background: rgba(255, 87, 87, 0.2);
+            color: #ff6b6b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        
+        .auth-info {
+            margin-top: 25px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+        
+        /* Difficulty Selection Styles */
+        .difficulty-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 25px;
+            width: 250px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .difficulty-card:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .difficulty-card.selected {
+            border-color: #4A90E2;
+            background: rgba(74, 144, 226, 0.1);
+        }
+
+        .difficulty-card h3 {
+            color: white;
+            margin: 15px 0;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .difficulty-card p {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .difficulty-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .difficulty-card li {
+            color: rgba(255, 255, 255, 0.6);
+            margin: 5px 0;
+            font-size: 12px;
+        }
+
+        .difficulty-card li:before {
+            content: "• ";
+            color: #4A90E2;
+        }
+
+        .recommended {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        /* General Styles */
         .header h1 { 
             text-align: center; 
-            font-size: 28px; 
+            font-size: 32px; 
             margin-bottom: 20px; 
             color: white;
+            font-weight: 300;
+            letter-spacing: 1px;
         }
         .button { 
             width: 100%; 
             padding: 15px; 
-            background: linear-gradient(45deg, #3a3a3a, #5a5a5a); 
+            background: linear-gradient(135deg, #4A90E2, #357ABD);
             color: white; 
             border: none; 
-            border-radius: 12px; 
+            border-radius: 8px; 
             margin: 10px 0; 
             cursor: pointer; 
             font-size: 16px;
+            font-weight: 400;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
         }
         .button:hover { 
-            background: linear-gradient(45deg, #4a4a4a, #6a6a6a); 
+            background: linear-gradient(135deg, #357ABD, #2E6DA4);
+            transform: translateY(-1px);
+        }
+        .button.primary {
+            background: linear-gradient(135deg, #4A90E2, #357ABD);
+        }
+        .button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: auto;
+            padding: 10px 20px;
+            margin: 20px auto;
+            display: block;
+        }
+        .button.secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
         }
         textarea, input { 
             width: 100%; 
@@ -57,7 +253,7 @@
             background: rgba(255,255,255,0.05); 
             color: white; 
             border: 1px solid rgba(255,255,255,0.2); 
-            border-radius: 12px; 
+            border-radius: 8px; 
             font-family: inherit;
             margin: 5px 0;
         }
@@ -65,10 +261,16 @@
             min-height: 80px; 
             resize: vertical; 
         }
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #4A90E2;
+            background: rgba(255,255,255,0.1);
+        }
         label { 
             display: block; 
             margin: 10px 0 5px 0; 
             color: white; 
+            font-weight: 400;
         }
         .hidden { 
             display: none; 
@@ -82,13 +284,14 @@
         }
         .progress-fill { 
             height: 100%; 
-            background: linear-gradient(90deg, #4a4a4a, #9a9a9a); 
+            background: linear-gradient(90deg, #4A90E2, #357ABD); 
             width: 0%; 
             transition: width 0.5s ease; 
+            border-radius: 3px;
         }
         .turn-counter { 
             text-align: center; 
-            color: #ccc; 
+            color: rgba(255, 255, 255, 0.8); 
             margin-bottom: 20px; 
         }
         .conversation {
@@ -96,65 +299,66 @@
             overflow-y: auto;
             margin: 20px 0;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
+            border-radius: 12px;
             padding: 20px;
             background: rgba(0, 0, 0, 0.2);
         }
         .message {
             margin-bottom: 15px;
             padding: 15px;
-            border-radius: 12px;
+            border-radius: 8px;
             line-height: 1.6;
         }
         .message.ai {
             background: rgba(255, 255, 255, 0.05);
-            border-left: 4px solid #666666;
+            border-left: 3px solid #4A90E2;
         }
         .message.user {
-            background: rgba(255, 255, 255, 0.1);
-            border-left: 4px solid #999999;
+            background: rgba(255, 255, 255, 0.08);
+            border-left: 3px solid #666;
             text-align: right;
         }
         .message.feedback {
             background: rgba(255, 255, 255, 0.03);
-            border-left: 4px solid #444444;
+            border-left: 3px solid #888;
             font-style: italic;
-            color: #cccccc;
+            color: rgba(255, 255, 255, 0.8);
         }
         .error {
             color: #ff6b6b;
             background: rgba(255, 107, 107, 0.1);
             padding: 15px;
-            border-radius: 12px;
+            border-radius: 8px;
             margin: 10px 0;
             border: 1px solid rgba(255, 107, 107, 0.3);
         }
         .loading {
             text-align: center;
-            color: #cccccc;
+            color: rgba(255, 255, 255, 0.8);
             padding: 30px;
         }
         .speech-status {
             text-align: center;
             font-size: 14px;
-            color: #cccccc;
+            color: rgba(255, 255, 255, 0.7);
             margin: 10px 0;
             min-height: 20px;
             font-style: italic;
         }
         .voice-button.recording {
-            background: linear-gradient(45deg, #cc0000, #ff3333) !important;
+            background: linear-gradient(135deg, #E74C3C, #C0392B) !important;
         }
         .final-report {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
             padding: 30px;
             margin-top: 20px;
             text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .score {
             font-size: 64px;
-            font-weight: bold;
+            font-weight: 300;
             color: white;
             margin-bottom: 25px;
         }
@@ -162,39 +366,879 @@
             text-align: left;
             line-height: 1.6;
             margin-bottom: 30px;
-            color: #f0f0f0;
+            color: rgba(255, 255, 255, 0.9);
             white-space: pre-wrap;
             font-size: 14px;
             max-height: 400px;
             overflow-y: auto;
         }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🎯 AI English Learning</h1>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
+        <!-- Password Authentication Screen -->
+        <div id="authScreen">
+            <div class="auth-container">
+                <div class="header">
+                    <h1>Situational AI English</h1>
+                </div>
+                <p style="text-align: center; margin-bottom: 30px; font-size: 18px; color: rgba(255,255,255,0.8);">Access requires password authentication</p>
+                
+                <div class="auth-form">
+                    <div class="input-group">
+                        <label for="passwordInput">Enter Password:</label>
+                        <input 
+                            type="password" 
+                            id="passwordInput" 
+                            placeholder="Enter password..."
+                            onkeypress="handlePasswordKeyPress(event)"
+                            autocomplete="off"
+                        >
+                    </div>
+                    
+                    <button class="button primary" onclick="checkPassword()">
+                        Login
+                    </button>
+                    
+                    <div id="authError" class="auth-error" style="display: none;">
+                        Incorrect password
+                    </div>
+                </div>
+                
+                <div class="auth-info">
+                    <p>This application is password protected</p>
+                    <p>After authentication, enjoy business English conversation practice</p>
+                </div>
             </div>
-            <div class="turn-counter" id="turnCounter">Turn 0 / 10</div>
         </div>
 
-        <div id="error" class="error hidden"></div>
-        <div id="waitingForAI" class="loading hidden">
-            <div style="width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-left: 4px solid #666; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
-            AIが回答を生成中...
-        </div>
+        <!-- Main Learning Interface -->
+        <div id="setupSection" class="hidden">
+            <div class="header">
+                <h1>Situational AI English</h1>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="turn-counter" id="turnCounter">Turn 0 / 10</div>
+            </div>
 
-        <!-- Setup Section -->
-        <div id="setupSection" class="input-section">
-            <label for="scenario">練習したいビジネスシナリオを入力してください：</label>
-            <textarea id="scenario" placeholder="例：会議での意見交換、プレゼンテーション、顧客との電話対応、新しいプロジェクトの提案など..."></textarea>
-            <button class="button" onclick="startLearning()">🚀 学習開始</button>
+            <div id="error" class="error hidden"></div>
+            <div id="waitingForAI" class="loading hidden">
+                <div style="width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-left: 4px solid #4A90E2; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                AI is generating response...
+            </div>
+
+            <div class="input-section">
+                <label for="scenario">Enter business scenario for practice:</label>
+                <textarea id="scenario" placeholder="Example: Meeting discussion, presentation, client phone call, new project proposal..."></textarea>
+                <button class="button" onclick="startLearning()">Start Learning</button>
+            </div>
+            
+            <button class="button secondary" onclick="backToDifficulty()">Back to Difficulty Selection</button>
         </div>
 
         <!-- Learning Section -->
         <div id="learningSection" class="hidden">
+            <div class="header">
+                <h1>Situational AI English</h1>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill2"></div>
+                </div>
+                <div class="turn-counter" id="turnCounter2">Turn 0 / 10</div>
+            </div>
+            
+            <div id="error2" class="error hidden"></div>
+            <div id="waitingForAI2" class="loading hidden">
+                <div style="width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-left: 4px solid #4A90E2; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                AI is generating response...
+            </div>
+
+            <div class="conversation" id="conversation"></div>
+            
+            <div id="responseSection" class="hidden">
+                <label for="textResponse">Your response (English):</label>
+                <textarea id="textResponse" placeholder="Please respond in English..."></textarea>
+                
+                <button class="button voice-button" id="voiceButton" onclick="toggleRecording()">
+                    <span id="voiceButtonText">Voice Response</span>
+                </button>
+                
+                <div class="speech-status" id="speechStatus"></div>
+                
+                <button class="button" onclick="submitResponse()">Submit Response</button>
+            </div>
+        </div>
+
+        <!-- Report Section -->
+        <div id="reportSection" class="hidden">
+            <div class="final-report">
+                <h2>Final Report</h2>
+                <div class="score" id="finalScore">75/100</div>
+                <div class="feedback-content" id="finalFeedback"></div>
+                <div class="report-actions">
+                    <button class="button" onclick="downloadReport()">Download Word Report</button>
+                    <button class="button" onclick="restart()">Start New Session</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            developed by T.H.
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTurn = 0;
+        let conversationHistory = [];
+        let isRecording = false;
+        let recognition;
+        let currentScenario = '';
+        let currentDifficulty = 'normal';
+        let sessionData = {
+            scenario: '',
+            difficulty: 'normal',
+            exchanges: [],
+            finalScore: 0,
+            finalFeedback: ''
+        };
+
+        // Password authentication functions
+        function handlePasswordKeyPress(event) {
+            if (event.key === 'Enter') {
+                checkPassword();
+            }
+        }
+
+        function checkPassword() {
+            const enteredPassword = document.getElementById('passwordInput').value.trim();
+            const errorDiv = document.getElementById('authError');
+            
+            console.log('Password check attempt...');
+            
+            if (enteredPassword === CORRECT_PASSWORD) {
+                console.log('Password correct, authenticating...');
+                isAuthenticated = true;
+                errorDiv.style.display = 'none';
+                
+                const button = document.querySelector('.button.primary');
+                const originalText = button.textContent;
+                button.textContent = 'Authentication Success';
+                button.style.background = 'linear-gradient(135deg, #27AE60, #2ECC71)';
+                
+                setTimeout(() => {
+                    console.log('Transitioning to difficulty selection...');
+                    document.getElementById('authScreen').style.display = 'none';
+                    document.getElementById('authScreen').classList.add('hidden');
+                    document.getElementById('difficultySelection').style.display = 'block';
+                    document.getElementById('difficultySelection').classList.remove('hidden');
+                }, 1000);
+                
+            } else {
+                console.log('Incorrect password');
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'Incorrect password';
+                
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+                
+                errorDiv.style.animation = 'none';
+                setTimeout(() => {
+                    errorDiv.style.animation = 'shake 0.5s ease-in-out';
+                }, 10);
+            }
+        }
+
+        function requireAuth() {
+            if (!isAuthenticated) {
+                console.log('Access denied - showing auth screen');
+                enforceAuthentication();
+                showError('Authentication required. Please enter the correct password.');
+                return false;
+            }
+            return true;
+        }
+
+        // Difficulty selection functions
+        function selectDifficulty(difficulty) {
+            if (!requireAuth()) return;
+            
+            currentDifficulty = difficulty;
+            sessionData.difficulty = difficulty;
+            
+            document.querySelectorAll('.difficulty-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            if (difficulty === 'normal') {
+                document.querySelector('.normal-mode').classList.add('selected');
+                document.getElementById('selectedDifficultyDisplay').textContent = 'Normal Mode Selected';
+            } else {
+                document.querySelector('.hard-mode').classList.add('selected');
+                document.getElementById('selectedDifficultyDisplay').textContent = 'Hard Mode Selected';
+            }
+            
+            document.getElementById('selectedDifficultyInfo').classList.remove('hidden');
+            document.getElementById('continueToScenario').classList.remove('hidden');
+        }
+
+        function showScenarioSetup() {
+            document.getElementById('difficultySelection').classList.add('hidden');
+            document.getElementById('setupSection').classList.remove('hidden');
+            initSpeechRecognition();
+            updateProgress();
+        }
+
+        function backToDifficulty() {
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('difficultySelection').classList.remove('hidden');
+        }
+
+        // Initialize speech recognition
+        function initSpeechRecognition() {
+            console.log('Initializing speech recognition...');
+            
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                console.log('Speech recognition initialized successfully');
+                
+                recognition.lang = 'en-US';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                
+                recognition.onstart = () => {
+                    console.log('Speech recognition started');
+                    document.getElementById('speechStatus').textContent = 'Listening...';
+                };
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('textResponse').value = transcript;
+                    document.getElementById('speechStatus').textContent = 'Recognition complete: ' + transcript;
+                    console.log('Speech recognition result:', transcript);
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    let errorMessage = 'Speech recognition error: ';
+                    switch(event.error) {
+                        case 'network':
+                            errorMessage += 'Network error';
+                            break;
+                        case 'not-allowed':
+                            errorMessage += 'Microphone access denied';
+                            break;
+                        case 'no-speech':
+                            errorMessage += 'No speech detected';
+                            break;
+                        default:
+                            errorMessage += event.error;
+                    }
+                    document.getElementById('speechStatus').textContent = errorMessage;
+                };
+                
+                recognition.onend = () => {
+                    console.log('Speech recognition ended');
+                    isRecording = false;
+                    updateVoiceButton();
+                };
+            } else {
+                console.log('Speech recognition not supported');
+                const voiceButton = document.getElementById('voiceButton');
+                if (voiceButton) {
+                    voiceButton.disabled = true;
+                    document.getElementById('speechStatus').textContent = 'Speech recognition not supported in this browser';
+                }
+            }
+        }
+
+        function updateVoiceButton() {
+            const button = document.getElementById('voiceButton');
+            const text = document.getElementById('voiceButtonText');
+            
+            if (button && text) {
+                if (isRecording) {
+                    button.classList.add('recording');
+                    text.textContent = 'Stop Recording';
+                } else {
+                    button.classList.remove('recording');
+                    text.textContent = 'Voice Response';
+                }
+            }
+        }
+
+        function toggleRecording() {
+            if (!recognition) {
+                showError('Speech recognition not supported');
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+                document.getElementById('speechStatus').textContent = 'Stopping speech recognition...';
+            } else {
+                document.getElementById('textResponse').value = '';
+                document.getElementById('speechStatus').textContent = 'Starting speech recognition...';
+                try {
+                    recognition.start();
+                    isRecording = true;
+                    updateVoiceButton();
+                } catch (error) {
+                    console.error('Failed to start recognition:', error);
+                    showError('Failed to start speech recognition: ' + error.message);
+                }
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentTurn / 10) * 100;
+            const progressFill = document.getElementById('progressFill');
+            const progressFill2 = document.getElementById('progressFill2');
+            const turnCounter = document.getElementById('turnCounter');
+            const turnCounter2 = document.getElementById('turnCounter2');
+            
+            if (progressFill) progressFill.style.width = progress + '%';
+            if (progressFill2) progressFill2.style.width = progress + '%';
+            if (turnCounter) turnCounter.textContent = `Turn ${currentTurn} / 10`;
+            if (turnCounter2) turnCounter2.textContent = `Turn ${currentTurn} / 10`;
+        }
+
+        function addMessage(content, type) {
+            const conversation = document.getElementById('conversation');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = content;
+            conversation.appendChild(message);
+            conversation.scrollTop = conversation.scrollHeight;
+            
+            conversationHistory.push({
+                type: type,
+                content: content,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error') || document.getElementById('error2');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('hidden');
+                setTimeout(() => {
+                    errorDiv.classList.add('hidden');
+                }, 5000);
+            }
+        }
+
+        function showLoading(show = true) {
+            const loadingDiv = document.getElementById('waitingForAI') || document.getElementById('waitingForAI2');
+            if (loadingDiv) {
+                if (show) {
+                    loadingDiv.classList.remove('hidden');
+                } else {
+                    loadingDiv.classList.add('hidden');
+                }
+            }
+        }
+
+        async function callAPI(endpoint, data) {
+            try {
+                console.log(`Calling API: ${endpoint}`, data);
+                
+                const requestData = {
+                    ...data,
+                    password: CORRECT_PASSWORD,
+                    difficulty: currentDifficulty
+                };
+                
+                const response = await fetch(`/api/${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Authentication error: Invalid password');
+                    }
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log(`API response from ${endpoint}:`, result);
+                return result;
+            } catch (error) {
+                console.error('API call failed:', error);
+                throw error;
+            }
+        }
+
+        async function startLearning() {
+            if (!requireAuth()) return;
+            
+            const scenario = document.getElementById('scenario').value.trim();
+            if (!scenario) {
+                showError('Please enter a scenario');
+                return;
+            }
+
+            currentScenario = scenario;
+            sessionData.scenario = scenario;
+            sessionData.exchanges = [];
+            
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('learningSection').classList.remove('hidden');
+            
+            showLoading(true);
+            
+            try {
+                const result = await callAPI('start-conversation', { scenario });
+                
+                addMessage(result.response, 'ai');
+                
+                sessionData.exchanges.push({
+                    turn: currentTurn,
+                    aiMessage: result.response,
+                    userResponse: '',
+                    feedback: '',
+                    needsImprovement: false
+                });
+                
+                document.getElementById('responseSection').classList.remove('hidden');
+                showLoading(false);
+                
+            } catch (error) {
+                showError('Failed to start conversation: ' + error.message);
+                showLoading(false);
+                document.getElementById('learningSection').classList.add('hidden');
+                document.getElementById('setupSection').classList.remove('hidden');
+            }
+        }
+
+        async function submitResponse() {
+            if (!requireAuth()) return;
+            
+            const userResponse = document.getElementById('textResponse').value.trim();
+            if (!userResponse) {
+                showError('Please enter a response');
+                return;
+            }
+
+            addMessage(userResponse, 'user');
+            document.getElementById('responseSection').classList.add('hidden');
+            showLoading(true);
+
+            try {
+                const conversationContext = conversationHistory
+                    .slice(-4)
+                    .map(msg => `${msg.type}: ${msg.content}`)
+                    .join('\n');
+
+                const evaluationResult = await callAPI('evaluate-response', {
+                    userResponse,
+                    scenario: currentScenario,
+                    conversationContext,
+                    difficulty: currentDifficulty
+                });
+                
+                const feedback = evaluationResult.response;
+                addMessage(feedback, 'feedback');
+                
+                if (sessionData.exchanges.length > 0) {
+                    const lastExchange = sessionData.exchanges[sessionData.exchanges.length - 1];
+                    lastExchange.userResponse = userResponse;
+                    lastExchange.feedback = feedback;
+                }
+                
+                // Check if response needs improvement (more lenient criteria)
+                const needsImprovement = feedback.includes('以下のように修正') || 
+                                       feedback.includes('正しくは') ||
+                                       feedback.includes('間違っています') ||
+                                       feedback.includes('文法エラー');
+                
+                if (needsImprovement) {
+                    if (sessionData.exchanges.length > 0) {
+                        sessionData.exchanges[sessionData.exchanges.length - 1].needsImprovement = true;
+                    }
+                    
+                    document.getElementById('textResponse').value = '';
+                    document.getElementById('speechStatus').textContent = '';
+                    document.getElementById('responseSection').classList.remove('hidden');
+                    showLoading(false);
+                } else {
+                    currentTurn++;
+                    updateProgress();
+                    
+                    if (currentTurn >= 10) {
+                        await generateFinalReport();
+                    } else {
+                        const continueResult = await callAPI('continue-conversation', {
+                            userResponse,
+                            scenario: currentScenario,
+                            conversationHistory: conversationHistory.slice(-6).map(msg => `${msg.type}: ${msg.content}`).join('\n')
+                        });
+                        
+                        addMessage(continueResult.response, 'ai');
+                        
+                        sessionData.exchanges.push({
+                            turn: currentTurn,
+                            aiMessage: continueResult.response,
+                            userResponse: '',
+                            feedback: '',
+                            needsImprovement: false
+                        });
+                        
+                        document.getElementById('textResponse').value = '';
+                        document.getElementById('speechStatus').textContent = '';
+                        document.getElementById('responseSection').classList.remove('hidden');
+                        showLoading(false);
+                    }
+                }
+                
+            } catch (error) {
+                showError('Failed to evaluate response: ' + error.message);
+                document.getElementById('responseSection').classList.remove('hidden');
+                showLoading(false);
+            }
+        }
+
+        async function generateFinalReport() {
+            if (!requireAuth()) return;
+            
+            document.getElementById('learningSection').classList.add('hidden');
+            showLoading(true);
+            
+            try {
+                const reportResult = await callAPI('generate-report', {
+                    scenario: currentScenario,
+                    difficulty: currentDifficulty,
+                    exchanges: sessionData.exchanges
+                });
+                
+                sessionData.finalScore = reportResult.score || 75;
+                sessionData.finalFeedback = reportResult.response;
+                
+                document.getElementById('finalScore').textContent = `${sessionData.finalScore}/100`;
+                document.getElementById('finalFeedback').textContent = sessionData.finalFeedback;
+                
+                showLoading(false);
+                document.getElementById('reportSection').classList.remove('hidden');
+                
+            } catch (error) {
+                showError('Failed to generate report: ' + error.message);
+                showLoading(false);
+                sessionData.finalScore = 75;
+                sessionData.finalFeedback = 'Sorry, detailed report generation failed. However, your English learning effort was excellent. Please continue practicing.';
+                
+                document.getElementById('finalScore').textContent = `${sessionData.finalScore}/100`;
+                document.getElementById('finalFeedback').textContent = sessionData.finalFeedback;
+                document.getElementById('reportSection').classList.remove('hidden');
+            }
+        }
+
+        function downloadReport() {
+            if (!requireAuth()) return;
+            
+            const timestamp = new Date().toLocaleString('en-US');
+            
+            // Word document HTML structure
+            const wordContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: "Segoe UI", Arial, sans-serif; line-height: 1.6; margin: 40px; color: #333; }
+        h1 { color: #2E5984; border-bottom: 3px solid #2E5984; padding-bottom: 10px; }
+        h2 { color: #2E5984; border-left: 5px solid #2E5984; padding-left: 15px; margin-top: 30px; }
+        h3 { color: #4A6FA5; margin-top: 25px; }
+        .header-info { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        .score-box { background-color: #e8f4fd; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
+        .score-large { font-size: 48px; font-weight: bold; color: #2E5984; }
+        .conversation-turn { margin-bottom: 25px; border-left: 3px solid #ddd; padding-left: 15px; }
+        .ai-message { background-color: #f0f8ff; padding: 12px; border-radius: 8px; margin: 8px 0; }
+        .user-message { background-color: #fff8f0; padding: 12px; border-radius: 8px; margin: 8px 0; }
+        .feedback-message { background-color: #f8f8f8; padding: 12px; border-radius: 8px; margin: 8px 0; font-style: italic; }
+        .message-label { font-weight: bold; color: #2E5984; margin-bottom: 5px; }
+        .stats-table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        .stats-table th, .stats-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        .stats-table th { background-color: #f2f2f2; font-weight: bold; }
+        .improvement-needed { color: #d9534f; font-weight: bold; }
+        .good-response { color: #5cb85c; font-weight: bold; }
+        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>Situational AI English - Learning Report</h1>
+    
+    <div class="header-info">
+        <p><strong>Learning Date:</strong> ${timestamp}</p>
+        <p><strong>Practice Scenario:</strong> ${sessionData.scenario}</p>
+        <p><strong>Completed Turns:</strong> ${currentTurn} / 10</p>
+        <p><strong>Difficulty Level:</strong> ${currentDifficulty === 'hard' ? 'Hard Mode' : 'Normal Mode'}</p>
+    </div>
+
+    <div class="score-box">
+        <h2>Overall Evaluation</h2>
+        <div class="score-large">${sessionData.finalScore}/100</div>
+    </div>
+
+    <h2>Comprehensive Feedback</h2>
+    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; white-space: pre-wrap;">${sessionData.finalFeedback}</div>
+
+    <h2>Conversation History</h2>
+    ${sessionData.exchanges.map((exchange, index) => `
+        <div class="conversation-turn">
+            <h3>Turn ${index + 1}</h3>
+            
+            <div class="ai-message">
+                <div class="message-label">AI:</div>
+                ${exchange.aiMessage}
+            </div>
+            
+            ${exchange.userResponse ? `
+                <div class="user-message">
+                    <div class="message-label">Your Response:</div>
+                    ${exchange.userResponse}
+                </div>
+            ` : '<div style="color: #999; font-style: italic;">(No response)</div>'}
+            
+            ${exchange.feedback ? `
+                <div class="feedback-message">
+                    <div class="message-label">Feedback:</div>
+                    ${exchange.feedback}
+                </div>
+            ` : ''}
+            
+            <div style="margin-top: 10px;">
+                <span class="${exchange.needsImprovement ? 'improvement-needed' : 'good-response'}">
+                    ${exchange.needsImprovement ? 'Improvement needed' : 'Good response'}
+                </span>
+            </div>
+        </div>
+    `).join('')}
+
+    <h2>Learning Statistics</h2>
+    <table class="stats-table">
+        <tr><th>Item</th><th>Result</th></tr>
+        <tr><td>Completed Turns</td><td>${currentTurn} / 10</td></tr>
+        <tr><td>Responses Needing Improvement</td><td>${sessionData.exchanges.filter(e => e.needsImprovement).length} times</td></tr>
+        <tr><td>Successful First Attempts</td><td>${sessionData.exchanges.filter(e => !e.needsImprovement && e.userResponse).length} times</td></tr>
+        <tr><td>Overall Success Rate</td><td>${Math.round((sessionData.exchanges.filter(e => !e.needsImprovement && e.userResponse).length / Math.max(sessionData.exchanges.filter(e => e.userResponse).length, 1)) * 100)}%</td></tr>
+        <tr><td>Selected Difficulty</td><td>${currentDifficulty === 'hard' ? 'Hard Mode' : 'Normal Mode'}</td></tr>
+    </table>
+
+    <h2>Learning Recommendations</h2>
+    <ul>
+        <li>Continue regular practice</li>
+        <li>Try various business scenarios</li>
+        <li>Focus on grammar and vocabulary foundation</li>
+        <li>Actively use voice communication features</li>
+        <li>Practice areas that needed improvement in this session</li>
+        ${currentDifficulty === 'hard' ? '<li>Great job challenging yourself with Hard Mode! High standards lead to improvement.</li>' : '<li>After building your foundation in Normal Mode, try Hard Mode for additional challenge.</li>'}
+    </ul>
+
+    <div class="footer">
+        <p>Generated by Situational AI English</p>
+        <p>developed by T.H.</p>
+        <p>${new Date().toISOString()}</p>
+    </div>
+</body>
+</html>`;
+
+            try {
+                // Save as Word document
+                const blob = new Blob(['\ufeff', wordContent], { 
+                    type: 'application/msword;charset=utf-8' 
+                });
+                
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Situational_AI_English_Report_${new Date().toISOString().split('T')[0]}.doc`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                // Success message
+                showError('Word document download complete!');
+                
+            } catch (error) {
+                console.error('Download failed:', error);
+                showError('Failed to download report');
+            }
+        }
+
+        function restart() {
+            if (!requireAuth()) return;
+            
+            currentTurn = 0;
+            conversationHistory = [];
+            currentScenario = '';
+            currentDifficulty = 'normal';
+            sessionData = {
+                scenario: '',
+                difficulty: 'normal',
+                exchanges: [],
+                finalScore: 0,
+                finalFeedback: ''
+            };
+            
+            document.getElementById('scenario').value = '';
+            document.getElementById('textResponse').value = '';
+            document.getElementById('conversation').innerHTML = '';
+            document.getElementById('speechStatus').textContent = '';
+            
+            updateProgress();
+            
+            // Reset to difficulty selection
+            document.getElementById('reportSection').classList.add('hidden');
+            document.getElementById('learningSection').classList.add('hidden');
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('difficultySelection').classList.remove('hidden');
+            
+            // Clear difficulty selection
+            document.querySelectorAll('.difficulty-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.getElementById('selectedDifficultyInfo').classList.add('hidden');
+            document.getElementById('continueToScenario').classList.add('hidden');
+            
+            if (isRecording && recognition) {
+                recognition.stop();
+            }
+            isRecording = false;
+            updateVoiceButton();
+        }
+    </script>
+</body>
+</html>
+                    <button class="button primary" onclick="checkPassword()">
+                        🚀 ログイン
+                    </button>
+                    
+                    <div id="authError" class="auth-error" style="display: none;">
+                        ❌ パスワードが正しくありません
+                    </div>
+                </div>
+                
+                <div class="auth-info">
+                    <p>💡 このアプリケーションはパスワードで保護されています</p>
+                    <p>🎯 認証後、ビジネス英語会話練習をお楽しみいただけます</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Difficulty Selection Screen -->
+        <div id="difficultySelection" class="hidden">
+            <div class="header">
+                <h1>🎯 AI English Learning</h1>
+            </div>
+            
+            <h2 style="text-align: center; margin-bottom: 30px;">📊 難易度を選択してください</h2>
+            
+            <div class="difficulty-options">
+                <div class="difficulty-card normal-mode" onclick="selectDifficulty('normal')">
+                    <div class="difficulty-icon">😊</div>
+                    <h3>ノーマルモード</h3>
+                    <p>基本的なコミュニケーションができれば評価</p>
+                    <ul>
+                        <li>意思疎通重視</li>
+                        <li>簡単な文法ミスは許容</li>
+                        <li>ビジネストーンをチェック</li>
+                    </ul>
+                    <span class="recommended">推奨: 初級〜中級者</span>
+                </div>
+                
+                <div class="difficulty-card hard-mode" onclick="selectDifficulty('hard')">
+                    <div class="difficulty-icon">🔥</div>
+                    <h3>ハードモード</h3>
+                    <p>高いレベルの正確性と表現力を要求</p>
+                    <ul>
+                        <li>文法の正確性重視</li>
+                        <li>適切な語彙選択</li>
+                        <li>洗練されたビジネス表現</li>
+                    </ul>
+                    <span class="recommended">推奨: 中級〜上級者</span>
+                </div>
+            </div>
+            
+            <div id="selectedDifficultyInfo" class="hidden" style="text-align: center; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+                <span id="selectedDifficultyDisplay" style="color: #FFD700; font-weight: bold; font-size: 18px;"></span>
+            </div>
+            
+            <button class="button secondary hidden" id="continueToScenario" onclick="showScenarioSetup()">💼 シナリオ選択に進む</button>
+        </div>
+
+        <!-- Main Learning Interface -->
+        <div id="setupSection" class="hidden">
+            <div class="header">
+                <h1>🎯 AI English Learning</h1>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="turn-counter" id="turnCounter">Turn 0 / 10</div>
+            </div>
+
+            <div id="error" class="error hidden"></div>
+            <div id="waitingForAI" class="loading hidden">
+                <div style="width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-left: 4px solid #4CAF50; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                AIが回答を生成中...
+            </div>
+
+            <div class="input-section">
+                <label for="scenario">練習したいビジネスシナリオを入力してください：</label>
+                <textarea id="scenario" placeholder="例：会議での意見交換、プレゼンテーション、顧客との電話対応、新しいプロジェクトの提案など..."></textarea>
+                <button class="button" onclick="startLearning()">🚀 学習開始</button>
+            </div>
+            
+            <button class="button secondary" onclick="backToDifficulty()">← 難易度選択に戻る</button>
+        </div>
+
+        <!-- Learning Section -->
+        <div id="learningSection" class="hidden">
+            <div class="header">
+                <h1>🎯 AI English Learning</h1>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill2"></div>
+                </div>
+                <div class="turn-counter" id="turnCounter2">Turn 0 / 10</div>
+            </div>
+            
+            <div id="error2" class="error hidden"></div>
+            <div id="waitingForAI2" class="loading hidden">
+                <div style="width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2); border-left: 4px solid #4CAF50; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+                AIが回答を生成中...
+            </div>
+
             <div class="conversation" id="conversation"></div>
             
             <div id="responseSection" class="hidden">
@@ -232,30 +1276,109 @@
         let isRecording = false;
         let recognition;
         let currentScenario = '';
+        let currentDifficulty = 'normal';
         let sessionData = {
             scenario: '',
+            difficulty: 'normal',
             exchanges: [],
             finalScore: 0,
             finalFeedback: ''
         };
 
-        // Initialize the app when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
+        // Password authentication functions
+        function handlePasswordKeyPress(event) {
+            if (event.key === 'Enter') {
+                checkPassword();
+            }
+        }
+
+        function checkPassword() {
+            const enteredPassword = document.getElementById('passwordInput').value.trim();
+            const errorDiv = document.getElementById('authError');
+            
+            console.log('🔐 Password check attempt...');
+            
+            if (enteredPassword === CORRECT_PASSWORD) {
+                console.log('✅ Password correct, authenticating...');
+                isAuthenticated = true;
+                errorDiv.style.display = 'none';
+                
+                const button = document.querySelector('.button.primary');
+                const originalText = button.textContent;
+                button.textContent = '✅ 認証成功！';
+                button.style.background = 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)';
+                
+                setTimeout(() => {
+                    console.log('🚀 Transitioning to difficulty selection...');
+                    document.getElementById('authScreen').style.display = 'none';
+                    document.getElementById('authScreen').classList.add('hidden');
+                    document.getElementById('difficultySelection').style.display = 'block';
+                    document.getElementById('difficultySelection').classList.remove('hidden');
+                }, 1000);
+                
+            } else {
+                console.log('❌ Incorrect password');
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = '❌ パスワードが正しくありません';
+                
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+                
+                errorDiv.style.animation = 'none';
+                setTimeout(() => {
+                    errorDiv.style.animation = 'shake 0.5s ease-in-out';
+                }, 10);
+            }
+        }
+
+        function requireAuth() {
+            if (!isAuthenticated) {
+                console.log('🚫 Access denied - showing auth screen');
+                enforceAuthentication();
+                showError('認証が必要です。正しいパスワードを入力してください。');
+                return false;
+            }
+            return true;
+        }
+
+        // Difficulty selection functions
+        function selectDifficulty(difficulty) {
+            if (!requireAuth()) return;
+            
+            currentDifficulty = difficulty;
+            sessionData.difficulty = difficulty;
+            
+            document.querySelectorAll('.difficulty-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            if (difficulty === 'normal') {
+                document.querySelector('.normal-mode').classList.add('selected');
+                document.getElementById('selectedDifficultyDisplay').textContent = '😊 ノーマルモード選択済み';
+            } else {
+                document.querySelector('.hard-mode').classList.add('selected');
+                document.getElementById('selectedDifficultyDisplay').textContent = '🔥 ハードモード選択済み';
+            }
+            
+            document.getElementById('selectedDifficultyInfo').classList.remove('hidden');
+            document.getElementById('continueToScenario').classList.remove('hidden');
+        }
+
+        function showScenarioSetup() {
+            document.getElementById('difficultySelection').classList.add('hidden');
+            document.getElementById('setupSection').classList.remove('hidden');
             initSpeechRecognition();
             updateProgress();
-        });
+        }
+
+        function backToDifficulty() {
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('difficultySelection').classList.remove('hidden');
+        }
 
         // Initialize speech recognition
         function initSpeechRecognition() {
             console.log('Initializing speech recognition...');
-            console.log('User Agent:', navigator.userAgent);
-            console.log('HTTPS:', location.protocol === 'https:');
-            console.log('webkitSpeechRecognition:', 'webkitSpeechRecognition' in window);
-            console.log('SpeechRecognition:', 'SpeechRecognition' in window);
-            
-            // Safari detection
-            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-            console.log('Safari detected:', isSafari);
             
             if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -266,12 +1389,6 @@
                 recognition.continuous = false;
                 recognition.interimResults = false;
                 recognition.maxAlternatives = 1;
-                
-                // Safari-specific settings
-                if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
-                    console.log('Applying Safari-specific settings');
-                    recognition.continuous = false; // Force single utterance for Safari
-                }
                 
                 recognition.onstart = () => {
                     console.log('Speech recognition started');
@@ -311,13 +1428,10 @@
                 };
             } else {
                 console.log('Speech recognition not supported');
-                document.getElementById('voiceButton').disabled = true;
-                
-                // Browser-specific error messages
-                if (/^((?!chrome|android).)*safari/i.test(navigator.userAgent)) {
-                    document.getElementById('speechStatus').textContent = '⚠️ Safari: 音声認識は制限があります。Chrome/Edgeを推奨します';
-                } else {
-                    document.getElementById('speechStatus').textContent = '⚠️ このブラウザは音声認識をサポートしていません。Chrome/Edgeを使用してください';
+                const voiceButton = document.getElementById('voiceButton');
+                if (voiceButton) {
+                    voiceButton.disabled = true;
+                    document.getElementById('speechStatus').textContent = '⚠️ このブラウザは音声認識をサポートしていません';
                 }
             }
         }
@@ -326,37 +1440,33 @@
             const button = document.getElementById('voiceButton');
             const text = document.getElementById('voiceButtonText');
             
-            if (isRecording) {
-                button.classList.add('recording');
-                text.textContent = '⏹️ 録音停止';
-            } else {
-                button.classList.remove('recording');
-                text.textContent = '🎤 音声で回答';
+            if (button && text) {
+                if (isRecording) {
+                    button.classList.add('recording');
+                    text.textContent = '⏹️ 録音停止';
+                } else {
+                    button.classList.remove('recording');
+                    text.textContent = '🎤 音声で回答';
+                }
             }
         }
 
         function toggleRecording() {
-            console.log('toggleRecording called, isRecording:', isRecording);
-            console.log('recognition object:', recognition);
-            
             if (!recognition) {
                 showError('音声認識がサポートされていません');
                 return;
             }
 
             if (isRecording) {
-                console.log('Stopping recognition...');
                 recognition.stop();
                 document.getElementById('speechStatus').textContent = '🔄 音声認識を停止しています...';
             } else {
-                console.log('Starting recognition...');
                 document.getElementById('textResponse').value = '';
                 document.getElementById('speechStatus').textContent = '🎤 音声認識を開始しています...';
                 try {
                     recognition.start();
                     isRecording = true;
                     updateVoiceButton();
-                    console.log('Recognition started successfully');
                 } catch (error) {
                     console.error('Failed to start recognition:', error);
                     showError('音声認識の開始に失敗しました: ' + error.message);
@@ -366,8 +1476,15 @@
 
         function updateProgress() {
             const progress = (currentTurn / 10) * 100;
-            document.getElementById('progressFill').style.width = progress + '%';
-            document.getElementById('turnCounter').textContent = `Turn ${currentTurn} / 10`;
+            const progressFill = document.getElementById('progressFill');
+            const progressFill2 = document.getElementById('progressFill2');
+            const turnCounter = document.getElementById('turnCounter');
+            const turnCounter2 = document.getElementById('turnCounter2');
+            
+            if (progressFill) progressFill.style.width = progress + '%';
+            if (progressFill2) progressFill2.style.width = progress + '%';
+            if (turnCounter) turnCounter.textContent = `Turn ${currentTurn} / 10`;
+            if (turnCounter2) turnCounter2.textContent = `Turn ${currentTurn} / 10`;
         }
 
         function addMessage(content, type) {
@@ -386,20 +1503,24 @@
         }
 
         function showError(message) {
-            const errorDiv = document.getElementById('error');
-            errorDiv.textContent = message;
-            errorDiv.classList.remove('hidden');
-            setTimeout(() => {
-                errorDiv.classList.add('hidden');
-            }, 5000);
+            const errorDiv = document.getElementById('error') || document.getElementById('error2');
+            if (errorDiv) {
+                errorDiv.textContent = message;
+                errorDiv.classList.remove('hidden');
+                setTimeout(() => {
+                    errorDiv.classList.add('hidden');
+                }, 5000);
+            }
         }
 
         function showLoading(show = true) {
-            const loadingDiv = document.getElementById('waitingForAI');
-            if (show) {
-                loadingDiv.classList.remove('hidden');
-            } else {
-                loadingDiv.classList.add('hidden');
+            const loadingDiv = document.getElementById('waitingForAI') || document.getElementById('waitingForAI2');
+            if (loadingDiv) {
+                if (show) {
+                    loadingDiv.classList.remove('hidden');
+                } else {
+                    loadingDiv.classList.add('hidden');
+                }
             }
         }
 
@@ -407,10 +1528,10 @@
             try {
                 console.log(`Calling API: ${endpoint}`, data);
                 
-                // Add password to all API calls
                 const requestData = {
                     ...data,
-                    password: CORRECT_PASSWORD
+                    password: CORRECT_PASSWORD,
+                    difficulty: currentDifficulty
                 };
                 
                 const response = await fetch(`/api/${endpoint}`, {
@@ -439,6 +1560,8 @@
         }
 
         async function startLearning() {
+            if (!requireAuth()) return;
+            
             const scenario = document.getElementById('scenario').value.trim();
             if (!scenario) {
                 showError('シナリオを入力してください');
@@ -479,6 +1602,8 @@
         }
 
         async function submitResponse() {
+            if (!requireAuth()) return;
+            
             const userResponse = document.getElementById('textResponse').value.trim();
             if (!userResponse) {
                 showError('回答を入力してください');
@@ -498,7 +1623,8 @@
                 const evaluationResult = await callAPI('evaluate-response', {
                     userResponse,
                     scenario: currentScenario,
-                    conversationContext
+                    conversationContext,
+                    difficulty: currentDifficulty
                 });
                 
                 const feedback = evaluationResult.response;
@@ -510,11 +1636,11 @@
                     lastExchange.feedback = feedback;
                 }
                 
-                const needsImprovement = feedback.includes('修正') || 
-                                       feedback.includes('改善') || 
-                                       feedback.includes('間違い') ||
-                                       feedback.includes('直して') ||
-                                       feedback.includes('正しい表現');
+                // Check if response needs improvement (more lenient criteria)
+                const needsImprovement = feedback.includes('以下のように修正') || 
+                                       feedback.includes('正しくは') ||
+                                       feedback.includes('間違っています') ||
+                                       feedback.includes('文法エラー');
                 
                 if (needsImprovement) {
                     if (sessionData.exchanges.length > 0) {
@@ -563,19 +1689,22 @@
         }
 
         async function generateFinalReport() {
+            if (!requireAuth()) return;
+            
             document.getElementById('learningSection').classList.add('hidden');
             showLoading(true);
             
             try {
                 const reportResult = await callAPI('generate-report', {
                     scenario: currentScenario,
+                    difficulty: currentDifficulty,
                     exchanges: sessionData.exchanges
                 });
                 
                 sessionData.finalScore = reportResult.score || 75;
                 sessionData.finalFeedback = reportResult.response;
                 
-                document.getElementById('finalScore').textContent = `${sessionData.finalScore}/100`;
+                document.getElementById('finalScore').textContent = `${sessionData.finalScore}/100点`;
                 document.getElementById('finalFeedback').textContent = sessionData.finalFeedback;
                 
                 showLoading(false);
@@ -587,7 +1716,7 @@
                 sessionData.finalScore = 75;
                 sessionData.finalFeedback = '申し訳ございませんが、詳細なレポートの生成に失敗しました。しかし、あなたの英語学習への取り組みは素晴らしいものでした。継続して練習を続けてください。';
                 
-                document.getElementById('finalScore').textContent = `${sessionData.finalScore}/100`;
+                document.getElementById('finalScore').textContent = `${sessionData.finalScore}/100点`;
                 document.getElementById('finalFeedback').textContent = sessionData.finalFeedback;
                 document.getElementById('reportSection').classList.remove('hidden');
             }
@@ -597,28 +1726,128 @@
             if (!requireAuth()) return;
             
             const timestamp = new Date().toLocaleString('ja-JP');
-            const reportContent = `AI English Learning - 学習レポート
-
-学習日時: ${timestamp}
-シナリオ: ${sessionData.scenario}
-最終スコア: ${sessionData.finalScore}/100点
-
-総合評価とフィードバック:
-${sessionData.finalFeedback}
-
-完了ターン数: ${currentTurn}/10
-`;
             
+            // Word文書用のHTML構造を作成
+            const wordContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: "Yu Gothic", "Meiryo", sans-serif; line-height: 1.6; margin: 40px; }
+        h1 { color: #2E5984; border-bottom: 3px solid #2E5984; padding-bottom: 10px; }
+        h2 { color: #2E5984; border-left: 5px solid #2E5984; padding-left: 15px; margin-top: 30px; }
+        h3 { color: #4A6FA5; margin-top: 25px; }
+        .header-info { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        .score-box { background-color: #e8f4fd; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
+        .score-large { font-size: 48px; font-weight: bold; color: #2E5984; }
+        .conversation-turn { margin-bottom: 25px; border-left: 3px solid #ddd; padding-left: 15px; }
+        .ai-message { background-color: #f0f8ff; padding: 12px; border-radius: 8px; margin: 8px 0; }
+        .user-message { background-color: #fff8f0; padding: 12px; border-radius: 8px; margin: 8px 0; }
+        .feedback-message { background-color: #f8f8f8; padding: 12px; border-radius: 8px; margin: 8px 0; font-style: italic; }
+        .message-label { font-weight: bold; color: #2E5984; margin-bottom: 5px; }
+        .stats-table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        .stats-table th, .stats-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        .stats-table th { background-color: #f2f2f2; font-weight: bold; }
+        .improvement-needed { color: #d9534f; font-weight: bold; }
+        .good-response { color: #5cb85c; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🎯 AI English Learning - 学習レポート</h1>
+    
+    <div class="header-info">
+        <p><strong>📅 学習日時:</strong> ${timestamp}</p>
+        <p><strong>🎯 練習シナリオ:</strong> ${sessionData.scenario}</p>
+        <p><strong>📊 完了ターン数:</strong> ${currentTurn} / 10</p>
+        <p><strong>🔥 難易度:</strong> ${currentDifficulty === 'hard' ? 'ハードモード' : 'ノーマルモード'}</p>
+    </div>
+
+    <div class="score-box">
+        <h2>総合評価</h2>
+        <div class="score-large">${sessionData.finalScore}/100点</div>
+    </div>
+
+    <h2>📝 総合フィードバック</h2>
+    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; white-space: pre-wrap;">${sessionData.finalFeedback}</div>
+
+    <h2>💬 会話履歴詳細</h2>
+    ${sessionData.exchanges.map((exchange, index) => `
+        <div class="conversation-turn">
+            <h3>ターン ${index + 1}</h3>
+            
+            <div class="ai-message">
+                <div class="message-label">🤖 AI:</div>
+                ${exchange.aiMessage}
+            </div>
+            
+            ${exchange.userResponse ? `
+                <div class="user-message">
+                    <div class="message-label">👤 あなたの回答:</div>
+                    ${exchange.userResponse}
+                </div>
+            ` : '<div style="color: #999; font-style: italic;">（未回答）</div>'}
+            
+            ${exchange.feedback ? `
+                <div class="feedback-message">
+                    <div class="message-label">💡 フィードバック:</div>
+                    ${exchange.feedback}
+                </div>
+            ` : ''}
+            
+            <div style="margin-top: 10px;">
+                <span class="${exchange.needsImprovement ? 'improvement-needed' : 'good-response'}">
+                    ${exchange.needsImprovement ? '⚠️ 改善が必要でした' : '✅ 良い回答でした'}
+                </span>
+            </div>
+        </div>
+    `).join('')}
+
+    <h2>📊 学習統計</h2>
+    <table class="stats-table">
+        <tr><th>項目</th><th>結果</th></tr>
+        <tr><td>完了ターン数</td><td>${currentTurn} / 10</td></tr>
+        <tr><td>改善を要した回答</td><td>${sessionData.exchanges.filter(e => e.needsImprovement).length}回</td></tr>
+        <tr><td>一発で通った回答</td><td>${sessionData.exchanges.filter(e => !e.needsImprovement && e.userResponse).length}回</td></tr>
+        <tr><td>全体的な成功率</td><td>${Math.round((sessionData.exchanges.filter(e => !e.needsImprovement && e.userResponse).length / Math.max(sessionData.exchanges.filter(e => e.userResponse).length, 1)) * 100)}%</td></tr>
+        <tr><td>選択した難易度</td><td>${currentDifficulty === 'hard' ? 'ハードモード' : 'ノーマルモード'}</td></tr>
+    </table>
+
+    <h2>💪 今後の学習アドバイス</h2>
+    <ul>
+        <li>📚 継続的な練習を心がけてください</li>
+        <li>🎯 様々なビジネスシナリオに挑戦しましょう</li>
+        <li>💪 文法と語彙の基礎固めも大切です</li>
+        <li>🗣️ 音声でのコミュニケーションも積極的に活用しましょう</li>
+        <li>🔄 今回改善が必要だった点を重点的に練習してください</li>
+        ${currentDifficulty === 'hard' ? '<li>🔥 ハードモードでの挑戦、お疲れ様でした！高い基準での練習が実力向上につながります</li>' : '<li>😊 ノーマルモードから始めて基礎を固めたら、ハードモードにも挑戦してみてください</li>'}
+    </ul>
+
+    <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd; text-align: center; color: #666;">
+        <p>Generated by AI English Learning System</p>
+        <p>${new Date().toISOString()}</p>
+    </div>
+</body>
+</html>`;
+
             try {
-                const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+                // Word文書として保存するためにHTMLをBlobに変換
+                const blob = new Blob(['\ufeff', wordContent], { 
+                    type: 'application/msword;charset=utf-8' 
+                });
+                
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `English_Learning_Report_${new Date().toISOString().split('T')[0]}.txt`;
+                a.download = `AI_English_Learning_Report_${new Date().toISOString().split('T')[0]}.doc`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+                
+                // 成功メッセージを表示
+                showError('✅ Word文書をダウンロード完了!');
+                
             } catch (error) {
                 console.error('Download failed:', error);
                 showError('レポートのダウンロードに失敗しました');
@@ -631,8 +1860,10 @@ ${sessionData.finalFeedback}
             currentTurn = 0;
             conversationHistory = [];
             currentScenario = '';
+            currentDifficulty = 'normal';
             sessionData = {
                 scenario: '',
+                difficulty: 'normal',
                 exchanges: [],
                 finalScore: 0,
                 finalFeedback: ''
@@ -645,10 +1876,18 @@ ${sessionData.finalFeedback}
             
             updateProgress();
             
+            // Reset to difficulty selection
             document.getElementById('reportSection').classList.add('hidden');
             document.getElementById('learningSection').classList.add('hidden');
-            document.getElementById('responseSection').classList.add('hidden');
-            document.getElementById('setupSection').classList.remove('hidden');
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('difficultySelection').classList.remove('hidden');
+            
+            // Clear difficulty selection
+            document.querySelectorAll('.difficulty-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.getElementById('selectedDifficultyInfo').classList.add('hidden');
+            document.getElementById('continueToScenario').classList.add('hidden');
             
             if (isRecording && recognition) {
                 recognition.stop();
@@ -657,12 +1896,5 @@ ${sessionData.finalFeedback}
             updateVoiceButton();
         }
     </script>
-
-    <style>
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
 </body>
 </html>
