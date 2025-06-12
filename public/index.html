@@ -1,10 +1,10 @@
+<!DOCTYPE html>
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI English Learning</title>
     <link rel="icon" href="data:,">
-    
-    <!-- 緊急用：インラインCSS -->
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -42,20 +42,23 @@
         .button:hover { 
             background: linear-gradient(45deg, #4a4a4a, #6a6a6a); 
         }
-        textarea { 
+        textarea, input { 
             width: 100%; 
             padding: 15px; 
             background: rgba(255,255,255,0.05); 
             color: white; 
             border: 1px solid rgba(255,255,255,0.2); 
             border-radius: 12px; 
+            font-family: inherit;
+            margin: 5px 0;
+        }
+        textarea {
             min-height: 80px; 
             resize: vertical; 
-            font-family: inherit;
         }
         label { 
             display: block; 
-            margin: 10px 0; 
+            margin: 10px 0 5px 0; 
             color: white; 
         }
         .hidden { 
@@ -79,5 +82,529 @@
             color: #ccc; 
             margin-bottom: 20px; 
         }
+        .conversation {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            line-height: 1.6;
+        }
+        .message.ai {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid #666666;
+        }
+        .message.user {
+            background: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #999999;
+            text-align: right;
+        }
+        .message.feedback {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 4px solid #444444;
+            font-style: italic;
+            color: #cccccc;
+        }
+        .error {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 10px 0;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        .loading {
+            text-align: center;
+            color: #cccccc;
+            padding: 30px;
+        }
+        .speech-status {
+            text-align: center;
+            font-size: 14px;
+            color: #cccccc;
+            margin: 10px 0;
+            min-height: 20px;
+            font-style: italic;
+        }
+        .voice-button.recording {
+            background: linear-gradient(45deg, #cc0000, #ff3333) !important;
+        }
+        .final-report {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .score {
+            font-size: 64px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 25px;
+        }
+        .feedback-content {
+            text-align: left;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: #f0f0f0;
+            white-space: pre-wrap;
+        }
     </style>
 </head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 AI English Learning</h1>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="turn-counter" id="turnCounter">Turn 0 / 10</div>
+        </div>
+
+        <div id="error" class="error hidden"></div>
+        <div id="waitingForAI" class="loading hidden">
+            <div style="width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-left: 4px solid #666; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
+            AIが回答を生成中...
+        </div>
+
+        <!-- Setup Section -->
+        <div id="setupSection" class="input-section">
+            <label for="scenario">練習したいビジネスシナリオを入力してください：</label>
+            <textarea id="scenario" placeholder="例：会議での意見交換、プレゼンテーション、顧客との電話対応、新しいプロジェクトの提案など..."></textarea>
+            <button class="button" onclick="startLearning()">🚀 学習開始</button>
+        </div>
+
+        <!-- Learning Section -->
+        <div id="learningSection" class="hidden">
+            <div class="conversation" id="conversation"></div>
+            
+            <div id="responseSection" class="hidden">
+                <label for="textResponse">あなたの回答（英語）：</label>
+                <textarea id="textResponse" placeholder="英語で回答してください..."></textarea>
+                
+                <button class="button voice-button" id="voiceButton" onclick="toggleRecording()">
+                    <span id="voiceButtonText">🎤 音声で回答</span>
+                </button>
+                
+                <div class="speech-status" id="speechStatus"></div>
+                
+                <button class="button" onclick="submitResponse()">📝 回答を送信</button>
+            </div>
+        </div>
+
+        <!-- Report Section -->
+        <div id="reportSection" class="hidden">
+            <div class="final-report">
+                <h2>📊 最終レポート</h2>
+                <div class="score" id="finalScore">75/100</div>
+                <div class="feedback-content" id="finalFeedback"></div>
+                <div class="report-actions">
+                    <button class="button" onclick="downloadReport()">📄 レポートをダウンロード</button>
+                    <button class="button" onclick="restart()">🔄 新しいセッションを開始</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTurn = 0;
+        let conversationHistory = [];
+        let isRecording = false;
+        let recognition;
+        let currentScenario = '';
+        let sessionData = {
+            scenario: '',
+            exchanges: [],
+            finalScore: 0,
+            finalFeedback: ''
+        };
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initSpeechRecognition();
+            updateProgress();
+        });
+
+        // Initialize speech recognition
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                
+                recognition.lang = 'en-US';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+                
+                recognition.onstart = () => {
+                    console.log('Speech recognition started');
+                    document.getElementById('speechStatus').textContent = '🎤 音声を認識中...';
+                };
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    document.getElementById('textResponse').value = transcript;
+                    document.getElementById('speechStatus').textContent = '✅ 音声認識完了: ' + transcript;
+                    console.log('Speech recognition result:', transcript);
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    let errorMessage = '音声認識エラー: ';
+                    switch(event.error) {
+                        case 'network':
+                            errorMessage += 'ネットワークエラー';
+                            break;
+                        case 'not-allowed':
+                            errorMessage += 'マイクへのアクセスが拒否されました';
+                            break;
+                        case 'no-speech':
+                            errorMessage += '音声が検出されませんでした';
+                            break;
+                        default:
+                            errorMessage += event.error;
+                    }
+                    document.getElementById('speechStatus').textContent = '❌ ' + errorMessage;
+                };
+                
+                recognition.onend = () => {
+                    console.log('Speech recognition ended');
+                    isRecording = false;
+                    updateVoiceButton();
+                };
+            } else {
+                console.log('Speech recognition not supported');
+                document.getElementById('voiceButton').disabled = true;
+                document.getElementById('speechStatus').textContent = '⚠️ このブラウザは音声認識をサポートしていません';
+            }
+        }
+
+        function updateVoiceButton() {
+            const button = document.getElementById('voiceButton');
+            const text = document.getElementById('voiceButtonText');
+            
+            if (isRecording) {
+                button.classList.add('recording');
+                text.textContent = '⏹️ 録音停止';
+            } else {
+                button.classList.remove('recording');
+                text.textContent = '🎤 音声で回答';
+            }
+        }
+
+        function toggleRecording() {
+            if (!recognition) {
+                showError('音声認識がサポートされていません');
+                return;
+            }
+
+            if (isRecording) {
+                recognition.stop();
+                document.getElementById('speechStatus').textContent = '🔄 音声認識を停止しています...';
+            } else {
+                document.getElementById('textResponse').value = '';
+                document.getElementById('speechStatus').textContent = '🎤 音声認識を開始しています...';
+                try {
+                    recognition.start();
+                    isRecording = true;
+                    updateVoiceButton();
+                } catch (error) {
+                    console.error('Failed to start recognition:', error);
+                    showError('音声認識の開始に失敗しました');
+                }
+            }
+        }
+
+        function updateProgress() {
+            const progress = (currentTurn / 10) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('turnCounter').textContent = `Turn ${currentTurn} / 10`;
+        }
+
+        function addMessage(content, type) {
+            const conversation = document.getElementById('conversation');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = content;
+            conversation.appendChild(message);
+            conversation.scrollTop = conversation.scrollHeight;
+            
+            conversationHistory.push({
+                type: type,
+                content: content,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        function showLoading(show = true) {
+            const loadingDiv = document.getElementById('waitingForAI');
+            if (show) {
+                loadingDiv.classList.remove('hidden');
+            } else {
+                loadingDiv.classList.add('hidden');
+            }
+        }
+
+        async function callAPI(endpoint, data) {
+            try {
+                const response = await fetch(`/api/${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('API call failed:', error);
+                throw error;
+            }
+        }
+
+        async function startLearning() {
+            const scenario = document.getElementById('scenario').value.trim();
+            if (!scenario) {
+                showError('シナリオを入力してください');
+                return;
+            }
+
+            currentScenario = scenario;
+            sessionData.scenario = scenario;
+            sessionData.exchanges = [];
+            
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('learningSection').classList.remove('hidden');
+            
+            showLoading(true);
+            
+            try {
+                const result = await callAPI('start-conversation', { scenario });
+                
+                addMessage(result.response, 'ai');
+                
+                sessionData.exchanges.push({
+                    turn: currentTurn,
+                    aiMessage: result.response,
+                    userResponse: '',
+                    feedback: '',
+                    needsImprovement: false
+                });
+                
+                document.getElementById('responseSection').classList.remove('hidden');
+                showLoading(false);
+                
+            } catch (error) {
+                showError('会話の開始に失敗しました: ' + error.message);
+                showLoading(false);
+                document.getElementById('learningSection').classList.add('hidden');
+                document.getElementById('setupSection').classList.remove('hidden');
+            }
+        }
+
+        async function submitResponse() {
+            const userResponse = document.getElementById('textResponse').value.trim();
+            if (!userResponse) {
+                showError('回答を入力してください');
+                return;
+            }
+
+            addMessage(userResponse, 'user');
+            document.getElementById('responseSection').classList.add('hidden');
+            showLoading(true);
+
+            try {
+                const conversationContext = conversationHistory
+                    .slice(-4)
+                    .map(msg => `${msg.type}: ${msg.content}`)
+                    .join('\n');
+
+                const evaluationResult = await callAPI('evaluate-response', {
+                    userResponse,
+                    scenario: currentScenario,
+                    conversationContext
+                });
+                
+                const feedback = evaluationResult.response;
+                addMessage(feedback, 'feedback');
+                
+                if (sessionData.exchanges.length > 0) {
+                    const lastExchange = sessionData.exchanges[sessionData.exchanges.length - 1];
+                    lastExchange.userResponse = userResponse;
+                    lastExchange.feedback = feedback;
+                }
+                
+                const needsImprovement = feedback.includes('修正') || 
+                                       feedback.includes('改善') || 
+                                       feedback.includes('間違い') ||
+                                       feedback.includes('直して') ||
+                                       feedback.includes('正しい表現');
+                
+                if (needsImprovement) {
+                    if (sessionData.exchanges.length > 0) {
+                        sessionData.exchanges[sessionData.exchanges.length - 1].needsImprovement = true;
+                    }
+                    
+                    document.getElementById('textResponse').value = '';
+                    document.getElementById('speechStatus').textContent = '';
+                    document.getElementById('responseSection').classList.remove('hidden');
+                    showLoading(false);
+                } else {
+                    currentTurn++;
+                    updateProgress();
+                    
+                    if (currentTurn >= 10) {
+                        await generateFinalReport();
+                    } else {
+                        const continueResult = await callAPI('continue-conversation', {
+                            userResponse,
+                            scenario: currentScenario,
+                            conversationHistory: conversationHistory.slice(-6).map(msg => `${msg.type}: ${msg.content}`).join('\n')
+                        });
+                        
+                        addMessage(continueResult.response, 'ai');
+                        
+                        sessionData.exchanges.push({
+                            turn: currentTurn,
+                            aiMessage: continueResult.response,
+                            userResponse: '',
+                            feedback: '',
+                            needsImprovement: false
+                        });
+                        
+                        document.getElementById('textResponse').value = '';
+                        document.getElementById('speechStatus').textContent = '';
+                        document.getElementById('responseSection').classList.remove('hidden');
+                        showLoading(false);
+                    }
+                }
+                
+            } catch (error) {
+                showError('回答の評価に失敗しました: ' + error.message);
+                document.getElementById('responseSection').classList.remove('hidden');
+                showLoading(false);
+            }
+        }
+
+        async function generateFinalReport() {
+            document.getElementById('learningSection').classList.add('hidden');
+            showLoading(true);
+            
+            try {
+                const reportResult = await callAPI('generate-report', {
+                    scenario: currentScenario,
+                    exchanges: sessionData.exchanges
+                });
+                
+                sessionData.finalScore = reportResult.score || 75;
+                sessionData.finalFeedback = reportResult.response;
+                
+                document.getElementById('finalScore').textContent = `${sessionData.finalScore}/100`;
+                document.getElementById('finalFeedback').textContent = sessionData.finalFeedback;
+                
+                showLoading(false);
+                document.getElementById('reportSection').classList.remove('hidden');
+                
+            } catch (error) {
+                showError('レポートの生成に失敗しました: ' + error.message);
+                showLoading(false);
+                sessionData.finalScore = 75;
+                sessionData.finalFeedback = '申し訳ございませんが、詳細なレポートの生成に失敗しました。しかし、あなたの英語学習への取り組みは素晴らしいものでした。継続して練習を続けてください。';
+                
+                document.getElementById('finalScore').textContent = `${sessionData.finalScore}/100`;
+                document.getElementById('finalFeedback').textContent = sessionData.finalFeedback;
+                document.getElementById('reportSection').classList.remove('hidden');
+            }
+        }
+
+        function downloadReport() {
+            const timestamp = new Date().toLocaleString('ja-JP');
+            const reportContent = `AI English Learning - 学習レポート
+
+学習日時: ${timestamp}
+シナリオ: ${sessionData.scenario}
+最終スコア: ${sessionData.finalScore}/100点
+
+総合評価とフィードバック:
+${sessionData.finalFeedback}
+
+完了ターン数: ${currentTurn}/10
+`;
+            
+            try {
+                const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `English_Learning_Report_${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error('Download failed:', error);
+                showError('レポートのダウンロードに失敗しました');
+            }
+        }
+
+        function restart() {
+            currentTurn = 0;
+            conversationHistory = [];
+            currentScenario = '';
+            sessionData = {
+                scenario: '',
+                exchanges: [],
+                finalScore: 0,
+                finalFeedback: ''
+            };
+            
+            document.getElementById('scenario').value = '';
+            document.getElementById('textResponse').value = '';
+            document.getElementById('conversation').innerHTML = '';
+            document.getElementById('speechStatus').textContent = '';
+            
+            updateProgress();
+            
+            document.getElementById('reportSection').classList.add('hidden');
+            document.getElementById('learningSection').classList.add('hidden');
+            document.getElementById('responseSection').classList.add('hidden');
+            document.getElementById('setupSection').classList.remove('hidden');
+            
+            if (isRecording && recognition) {
+                recognition.stop();
+            }
+            isRecording = false;
+            updateVoiceButton();
+        }
+    </script>
+
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</body>
+</html>
