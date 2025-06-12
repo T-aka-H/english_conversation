@@ -1,4 +1,46 @@
-const express = require('express');
+app.post('/api/generate-report', async (req, res) => {
+    try {
+        const { scenario, exchanges, difficulty = 'normal' } = req.body;
+        console.log('Generate report request:', { scenario, exchangeCount: exchanges?.length, difficulty });
+        
+        if (!exchanges || exchanges.length === 0) {
+            return res.status(400).json({ error: 'Conversation data is required' });
+        }
+
+        const prompt = getGenerateReportPrompt(scenario, exchanges, difficulty);
+        const response = await callGeminiAPI(prompt, true);
+        
+        // Extract score from response
+        let score = difficulty === 'hard' ? 70 : 75; // Different default scores
+        const scoreMatch = response.match(/(\d+)\/100/);
+        if (scoreMatch) {
+            score = parseInt(scoreMatch[1]);
+        }
+        
+        console.log('Generate report success, score:', score, 'difficulty:', difficulty);
+        res.json({ 
+            response: response.trim(),
+            score: score 
+        });
+    } catch (error) {
+        console.error('Generate report error:', error);
+        
+        // Adjusted fallback scores based on difficulty
+        const baseScore = difficulty === 'hard' ? 65 : 75;
+        const score = Math.max(50, Math.min(90, baseScore + Math.random() * 10));
+        const difficultyText = difficulty === 'hard' ? 'ハードモード' : 'ノーマルモード';
+        
+        const fallbackResponse = `総合スコア: ${Math.round(score)}/100点 (${difficultyText})
+
+【評価概要】
+コミュニケーション効果: 基本的な意思疎通ができていました
+ビジネス適切性: 適切なビジネス英語を使用していました
+文法・正確性: 理解しやすい英語でした
+
+【改善点とアドバイス】
+・継続的な練習でさらなる向上が期待できます
+・様々なビジネスシナリオに挑戦してみてください
+${difficulty === 'hard' ? '・より高度な表現や語彙の習得を目指しましょう'const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
 
@@ -73,14 +115,16 @@ EXAMPLE SCENARIOS:
 Please respond in English only.`;
 }
 
-function getEvaluateResponsePrompt(userResponse, scenario, conversationContext) {
-    return `You are a business English learning evaluator. Evaluate the user's response with these criteria:
+function getEvaluateResponsePrompt(userResponse, scenario, conversationContext, difficulty = 'normal') {
+    const basePrompt = `You are a business English learning evaluator. Evaluate the user's response with these criteria:
 
 SCENARIO: "${scenario}"
 USER RESPONSE: "${userResponse}"
 CONVERSATION CONTEXT: "${conversationContext}"
+DIFFICULTY LEVEL: "${difficulty.toUpperCase()}"`;
 
-EVALUATION CRITERIA (Be encouraging and constructive):
+    const normalCriteria = `
+EVALUATION CRITERIA (NORMAL MODE - Be encouraging and constructive):
 ✅ PASS if the response:
 - Communicates the main idea clearly
 - Uses appropriate business tone
@@ -91,7 +135,27 @@ EVALUATION CRITERIA (Be encouraging and constructive):
 - Meaning is unclear or confusing
 - Uses inappropriate casual language for business
 - Contains major grammar errors that impede understanding
-- Is completely off-topic
+- Is completely off-topic`;
+
+    const hardCriteria = `
+EVALUATION CRITERIA (HARD MODE - Higher standards for accuracy):
+✅ PASS if the response:
+- Communicates the main idea clearly with precise vocabulary
+- Uses sophisticated business expressions and tone
+- Has minimal or no grammar errors
+- Shows deep engagement and understanding of the scenario
+- Demonstrates advanced language skills
+
+❌ NEEDS IMPROVEMENT if:
+- Has noticeable grammar mistakes
+- Uses basic or inappropriate vocabulary for the business context
+- Lacks sophistication in expression
+- Missing key business communication elements
+- Could be more professional or polished`;
+
+    const criteria = difficulty === 'hard' ? hardCriteria : normalCriteria;
+
+    return basePrompt + criteria + `
 
 RESPONSE FORMAT (in Japanese, max 12 lines):
 If PASS: 
@@ -107,12 +171,12 @@ IMPORTANT:
 - Do NOT provide "next question examples"
 - Focus on improving their current response only
 - Keep feedback encouraging and constructive
+- Adjust strictness based on difficulty level
 
-Example good feedback:
-"良い回答です。ビジネス的で適切な表現でした。さらに丁寧にするには「I appreciate your time」を追加すると良いでしょう。"
-
-Example bad feedback (avoid):
-"良い回答です。次の質問例：What do you think?" ← これは避ける`;
+Example good feedback for ${difficulty} mode:
+${difficulty === 'hard' ? 
+'"良い回答です。高度なビジネス表現を使用しており、文法も正確でした。さらに洗練させるには「I would be delighted to」のような丁寧な表現を検討してください。"' :
+'"良い回答です。ビジネス的で適切な表現でした。さらに丁寧にするには「I appreciate your time」を追加すると良いでしょう。"'}`;
 }
 
 function getContinueConversationPrompt(userResponse, scenario, conversationHistory) {
@@ -137,45 +201,79 @@ Examples of good responses:
 Please respond in English only.`;
 }
 
-function getGenerateReportPrompt(scenario, exchanges) {
+function getGenerateReportPrompt(scenario, exchanges, difficulty = 'normal') {
     return `Generate a comprehensive learning report for this business English conversation session.
 
 SCENARIO: "${scenario}"
+DIFFICULTY LEVEL: "${difficulty.toUpperCase()}"
 CONVERSATION DATA: ${JSON.stringify(exchanges)}
 TOTAL TURNS COMPLETED: ${exchanges.length}
 
-EVALUATION CRITERIA:
+EVALUATION CRITERIA (adjusted for ${difficulty} mode):
 - Communication Effectiveness (40 points): Clear message delivery
 - Business Appropriateness (30 points): Professional tone and vocabulary
-- Grammar & Accuracy (20 points): Language correctness
+- Grammar & Accuracy (20 points): Language correctness ${difficulty === 'hard' ? '(stricter standards)' : '(lenient standards)'}
 - Engagement & Flow (10 points): Natural conversation participation
 
-SCORING GUIDELINES:
+SCORING GUIDELINES for ${difficulty.toUpperCase()} mode:
+${difficulty === 'hard' ? `
+- 90-100: Exceptional business communication with sophisticated language
+- 80-89: Very good communication with minor areas for refinement
+- 70-79: Good communication but needs more advanced expressions
+- 60-69: Adequate communication, significant room for improvement
+- Below 60: Needs substantial work on accuracy and sophistication` : `
 - 85-100: Excellent business communication skills
 - 70-84: Good communication with minor improvements needed
 - 55-69: Adequate communication, some areas for development
-- Below 55: Needs significant improvement
+- Below 55: Needs significant improvement`}
 
 RESPONSE FORMAT (in Japanese):
-[Calculate score based on performance]
+[Calculate score based on performance and difficulty level]
 
-総合スコア: [score]/100点
+総合スコア: [score]/100点 (${difficulty === 'hard' ? 'ハードモード' : 'ノーマルモード'})
 
 【評価概要】
 コミュニケーション効果: [brief assessment]
 ビジネス適切性: [brief assessment]
 文法・正確性: [brief assessment]
 
-【改善点とアドバイス】
-[2-3 specific, actionable suggestions for improvement]
+【${difficulty === 'hard' ? 'より高度な' : ''}改善点とアドバイス】
+[2-3 specific, actionable suggestions for improvement appropriate for difficulty level]
 
 【次回への推奨】
-[suggestion for next practice scenario or focus area]
+[suggestion for next practice scenario or focus area, considering current difficulty level]
 
-Keep the report encouraging but honest, focusing on practical improvement areas.`;
+Keep the report encouraging but honest, focusing on practical improvement areas appropriate for the selected difficulty level.`;
 }
 
-// API Routes
+// Password verification middleware
+const VALID_PASSWORD = "2025_July";
+
+function verifyPassword(req, res, next) {
+    const { password } = req.body;
+    
+    // Allow health check without password
+    if (req.path === '/api/health') {
+        return next();
+    }
+    
+    if (!password || password !== VALID_PASSWORD) {
+        return res.status(401).json({ 
+            error: 'Unauthorized', 
+            message: 'Valid password required' 
+        });
+    }
+    
+    next();
+}
+
+// Apply password verification to API routes
+app.use('/api', (req, res, next) => {
+    if (req.path === '/health') {
+        return next();
+    }
+    verifyPassword(req, res, next);
+});
 app.post('/api/start-conversation', async (req, res) => {
     try {
         const { scenario } = req.body;
@@ -200,14 +298,14 @@ app.post('/api/start-conversation', async (req, res) => {
 
 app.post('/api/evaluate-response', async (req, res) => {
     try {
-        const { userResponse, scenario, conversationContext } = req.body;
-        console.log('Evaluate response request:', { userResponse, scenario });
+        const { userResponse, scenario, conversationContext, difficulty = 'normal' } = req.body;
+        console.log('Evaluate response request:', { userResponse, scenario, difficulty });
         
         if (!userResponse || userResponse.trim().length === 0) {
             return res.status(400).json({ error: 'User response is required' });
         }
 
-        const prompt = getEvaluateResponsePrompt(userResponse, scenario, conversationContext);
+        const prompt = getEvaluateResponsePrompt(userResponse, scenario, conversationContext, difficulty);
         const response = await callGeminiAPI(prompt, true);
         
         console.log('Evaluate response success');
