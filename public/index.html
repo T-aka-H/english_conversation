@@ -11,14 +11,14 @@
     <script>
         // Block access immediately
         let isAuthenticated = false;
-const CORRECT_PASSWORD = '2025_July';
-        const CORRECT_PASSWORD = "2025_July";
+        const CORRECT_PASSWORD = '2025_July';
         
         // Hide all content until authentication
         document.addEventListener('DOMContentLoaded', function() {
-    if (!isAuthenticated) {
-            console.log('BLOCKING ACCESS - Authentication required');
-            enforceAuthentication();
+            if (!isAuthenticated) {
+                console.log('BLOCKING ACCESS - Authentication required');
+                enforceAuthentication();
+            }
         });
         
         function enforceAuthentication() {
