@@ -1,4 +1,13 @@
-/* Difficulty Selection Styles */<!DOCTYPE html>
+// Enhanced security: Clear password from memory
+        function clearAuthData() {
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
+                passwordInput.value = '';
+            }
+            // Reset authentication state
+            isAuthenticated = false;
+            console.log('🔄 Auth data cleared');
+        }        /* Difficulty Selection Styles */<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
