@@ -120,7 +120,7 @@ Start the conversation now.`;
     }
 });
 
-// API endpoint for evaluating user response
+// API endpoint for evaluating user response (server.jsで修正)
 app.post('/api/evaluate-response', async (req, res) => {
     try {
         const { userResponse, scenario, conversationContext } = req.body;
@@ -131,17 +131,22 @@ app.post('/api/evaluate-response', async (req, res) => {
 ユーザーの回答: "${userResponse}"
 会話の文脈: "${conversationContext}"
 
+評価基準（寛容に評価してください）：
+- 基本的な意思疎通ができていれば「良い回答」として次に進める
+- 簡単な文法ミスは許容範囲内
+- ビジネス英語として明らかに不適切な表現のみ指摘
+
 以下の基準で評価し、日本語で回答してください：
 
-1. 文法的に正しく、自然な表現の場合：
-   - "良い回答です。" と言って、会話を続けるための英語の質問や応答を提供してください。
+1. 意思疎通ができている場合：
+   - "良い回答です。" と言って、簡潔な評価コメントを追加
+   - 次の会話を続けるための英語の質問や応答を提供
 
-2. 改善が必要な場合：
+2. 重大な問題がある場合のみ：
    - 具体的な問題点を指摘
-   - 正しい表現を提示
-   - 「以下のように修正して再度お答えください：」で始まる修正例を提供
+   - 「以下のように修正してください：」で始まる修正例を提供
 
-評価を開始してください。`;
+フィードバックは**12行以内**で簡潔にまとめてください。`;
 
         const response = await callGeminiAPI(prompt, true);
         res.json({ response });
