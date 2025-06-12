@@ -1,46 +1,4 @@
-app.post('/api/generate-report', async (req, res) => {
-    try {
-        const { scenario, exchanges, difficulty = 'normal' } = req.body;
-        console.log('Generate report request:', { scenario, exchangeCount: exchanges?.length, difficulty });
-        
-        if (!exchanges || exchanges.length === 0) {
-            return res.status(400).json({ error: 'Conversation data is required' });
-        }
-
-        const prompt = getGenerateReportPrompt(scenario, exchanges, difficulty);
-        const response = await callGeminiAPI(prompt, true);
-        
-        // Extract score from response
-        let score = difficulty === 'hard' ? 70 : 75; // Different default scores
-        const scoreMatch = response.match(/(\d+)\/100/);
-        if (scoreMatch) {
-            score = parseInt(scoreMatch[1]);
-        }
-        
-        console.log('Generate report success, score:', score, 'difficulty:', difficulty);
-        res.json({ 
-            response: response.trim(),
-            score: score 
-        });
-    } catch (error) {
-        console.error('Generate report error:', error);
-        
-        // Adjusted fallback scores based on difficulty
-        const baseScore = difficulty === 'hard' ? 65 : 75;
-        const score = Math.max(50, Math.min(90, baseScore + Math.random() * 10));
-        const difficultyText = difficulty === 'hard' ? 'ハードモード' : 'ノーマルモード';
-        
-        const fallbackResponse = `総合スコア: ${Math.round(score)}/100点 (${difficultyText})
-
-【評価概要】
-コミュニケーション効果: 基本的な意思疎通ができていました
-ビジネス適切性: 適切なビジネス英語を使用していました
-文法・正確性: 理解しやすい英語でした
-
-【改善点とアドバイス】
-・継続的な練習でさらなる向上が期待できます
-・様々なビジネスシナリオに挑戦してみてください
-${difficulty === 'hard' ? '・より高度な表現や語彙の習得を目指しましょう'const express = require('express');
+const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
 
@@ -53,6 +11,35 @@ app.use(express.static('public'));
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// Password verification middleware
+const VALID_PASSWORD = "2025_July";
+
+function verifyPassword(req, res, next) {
+    const { password } = req.body;
+    
+    // Allow health check without password
+    if (req.path === '/api/health') {
+        return next();
+    }
+    
+    if (!password || password !== VALID_PASSWORD) {
+        return res.status(401).json({ 
+            error: 'Unauthorized', 
+            message: 'Valid password required' 
+        });
+    }
+    
+    next();
+}
+
+// Apply password verification to API routes
+app.use('/api', (req, res, next) => {
+    if (req.path === '/health') {
+        return next();
+    }
+    verifyPassword(req, res, next);
+});
 
 // Function to call Gemini API (Gemini 1.5 Flash)
 async function callGeminiAPI(prompt, isEvaluation = false) {
@@ -155,6 +142,10 @@ EVALUATION CRITERIA (HARD MODE - Higher standards for accuracy):
 
     const criteria = difficulty === 'hard' ? hardCriteria : normalCriteria;
 
+    const feedbackExample = difficulty === 'hard' ? 
+        '"良い回答です。高度なビジネス表現を使用しており、文法も正確でした。さらに洗練させるには「I would be delighted to」のような丁寧な表現を検討してください。"' :
+        '"良い回答です。ビジネス的で適切な表現でした。さらに丁寧にするには「I appreciate your time」を追加すると良いでしょう。"';
+
     return basePrompt + criteria + `
 
 RESPONSE FORMAT (in Japanese, max 12 lines):
@@ -174,9 +165,7 @@ IMPORTANT:
 - Adjust strictness based on difficulty level
 
 Example good feedback for ${difficulty} mode:
-${difficulty === 'hard' ? 
-'"良い回答です。高度なビジネス表現を使用しており、文法も正確でした。さらに洗練させるには「I would be delighted to」のような丁寧な表現を検討してください。"' :
-'"良い回答です。ビジネス的で適切な表現でした。さらに丁寧にするには「I appreciate your time」を追加すると良いでしょう。"'}`;
+${feedbackExample}`;
 }
 
 function getContinueConversationPrompt(userResponse, scenario, conversationHistory) {
@@ -202,6 +191,19 @@ Please respond in English only.`;
 }
 
 function getGenerateReportPrompt(scenario, exchanges, difficulty = 'normal') {
+    const scoringGuidelines = difficulty === 'hard' ? `
+- 90-100: Exceptional business communication with sophisticated language
+- 80-89: Very good communication with minor areas for refinement
+- 70-79: Good communication but needs more advanced expressions
+- 60-69: Adequate communication, significant room for improvement
+- Below 60: Needs substantial work on accuracy and sophistication` : `
+- 85-100: Excellent business communication skills
+- 70-84: Good communication with minor improvements needed
+- 55-69: Adequate communication, some areas for development
+- Below 55: Needs significant improvement`;
+
+    const improvementLabel = difficulty === 'hard' ? 'より高度な' : '';
+
     return `Generate a comprehensive learning report for this business English conversation session.
 
 SCENARIO: "${scenario}"
@@ -216,16 +218,7 @@ EVALUATION CRITERIA (adjusted for ${difficulty} mode):
 - Engagement & Flow (10 points): Natural conversation participation
 
 SCORING GUIDELINES for ${difficulty.toUpperCase()} mode:
-${difficulty === 'hard' ? `
-- 90-100: Exceptional business communication with sophisticated language
-- 80-89: Very good communication with minor areas for refinement
-- 70-79: Good communication but needs more advanced expressions
-- 60-69: Adequate communication, significant room for improvement
-- Below 60: Needs substantial work on accuracy and sophistication` : `
-- 85-100: Excellent business communication skills
-- 70-84: Good communication with minor improvements needed
-- 55-69: Adequate communication, some areas for development
-- Below 55: Needs significant improvement`}
+${scoringGuidelines}
 
 RESPONSE FORMAT (in Japanese):
 [Calculate score based on performance and difficulty level]
@@ -237,7 +230,7 @@ RESPONSE FORMAT (in Japanese):
 ビジネス適切性: [brief assessment]
 文法・正確性: [brief assessment]
 
-【${difficulty === 'hard' ? 'より高度な' : ''}改善点とアドバイス】
+【${improvementLabel}改善点とアドバイス】
 [2-3 specific, actionable suggestions for improvement appropriate for difficulty level]
 
 【次回への推奨】
@@ -246,34 +239,7 @@ RESPONSE FORMAT (in Japanese):
 Keep the report encouraging but honest, focusing on practical improvement areas appropriate for the selected difficulty level.`;
 }
 
-// Password verification middleware
-const VALID_PASSWORD = "2025_July";
-
-function verifyPassword(req, res, next) {
-    const { password } = req.body;
-    
-    // Allow health check without password
-    if (req.path === '/api/health') {
-        return next();
-    }
-    
-    if (!password || password !== VALID_PASSWORD) {
-        return res.status(401).json({ 
-            error: 'Unauthorized', 
-            message: 'Valid password required' 
-        });
-    }
-    
-    next();
-}
-
-// Apply password verification to API routes
-app.use('/api', (req, res, next) => {
-    if (req.path === '/health') {
-        return next();
-    }
-    verifyPassword(req, res, next);
-});
+// API Routes
 app.post('/api/start-conversation', async (req, res) => {
     try {
         const { scenario } = req.body;
@@ -342,24 +308,24 @@ app.post('/api/continue-conversation', async (req, res) => {
 
 app.post('/api/generate-report', async (req, res) => {
     try {
-        const { scenario, exchanges } = req.body;
-        console.log('Generate report request:', { scenario, exchangeCount: exchanges?.length });
+        const { scenario, exchanges, difficulty = 'normal' } = req.body;
+        console.log('Generate report request:', { scenario, exchangeCount: exchanges?.length, difficulty });
         
         if (!exchanges || exchanges.length === 0) {
             return res.status(400).json({ error: 'Conversation data is required' });
         }
 
-        const prompt = getGenerateReportPrompt(scenario, exchanges);
+        const prompt = getGenerateReportPrompt(scenario, exchanges, difficulty);
         const response = await callGeminiAPI(prompt, true);
         
         // Extract score from response
-        let score = 75; // Default score
+        let score = difficulty === 'hard' ? 70 : 75; // Different default scores
         const scoreMatch = response.match(/(\d+)\/100/);
         if (scoreMatch) {
             score = parseInt(scoreMatch[1]);
         }
         
-        console.log('Generate report success, score:', score);
+        console.log('Generate report success, score:', score, 'difficulty:', difficulty);
         res.json({ 
             response: response.trim(),
             score: score 
@@ -367,8 +333,14 @@ app.post('/api/generate-report', async (req, res) => {
     } catch (error) {
         console.error('Generate report error:', error);
         
-        const score = Math.max(60, Math.min(85, 75 + Math.random() * 10));
-        const fallbackResponse = `総合スコア: ${Math.round(score)}/100点
+        // Adjusted fallback scores based on difficulty
+        const baseScore = difficulty === 'hard' ? 65 : 75;
+        const score = Math.max(50, Math.min(90, baseScore + Math.random() * 10));
+        const difficultyText = difficulty === 'hard' ? 'ハードモード' : 'ノーマルモード';
+        
+        const additionalAdvice = difficulty === 'hard' ? '\n・より高度な表現や語彙の習得を目指しましょう' : '';
+        
+        const fallbackResponse = `総合スコア: ${Math.round(score)}/100点 (${difficultyText})
 
 【評価概要】
 コミュニケーション効果: 基本的な意思疎通ができていました
@@ -377,7 +349,7 @@ app.post('/api/generate-report', async (req, res) => {
 
 【改善点とアドバイス】
 ・継続的な練習でさらなる向上が期待できます
-・様々なビジネスシナリオに挑戦してみてください
+・様々なビジネスシナリオに挑戦してみてください${additionalAdvice}
 
 【次回への推奨】
 今回の経験を活かして、より複雑なビジネス状況にも挑戦してみましょう。`;
@@ -396,7 +368,8 @@ app.get('/api/health', (req, res) => {
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development',
         model: 'gemini-1.5-flash',
-        hasApiKey: !!process.env.GEMINI_API_KEY
+        hasApiKey: !!process.env.GEMINI_API_KEY,
+        passwordProtected: true
     });
 });
 
@@ -425,6 +398,7 @@ app.listen(port, () => {
     console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🤖 Model: gemini-1.5-flash`);
     console.log(`🔑 Gemini API configured: ${!!process.env.GEMINI_API_KEY}`);
+    console.log(`🔐 Password protection: enabled`);
     console.log(`🌐 Health check: http://localhost:${port}/api/health`);
 });
 
