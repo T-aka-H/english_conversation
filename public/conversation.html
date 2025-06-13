@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Situational AI English - 英会話練習</title>
+    <title>英語コソ練アプリ - 英会話練習</title>
     <link rel="icon" href="data:,">
     
     <style>
@@ -620,30 +620,48 @@
             }, 1000 + Math.random() * 2000); // 1-3秒のランダム遅延
         }
         
-        function generateAIResponse(userMessage) {
-            // これは簡易的なデモ応答です。実際のAI連携時は適切なAPIを使用してください
-            const responses = [
-                "That's an interesting point. Could you elaborate on the specific challenges you're facing?",
-                "I understand your perspective. How do you think we can move forward with this proposal?",
-                "Thank you for sharing that information. What would be the next steps in your opinion?",
-                "That's a valid concern. Have you considered alternative approaches to address this issue?",
-                "I appreciate your input. Could you provide more details about the timeline you have in mind?",
-                "Good point. How do you see this impacting our current operations?",
-                "That makes sense. What resources would you need to implement this solution?",
-                "Interesting approach. How would you measure the success of this initiative?"
-            ];
-            
-            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-            
-            // AIメッセージを表示
-            addMessageToDisplay('ai', 'AI Assistant', randomResponse);
-            
-            // 会話履歴に追加
-            conversationHistory.push({
-                role: 'assistant',
-                content: randomResponse,
-                timestamp: new Date().toISOString()
-            });
+        // ユーザーメッセージをGeminiに送信して応答を取得
+        async function generateAIResponse(userMessage) {
+            try {
+                const englishScenario = sessionStorage.getItem('englishScenario') || 'business conversation';
+                const difficulty = sessionStorage.getItem('selectedDifficulty') || 'normal';
+                
+                console.log('🤖 Sending message to Gemini:', userMessage);
+                
+                // Gemini APIを呼び出し（実装時はここを変更）
+                const aiResponse = await getGeminiResponse(userMessage, englishScenario, difficulty);
+                
+                // AIメッセージを表示
+                addMessageToDisplay('ai', 'AI Assistant', aiResponse);
+                
+                // 会話履歴に追加
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: aiResponse,
+                    timestamp: new Date().toISOString()
+                });
+                
+            } catch (error) {
+                console.error('❌ Error getting AI response:', error);
+                
+                // エラー時はフォールバック応答
+                const fallbackResponses = [
+                    "I understand your point. Could you elaborate on that further?",
+                    "That's an interesting perspective. How do you think we should move forward?",
+                    "Thank you for sharing that information. What would be the next steps?",
+                    "I appreciate your input. Could you provide more details about your approach?",
+                    "That makes sense. How do you see this impacting our objectives?"
+                ];
+                
+                const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+                addMessageToDisplay('ai', 'AI Assistant', fallbackResponse);
+                
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: fallbackResponse,
+                    timestamp: new Date().toISOString()
+                });
+            }
             
             // UI状態を更新
             showLoading(false);
@@ -652,6 +670,98 @@
             
             // 進捗とスコアを更新
             updateProgress();
+        }
+        
+        // Gemini APIからの応答を取得する関数
+        async function getGeminiResponse(userMessage, scenario, difficulty) {
+            // 実際のGemini API実装時はここを変更
+            
+            const conversationContext = conversationHistory.slice(-4); // 直近4回の会話を文脈として使用
+            const difficultyLevel = difficulty === 'hard' ? 'advanced' : 'intermediate';
+            
+            const prompt = `You are a professional business English conversation partner helping with this scenario: "${scenario}".
+            
+            Conversation difficulty: ${difficultyLevel}
+            Recent conversation context: ${JSON.stringify(conversationContext)}
+            
+            User just said: "${userMessage}"
+            
+            Please respond naturally as if you are engaged in this business scenario. ${difficulty === 'hard' ? 'Use sophisticated vocabulary and complex sentence structures.' : 'Keep the language professional but accessible.'}
+            
+            Your response should:
+            1. Be contextually relevant to the scenario
+            2. Move the conversation forward meaningfully
+            3. Ask engaging follow-up questions when appropriate
+            4. Maintain professional business tone
+            5. Be 1-3 sentences long
+            
+            Response:`;
+            
+            // フォールバック応答生成（API実装前）
+            return generateContextualResponse(userMessage, scenario, difficulty);
+        }
+        
+        // 文脈に応じた応答を生成（Gemini API実装前のフォールバック）
+        function generateContextualResponse(userMessage, scenario, difficulty) {
+            const message = userMessage.toLowerCase();
+            const scenarioLower = scenario.toLowerCase();
+            
+            // 会議シナリオの応答
+            if (scenarioLower.includes('meeting') || scenarioLower.includes('team')) {
+                if (message.includes('agree') || message.includes('good point')) {
+                    return "Excellent. Since we're aligned on this, let's discuss the implementation timeline. What resources do you think we'll need to make this happen effectively?";
+                }
+                if (message.includes('concern') || message.includes('issue')) {
+                    return "I appreciate you raising that concern. Those are valid points that we need to address. How do you suggest we mitigate these risks while still moving forward?";
+                }
+                return "That's a valuable insight. Building on what you've said, how do you think this will impact our Q4 targets, and what adjustments might we need to make?";
+            }
+            
+            // プレゼンテーションシナリオの応答
+            if (scenarioLower.includes('presentation') || scenarioLower.includes('proposal')) {
+                if (message.includes('question') || message.includes('clarify')) {
+                    return "Great question! Let me address that directly. The key benefit here is cost reduction while improving efficiency. How important is ROI timeline in your decision-making process?";
+                }
+                if (message.includes('interested') || message.includes('promising')) {
+                    return "I'm glad this resonates with you. The next step would be to run a pilot program with your team. What would be the ideal timeframe for implementation from your perspective?";
+                }
+                return "Thank you for that feedback. Based on what you've shared, it sounds like scalability is a priority for you. How large is your current operation, and what growth are you projecting?";
+            }
+            
+            // 顧客対応シナリオの応答
+            if (scenarioLower.includes('client') || scenarioLower.includes('customer') || scenarioLower.includes('phone')) {
+                if (message.includes('problem') || message.includes('issue')) {
+                    return "I completely understand your frustration, and I apologize for the inconvenience this has caused. Let me look into this immediately. Can you provide me with your account number so I can review the details?";
+                }
+                if (message.includes('satisfied') || message.includes('resolved')) {
+                    return "I'm so glad we could resolve this for you today. Is there anything else I can help you with? Also, we'd appreciate your feedback on how we handled this situation.";
+                }
+                return "Thank you for providing that information. I can see exactly what happened here. Let me walk you through the solution and make sure this doesn't happen again.";
+            }
+            
+            // 面接シナリオの応答
+            if (scenarioLower.includes('interview')) {
+                if (message.includes('experience') || message.includes('background')) {
+                    return "That's impressive experience. I can see how that background would be valuable here. Tell me about a time when you had to lead a team through a particularly challenging situation. How did you handle it?";
+                }
+                if (message.includes('challenge') || message.includes('difficult')) {
+                    return "That shows great problem-solving skills and leadership under pressure. How do you typically approach building consensus when team members have different opinions on the best path forward?";
+                }
+                return "Excellent answer. I appreciate the specific examples you've provided. What motivates you most about this type of work, and how do you see yourself contributing to our team's success?";
+            }
+            
+            // デフォルト応答
+            const responses = [
+                "That's a thoughtful approach. How do you envision implementing this strategy across different departments?",
+                "I see your point clearly. What metrics would you use to measure success in this initiative?",
+                "Interesting perspective. What challenges do you anticipate, and how might we address them proactively?",
+                "That makes complete sense. Walk me through your thinking on the timeline for this project.",
+                "Great insight. How do you think our stakeholders will respond to this proposal?",
+                "I appreciate that analysis. What would be the key success factors from your experience?",
+                "That's a solid foundation. What additional resources or support would you need to execute this effectively?"
+            ];
+            
+            return responses[Math.floor(Math.random() * responses.length)];
         }
         
         function addMessageToDisplay(type, sender, message) {
@@ -776,22 +886,186 @@
         // シナリオに基づいてAIから会話を開始する関数
         function startScenarioBasedConversation(scenario, difficulty) {
             console.log('🎭 Starting scenario-based conversation');
+            console.log('📝 Original scenario (Japanese):', scenario);
             
             // 会話表示エリアをクリア
             document.getElementById('conversationDisplay').innerHTML = '';
             
-            // シナリオに基づいた開始メッセージを生成
-            const openingMessage = generateScenarioOpening(scenario, difficulty);
+            // ローディング表示
+            addMessageToDisplay('ai', 'AI Assistant', 'Translating scenario and preparing conversation...');
             
-            // AIメッセージを表示
-            addMessageToDisplay('ai', 'AI Assistant', openingMessage);
+            // シナリオを英語に翻訳してGeminiから会話を開始
+            translateScenarioAndStartConversation(scenario, difficulty);
+        }
+        
+        // シナリオを英語に翻訳してGeminiで会話開始
+        async function translateScenarioAndStartConversation(japaneseScenario, difficulty) {
+            try {
+                console.log('🌐 Translating scenario to English...');
+                
+                // 日本語シナリオを英語に翻訳
+                const englishScenario = await translateJapaneseToEnglish(japaneseScenario);
+                console.log('✅ Translated scenario (English):', englishScenario);
+                
+                // 翻訳されたシナリオをセッションストレージに保存
+                sessionStorage.setItem('englishScenario', englishScenario);
+                
+                // Geminiに会話開始を依頼
+                const openingMessage = await getGeminiOpeningMessage(englishScenario, difficulty);
+                
+                // 会話表示をクリアして新しいメッセージを表示
+                document.getElementById('conversationDisplay').innerHTML = '';
+                addMessageToDisplay('ai', 'AI Assistant', openingMessage);
+                
+                // 会話履歴に追加
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: openingMessage,
+                    timestamp: new Date().toISOString(),
+                    scenario: englishScenario
+                });
+                
+            } catch (error) {
+                console.error('❌ Error in translation/conversation start:', error);
+                
+                // エラー時はフォールバック
+                document.getElementById('conversationDisplay').innerHTML = '';
+                const fallbackMessage = generateScenarioOpening(japaneseScenario, difficulty);
+                addMessageToDisplay('ai', 'AI Assistant', fallbackMessage);
+                
+                conversationHistory.push({
+                    role: 'assistant',
+                    content: fallbackMessage,
+                    timestamp: new Date().toISOString()
+                });
+            }
+        }
+        
+        // 日本語を英語に翻訳する関数
+        async function translateJapaneseToEnglish(japaneseText) {
+            // 簡易的な翻訳ロジック（実際のAPI使用時はここを変更）
+            const translationMap = {
+                // 会議関連
+                'チームミーティング': 'team meeting',
+                'ミーティング': 'meeting',
+                '会議': 'meeting',
+                '四半期業績': 'quarterly results',
+                '戦略計画': 'strategic planning',
+                '司会': 'leading',
+                '司会進行': 'facilitating',
+                
+                // プレゼンテーション関連
+                'プレゼンテーション': 'presentation',
+                'プレゼン': 'presentation',
+                '新製品提案': 'new product proposal',
+                '投資家': 'investors',
+                '質疑応答': 'Q&A session',
+                
+                // 電話・クライアント関連
+                '電話対応': 'phone call',
+                '電話': 'phone call',
+                'クライアント': 'client',
+                '顧客': 'customer',
+                'サービス問題': 'service issues',
+                '問題解決': 'problem resolution',
+                
+                // 面接関連
+                '就職面接': 'job interview',
+                '面接': 'interview',
+                'シニアマネジメント': 'senior management',
+                '管理職': 'management position',
+                '行動面': 'behavioral',
+                '技術面': 'technical',
+                
+                // 交渉関連
+                '契約交渉': 'contract negotiation',
+                '交渉': 'negotiation',
+                '価格設定': 'pricing',
+                '納期': 'delivery schedule',
+                'ベンダー': 'vendor',
+                
+                // 人事評価関連
+                '人事評価': 'performance review',
+                '評価面談': 'performance review',
+                '成果': 'achievements',
+                '改善点': 'areas for improvement',
+                '能力開発': 'professional development'
+            };
             
-            // 会話履歴に追加
-            conversationHistory.push({
-                role: 'assistant',
-                content: openingMessage,
-                timestamp: new Date().toISOString()
-            });
+            let translatedText = japaneseText;
+            
+            // 辞書ベースの翻訳
+            for (const [japanese, english] of Object.entries(translationMap)) {
+                translatedText = translatedText.replace(new RegExp(japanese, 'g'), english);
+            }
+            
+            // 基本的な文構造の調整
+            if (translatedText.includes('について話し合') || translatedText.includes('討議')) {
+                translatedText = translatedText.replace(/について話し合[う|い|っ]/, 'discussion about');
+                translatedText = translatedText.replace(/討議/, 'discussion');
+            }
+            
+            if (translatedText.includes('との') || translatedText.includes('に対して')) {
+                translatedText = translatedText.replace(/との/, 'with');
+                translatedText = translatedText.replace(/に対して/, 'regarding');
+            }
+            
+            console.log('🔄 Translation result:', translatedText);
+            return translatedText;
+        }
+        
+        // Geminiから開始メッセージを取得する関数
+        async function getGeminiOpeningMessage(englishScenario, difficulty) {
+            // 実際のGemini API使用時はここを実装
+            // 現在はデモ用の応答を返す
+            
+            const difficultyLevel = difficulty === 'hard' ? 'advanced' : 'intermediate';
+            
+            const prompt = `You are a business English conversation partner. Start a realistic ${difficultyLevel} level business conversation based on this scenario: "${englishScenario}". 
+            
+            Please:
+            1. Take the initiative and start the conversation naturally
+            2. Set the appropriate business context
+            3. Ask an engaging question to get the conversation flowing
+            4. Use professional but approachable language
+            5. Make it feel like a real business situation
+            
+            Begin the conversation now:`;
+            
+            // Gemini APIの代わりにフォールバック応答
+            return generateGeminiStyleOpening(englishScenario, difficulty);
+        }
+        
+        // Geminiスタイルの開始メッセージを生成（API実装前のフォールバック）
+        function generateGeminiStyleOpening(englishScenario, difficulty) {
+            const scenario = englishScenario.toLowerCase();
+            
+            if (scenario.includes('meeting') || scenario.includes('team')) {
+                return "Good morning, everyone! Thank you for joining today's meeting. I've reviewed the agenda, and we have some important topics to discuss regarding our recent performance and upcoming initiatives. Before we dive in, I'd like to hear your thoughts on our current challenges. What do you see as our main priorities moving forward?";
+            }
+            
+            if (scenario.includes('presentation') || scenario.includes('proposal')) {
+                return "Thank you for taking the time to meet with me today. I'm excited to share this proposal with you, as I believe it addresses some key opportunities in your market. Before I begin the formal presentation, could you tell me about your current priorities and what success looks like for your organization this quarter?";
+            }
+            
+            if (scenario.includes('phone') || scenario.includes('client') || scenario.includes('customer')) {
+                return "Good afternoon, and thank you for calling. I understand you have some concerns about our service, and I want to make sure we address them thoroughly today. Could you walk me through what happened and how this has impacted your operations? I'm here to find the best solution for you.";
+            }
+            
+            if (scenario.includes('interview')) {
+                return "Welcome! It's great to meet you, and thank you for your interest in this position. I've had a chance to review your background, and I'm impressed with your experience. Let's start with you telling me what attracted you to this role and how you see yourself contributing to our team's success.";
+            }
+            
+            if (scenario.includes('negotiation') || scenario.includes('contract')) {
+                return "I appreciate you taking the time to meet today to discuss this partnership opportunity. I've reviewed your proposal, and there are definitely some areas where I think we can find mutual benefit. However, I'd like to discuss a few aspects of the terms. What's most important to you in structuring this agreement?";
+            }
+            
+            if (scenario.includes('performance') || scenario.includes('review')) {
+                return "Thanks for setting aside time for our review today. I've been looking forward to this conversation because I've observed some really positive developments in your work lately. Let's start by discussing your perspective on this period - what do you feel went particularly well, and where do you see opportunities for growth?";
+            }
+            
+            // デフォルト応答
+            return `I'm ready to engage in our business scenario: "${englishScenario}". Let me set the professional context for our discussion. This is an important business interaction, so I want to make sure we approach it strategically. What's your initial assessment of the situation, and how do you think we should proceed?`;
         }
         
         // シナリオに基づいた開始メッセージを生成
