@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Situational AI English - Conversation Practice</title>
+    <title>Situational AI English - 英会話練習</title>
     <link rel="icon" href="data:,">
     
     <style>
@@ -333,24 +333,24 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 Business English Conversation Practice</h1>
+            <h1>🎯 ビジネス英会話練習</h1>
             
             <div class="session-info">
                 <div class="info-item">
-                    <h4>Scenario</h4>
-                    <p id="scenarioDisplay">Loading...</p>
+                    <h4>シナリオ</h4>
+                    <p id="scenarioDisplay">読み込み中...</p>
                 </div>
                 <div class="info-item">
-                    <h4>Difficulty</h4>
-                    <p id="difficultyDisplay">Loading...</p>
+                    <h4>難易度</h4>
+                    <p id="difficultyDisplay">読み込み中...</p>
                 </div>
                 <div class="info-item">
-                    <h4>Session Time</h4>
+                    <h4>セッション時間</h4>
                     <p id="sessionTimer">00:00</p>
                 </div>
                 <div class="info-item">
-                    <h4>Messages</h4>
-                    <p><span id="messageCount">0</span> exchanges</p>
+                    <h4>やり取り数</h4>
+                    <p><span id="messageCount">0</span> 回</p>
                 </div>
             </div>
         </div>
@@ -360,13 +360,13 @@
                 <div class="conversation-display" id="conversationDisplay">
                     <div class="message ai">
                         <div class="sender">AI Assistant</div>
-                        <p>Welcome to your business English conversation practice! I'm ready to engage in the scenario you've selected. Please start the conversation whenever you're ready.</p>
+                        <p>Loading your scenario... Please wait a moment while I prepare the conversation.</p>
                     </div>
                 </div>
                 
                 <div class="loading-indicator" id="loadingIndicator">
                     <span class="loading-spinner"></span>
-                    AI is thinking...
+                    AIが考え中...
                 </div>
                 
                 <div class="input-area">
@@ -374,17 +374,17 @@
                         <textarea 
                             id="userInput" 
                             class="input-textarea"
-                            placeholder="Type your response in English here..."
+                            placeholder="ここに英語で返答を入力してください..."
                             rows="3"
                         ></textarea>
                     </div>
                     
                     <div class="input-buttons">
                         <button id="sendButton" class="button primary" onclick="sendMessage()">
-                            Send
+                            送信
                         </button>
                         <button class="button secondary" onclick="clearConversation()">
-                            Clear
+                            クリア
                         </button>
                     </div>
                 </div>
@@ -392,52 +392,52 @@
             
             <div class="sidebar">
                 <div class="sidebar-section">
-                    <h3>📊 Progress</h3>
+                    <h3>📊 進捗</h3>
                     <div class="progress-bar">
                         <div class="progress-fill" id="progressFill"></div>
                     </div>
                     <p style="font-size: 12px; color: rgba(255,255,255,0.7);">
-                        <span id="progressText">0% Complete</span>
+                        <span id="progressText">0% 完了</span>
                     </p>
                     
                     <div class="stats-grid">
                         <div class="stat-item">
                             <div class="stat-number" id="accuracyScore">--</div>
-                            <div class="stat-label">Accuracy</div>
+                            <div class="stat-label">正確性</div>
                         </div>
                         <div class="stat-item">
                             <div class="stat-number" id="fluencyScore">--</div>
-                            <div class="stat-label">Fluency</div>
+                            <div class="stat-label">流暢性</div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="sidebar-section">
-                    <h3>⚡ Quick Actions</h3>
+                    <h3>⚡ クイックアクション</h3>
                     <div class="quick-actions">
                         <button class="button secondary" onclick="getHint()">
-                            💡 Get Hint
+                            💡 ヒントを見る
                         </button>
                         <button class="button secondary" onclick="requestFeedback()">
-                            📝 Get Feedback
+                            📝 フィードバック
                         </button>
                         <button class="button secondary" onclick="finishSession()">
-                            ✅ Finish Session
+                            ✅ セッション終了
                         </button>
                     </div>
                 </div>
                 
                 <div class="sidebar-section">
-                    <h3>⚙️ Session Control</h3>
+                    <h3>⚙️ セッション制御</h3>
                     <div class="quick-actions">
                         <button class="button secondary" onclick="restartSession()">
-                            🔄 Restart
+                            🔄 やり直し
                         </button>
                         <button class="button secondary" onclick="goBack()">
-                            ← Back
+                            ← 戻る
                         </button>
                         <button class="button secondary" onclick="logout()">
-                            🚪 Logout
+                            🚪 ログアウト
                         </button>
                     </div>
                 </div>
@@ -517,13 +517,20 @@
                 const difficulty = sessionStorage.getItem('selectedDifficulty');
                 
                 document.getElementById('scenarioDisplay').textContent = 
-                    scenario || 'No scenario selected';
+                    scenario || 'シナリオが選択されていません';
                     
                 document.getElementById('difficultyDisplay').textContent = 
-                    difficulty ? (difficulty.charAt(0).toUpperCase() + difficulty.slice(1)) : 'Normal';
+                    difficulty ? (difficulty === 'normal' ? 'ノーマル' : 'ハード') : 'ノーマル';
                 
                 console.log('📋 Loaded scenario:', scenario);
                 console.log('⚙️ Loaded difficulty:', difficulty);
+                
+                // シナリオに基づいてAIから会話を開始
+                if (scenario) {
+                    setTimeout(() => {
+                        startScenarioBasedConversation(scenario, difficulty);
+                    }, 1000);
+                }
                 
             } catch (error) {
                 console.error('❌ Error loading session info:', error);
@@ -563,7 +570,7 @@
             const message = userInput.value.trim();
             
             if (!message) {
-                alert('Please enter a message.');
+                alert('メッセージを入力してください。');
                 return;
             }
             
@@ -660,7 +667,7 @@
             // 簡易的な進捗計算（メッセージ数に基づく）
             const progress = Math.min(messageCount * 10, 100);
             document.getElementById('progressFill').style.width = progress + '%';
-            document.getElementById('progressText').textContent = progress + '% Complete';
+            document.getElementById('progressText').textContent = progress + '% 完了';
             
             // 簡易的なスコア計算
             const accuracy = Math.floor(Math.random() * 20) + 80; // 80-100
@@ -671,7 +678,7 @@
         }
         
         function clearConversation() {
-            if (confirm('Are you sure you want to clear the conversation?')) {
+            if (confirm('会話をクリアしてもよろしいですか？')) {
                 document.getElementById('conversationDisplay').innerHTML = `
                     <div class="message ai">
                         <div class="sender">AI Assistant</div>
@@ -687,28 +694,28 @@
         
         function getHint() {
             const hints = [
-                "Try using more professional business vocabulary in your responses.",
-                "Consider asking follow-up questions to show engagement.",
-                "Use transition phrases like 'Furthermore' or 'In addition' to connect your ideas.",
-                "Practice active listening by acknowledging the other person's points.",
-                "Try to be more specific with numbers, dates, or concrete examples."
+                "より専門的なビジネス語彙を使用してみてください。",
+                "相手への質問を投げかけて、積極的な姿勢を示しましょう。",
+                "「Furthermore」や「In addition」などの接続詞を使って、アイデアを繋げてみてください。",
+                "相手の発言を認めることで、アクティブリスニングを実践しましょう。",
+                "具体的な数字、日付、例を使ってより明確に表現してみてください。"
             ];
             
             const randomHint = hints[Math.floor(Math.random() * hints.length)];
-            alert('💡 Hint: ' + randomHint);
+            alert('💡 ヒント: ' + randomHint);
         }
         
         function requestFeedback() {
             if (conversationHistory.length === 0) {
-                alert('Please have a conversation first before requesting feedback.');
+                alert('フィードバックをリクエストする前に、まず会話を始めてください。');
                 return;
             }
             
-            alert('📝 Feedback will be provided at the end of the session. Continue practicing!');
+            alert('📝 フィードバックはセッション終了時に提供されます。練習を続けてください！');
         }
         
         function finishSession() {
-            if (confirm('Are you sure you want to finish this session?')) {
+            if (confirm('このセッションを終了してもよろしいですか？')) {
                 // セッションデータを保存
                 const sessionData = {
                     scenario: sessionStorage.getItem('selectedScenario'),
@@ -726,25 +733,89 @@
         }
         
         function restartSession() {
-            if (confirm('Are you sure you want to restart this session?')) {
+            if (confirm('このセッションをやり直してもよろしいですか？')) {
                 window.location.reload();
             }
         }
         
         function goBack() {
-            if (confirm('Are you sure you want to go back? Current progress will be lost.')) {
+            if (confirm('戻ってもよろしいですか？現在の進捗は失われます。')) {
                 window.location.href = 'difficulty.html';
             }
         }
         
         function logout() {
-            if (confirm('Are you sure you want to logout?')) {
+            if (confirm('ログアウトしてもよろしいですか？')) {
                 sessionStorage.clear();
                 if (timerInterval) {
                     clearInterval(timerInterval);
                 }
                 window.location.replace('index.html');
             }
+        }
+        
+        // シナリオに基づいてAIから会話を開始する関数
+        function startScenarioBasedConversation(scenario, difficulty) {
+            console.log('🎭 Starting scenario-based conversation');
+            
+            // 会話表示エリアをクリア
+            document.getElementById('conversationDisplay').innerHTML = '';
+            
+            // シナリオに基づいた開始メッセージを生成
+            const openingMessage = generateScenarioOpening(scenario, difficulty);
+            
+            // AIメッセージを表示
+            addMessageToDisplay('ai', 'AI Assistant', openingMessage);
+            
+            // 会話履歴に追加
+            conversationHistory.push({
+                role: 'assistant',
+                content: openingMessage,
+                timestamp: new Date().toISOString()
+            });
+        }
+        
+        // シナリオに基づいた開始メッセージを生成
+        function generateScenarioOpening(scenario, difficulty) {
+            const lowerScenario = scenario.toLowerCase();
+            
+            // チームミーティング関連
+            if (lowerScenario.includes('meeting') || lowerScenario.includes('ミーティング') || lowerScenario.includes('会議')) {
+                return "Good morning everyone! Thank you for joining today's meeting. I've called this meeting to discuss our quarterly results and plan our strategy for the upcoming quarter. Let's start by reviewing the key performance indicators from last quarter. What are your initial thoughts on our performance?";
+            }
+            
+            // プレゼンテーション関連
+            if (lowerScenario.includes('presentation') || lowerScenario.includes('プレゼン') || lowerScenario.includes('提案')) {
+                return "Good afternoon, and thank you for taking the time to meet with us today. I'm excited to present our new product proposal that I believe will significantly impact your business growth. Before we dive into the details, could you tell me a bit about your current challenges in this market segment?";
+            }
+            
+            // 電話・クライアント対応関連
+            if (lowerScenario.includes('phone') || lowerScenario.includes('client') || lowerScenario.includes('電話') || lowerScenario.includes('クライアント')) {
+                return "Hello, thank you for calling. I understand you're experiencing some service issues, and I want to make sure we resolve this matter promptly. Could you please describe the specific problem you're facing so I can better assist you?";
+            }
+            
+            // 面接関連
+            if (lowerScenario.includes('interview') || lowerScenario.includes('面接')) {
+                return "Good morning! Welcome to our company. I'm pleased to meet with you today regarding the senior management position. I've reviewed your resume and I'm impressed with your background. Let's start with you telling me about your leadership experience and what motivates you in a management role.";
+            }
+            
+            // 交渉関連
+            if (lowerScenario.includes('negotiation') || lowerScenario.includes('交渉') || lowerScenario.includes('契約')) {
+                return "Thank you for meeting with us today to discuss the contract terms. We've reviewed your initial proposal, and while we appreciate the comprehensive scope of services, we'd like to discuss some aspects of the pricing structure and delivery timeline. Shall we start with the pricing model?";
+            }
+            
+            // 人事評価関連
+            if (lowerScenario.includes('performance') || lowerScenario.includes('review') || lowerScenario.includes('評価') || lowerScenario.includes('人事')) {
+                return "Hi there! Thanks for setting aside time for our performance review meeting. I've been looking forward to discussing your achievements this year and exploring opportunities for your professional development. Let's start by reflecting on your key accomplishments. What would you say were your biggest successes this year?";
+            }
+            
+            // カスタマーサービス関連
+            if (lowerScenario.includes('customer service') || lowerScenario.includes('カスタマー') || lowerScenario.includes('顧客対応')) {
+                return "Hello! Thank you for contacting our customer service team. I'm here to help resolve any issues you may be experiencing with our products or services. Could you please provide me with your account information and describe the nature of your inquiry?";
+            }
+            
+            // 一般的なビジネスシナリオ（デフォルト）
+            return `Good morning! I'm ready to engage in our business scenario: "${scenario}". Let me set the context and begin our professional interaction. How would you like to approach this situation, and what are your initial thoughts on how we should proceed?`;
         }
         
         // エラーハンドリング
