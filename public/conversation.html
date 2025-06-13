@@ -101,6 +101,33 @@
             border-left: 3px solid #4A90E2;
         }
         
+        .message.ai strong {
+            color: #4A90E2;
+            font-weight: 600;
+        }
+        
+        .message.ai em {
+            color: #28a745;
+            font-style: normal;
+            font-weight: 500;
+        }
+        
+        .feedback-section {
+            background: rgba(40, 167, 69, 0.05);
+            border: 1px solid rgba(40, 167, 69, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 10px 0;
+        }
+        
+        .conversation-section {
+            background: rgba(74, 144, 226, 0.05);
+            border: 1px solid rgba(74, 144, 226, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        
         .message.user {
             background: rgba(40, 167, 69, 0.1);
             border-left: 3px solid #28a745;
@@ -628,32 +655,31 @@
                 
                 console.log('🤖 Sending message to Gemini:', userMessage);
                 
-                // Gemini APIを呼び出し（実装時はここを変更）
-                const aiResponse = await getGeminiResponse(userMessage, englishScenario, difficulty);
+                // ユーザーの英語をまず評価
+                const feedback = generateEnglishFeedback(userMessage, difficulty);
+                
+                // 会話の応答を生成
+                const conversationResponse = await getGeminiResponse(userMessage, englishScenario, difficulty);
+                
+                // フィードバック付きの応答を作成
+                const fullResponse = createFeedbackResponse(feedback, conversationResponse);
                 
                 // AIメッセージを表示
-                addMessageToDisplay('ai', 'AI Assistant', aiResponse);
+                addMessageToDisplay('ai', 'AI Assistant', fullResponse);
                 
                 // 会話履歴に追加
                 conversationHistory.push({
                     role: 'assistant',
-                    content: aiResponse,
-                    timestamp: new Date().toISOString()
+                    content: fullResponse,
+                    timestamp: new Date().toISOString(),
+                    feedback: feedback
                 });
                 
             } catch (error) {
                 console.error('❌ Error getting AI response:', error);
                 
                 // エラー時はフォールバック応答
-                const fallbackResponses = [
-                    "I understand your point. Could you elaborate on that further?",
-                    "That's an interesting perspective. How do you think we should move forward?",
-                    "Thank you for sharing that information. What would be the next steps?",
-                    "I appreciate your input. Could you provide more details about your approach?",
-                    "That makes sense. How do you see this impacting our objectives?"
-                ];
-                
-                const fallbackResponse = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+                const fallbackResponse = "I understand your point. Could you elaborate on that further?";
                 addMessageToDisplay('ai', 'AI Assistant', fallbackResponse);
                 
                 conversationHistory.push({
@@ -670,6 +696,156 @@
             
             // 進捗とスコアを更新
             updateProgress();
+        }
+        
+        // ユーザーの英語に対するフィードバックを生成
+        function generateEnglishFeedback(userMessage, difficulty) {
+            const message = userMessage.trim();
+            const wordCount = message.split(' ').length;
+            const sentences = message.split(/[.!?]+/).filter(s => s.trim().length > 0);
+            
+            let feedback = {
+                positive: [],
+                improvements: [],
+                score: 0
+            };
+            
+            // 基本的な評価基準
+            let score = 70; // ベーススコア
+            
+            // ポジティブな点の評価
+            if (wordCount >= 10) {
+                feedback.positive.push("Good detail in your response");
+                score += 5;
+            }
+            
+            if (message.includes('I think') || message.includes('I believe') || message.includes('In my opinion')) {
+                feedback.positive.push("Nice use of opinion expressions");
+                score += 3;
+            }
+            
+            if (message.includes('However') || message.includes('Therefore') || message.includes('Furthermore') || message.includes('Moreover')) {
+                feedback.positive.push("Excellent use of transition words");
+                score += 5;
+            }
+            
+            if (/[A-Z]/.test(message.charAt(0)) && /[.!?]$/.test(message)) {
+                feedback.positive.push("Proper capitalization and punctuation");
+                score += 2;
+            }
+            
+            // ビジネス表現の評価
+            const businessPhrases = [
+                'would like to', 'I appreciate', 'moving forward', 'next steps',
+                'follow up', 'let me know', 'schedule a meeting', 'discuss further',
+                'coordinate with', 'keep in mind', 'take into consideration'
+            ];
+            
+            businessPhrases.forEach(phrase => {
+                if (message.toLowerCase().includes(phrase)) {
+                    feedback.positive.push("Professional business language");
+                    score += 3;
+                    return; // 一度だけ加点
+                }
+            });
+            
+            // 改善点の指摘
+            if (wordCount < 5) {
+                feedback.improvements.push("Try to provide more detailed responses");
+                score -= 5;
+            }
+            
+            if (!message.includes('.') && !message.includes('!') && !message.includes('?')) {
+                feedback.improvements.push("Remember to end sentences with proper punctuation");
+                score -= 3;
+            }
+            
+            if (!/[A-Z]/.test(message.charAt(0))) {
+                feedback.improvements.push("Start sentences with capital letters");
+                score -= 2;
+            }
+            
+            // 難易度に応じた評価調整
+            if (difficulty === 'hard') {
+                if (!message.includes(',')) {
+                    feedback.improvements.push("Consider using more complex sentence structures with commas");
+                    score -= 3;
+                }
+                
+                if (sentences.length < 2) {
+                    feedback.improvements.push("Try to use multiple sentences for more sophisticated expression");
+                    score -= 5;
+                }
+                
+                if (!/\b(sophisticated|comprehensive|substantial|significant|considerable)\b/i.test(message)) {
+                    feedback.improvements.push("Use more advanced vocabulary to demonstrate proficiency");
+                    score -= 3;
+                }
+            }
+            
+            // 一般的な間違いの検出
+            if (message.includes(' i ') || message.startsWith('i ')) {
+                feedback.improvements.push("Remember to capitalize 'I'");
+                score -= 2;
+            }
+            
+            if (message.includes('dont') || message.includes('cant') || message.includes('wont')) {
+                feedback.improvements.push("Use apostrophes in contractions (don't, can't, won't)");
+                score -= 2;
+            }
+            
+            // スコアの範囲制限
+            feedback.score = Math.max(60, Math.min(100, score));
+            
+            return feedback;
+        }
+        
+        // フィードバック付きの応答を作成
+        function createFeedbackResponse(feedback, conversationResponse) {
+            let response = "";
+            
+            // フィードバック部分（日本語）
+            response += "📝 <strong>英語フィードバック:</strong><br>";
+            
+            if (feedback.positive.length > 0) {
+                response += "✅ <em>良い点:</em> " + translateFeedbackToJapanese(feedback.positive).join("、") + "<br>";
+            }
+            
+            if (feedback.improvements.length > 0) {
+                response += "💡 <em>改善点:</em> " + translateFeedbackToJapanese(feedback.improvements).join("、") + "<br>";
+            }
+            
+            response += `📊 <em>英語スコア:</em> ${feedback.score}/100点<br><br>`;
+            
+            // 会話応答部分（英語）
+            response += "💬 <strong>会話の続き:</strong><br>";
+            response += conversationResponse;
+            
+            return response;
+        }
+        
+        // フィードバックメッセージを日本語に翻訳
+        function translateFeedbackToJapanese(feedbackArray) {
+            const translations = {
+                // ポジティブフィードバック
+                "Good detail in your response": "詳細な応答ができています",
+                "Nice use of opinion expressions": "意見表現がうまく使えています",
+                "Excellent use of transition words": "接続詞の使い方が素晴らしいです",
+                "Proper capitalization and punctuation": "大文字・句読点が正しく使えています", 
+                "Professional business language": "プロフェッショナルなビジネス表現が使えています",
+                
+                // 改善点フィードバック
+                "Try to provide more detailed responses": "もう少し詳しい回答を心がけましょう",
+                "Remember to end sentences with proper punctuation": "文末に適切な句読点をつけましょう",
+                "Start sentences with capital letters": "文の最初は大文字で始めましょう",
+                "Consider using more complex sentence structures with commas": "コンマを使った複雑な文構造を試してみましょう",
+                "Try to use multiple sentences for more sophisticated expression": "より洗練された表現のため複数の文を使ってみましょう",
+                "Use more advanced vocabulary to demonstrate proficiency": "上級語彙を使って熟練度を示しましょう",
+                "Remember to capitalize 'I'": "「I」は必ず大文字にしましょう",
+                "Use apostrophes in contractions (don't, can't, won't)": "短縮形ではアポストロフィを使いましょう（don't, can't, won't）"
+            };
+            
+            return feedbackArray.map(item => translations[item] || item);
         }
         
         // Gemini APIからの応答を取得する関数
@@ -798,12 +974,30 @@
             document.getElementById('progressFill').style.width = progress + '%';
             document.getElementById('progressText').textContent = progress + '% 完了';
             
-            // 簡易的なスコア計算
-            const accuracy = Math.floor(Math.random() * 20) + 80; // 80-100
-            const fluency = Math.floor(Math.random() * 15) + 75;  // 75-90
-            
-            document.getElementById('accuracyScore').textContent = accuracy + '%';
-            document.getElementById('fluencyScore').textContent = fluency + '%';
+            // 実際のフィードバックスコアに基づく統計更新
+            if (conversationHistory.length > 0) {
+                const feedbackEntries = conversationHistory.filter(entry => entry.feedback);
+                
+                if (feedbackEntries.length > 0) {
+                    // 平均スコアを計算
+                    const totalScore = feedbackEntries.reduce((sum, entry) => sum + entry.feedback.score, 0);
+                    const averageScore = Math.round(totalScore / feedbackEntries.length);
+                    
+                    // 最新のフィードバックを取得
+                    const latestFeedback = feedbackEntries[feedbackEntries.length - 1].feedback;
+                    
+                    // 正確性スコア（平均スコア）
+                    document.getElementById('accuracyScore').textContent = averageScore + '%';
+                    
+                    // 流暢性スコア（最新のフィードバックとポジティブ要素数に基づく）
+                    const fluencyScore = Math.min(95, latestFeedback.score + (latestFeedback.positive.length * 2));
+                    document.getElementById('fluencyScore').textContent = fluencyScore + '%';
+                } else {
+                    // フィードバックがない場合のデフォルト値
+                    document.getElementById('accuracyScore').textContent = '--';
+                    document.getElementById('fluencyScore').textContent = '--';
+                }
+            }
         }
         
         function clearConversation() {
@@ -943,9 +1137,38 @@
         
         // 日本語を英語に翻訳する関数
         async function translateJapaneseToEnglish(japaneseText) {
-            // 簡易的な翻訳ロジック（実際のAPI使用時はここを変更）
+            // より包括的な翻訳辞書
             const translationMap = {
-                // 会議関連
+                // 日常生活・旅行関連
+                '入国審査': 'immigration control',
+                '入国審査時': 'immigration control',
+                '入国': 'immigration',
+                '空港': 'airport',
+                '飛行機': 'airplane flight',
+                'ホテル': 'hotel',
+                'チェックイン': 'hotel check-in',
+                'レストラン': 'restaurant',
+                '食事': 'dining',
+                '買い物': 'shopping',
+                '店': 'store',
+                '病院': 'hospital',
+                '医者': 'doctor visit',
+                '銀行': 'bank',
+                'タクシー': 'taxi',
+                '交通': 'transportation',
+                '郵便局': 'post office',
+                '郵便': 'mail service',
+                '学校': 'school',
+                '大学': 'university',
+                'アパート': 'apartment rental',
+                '賃貸': 'rental',
+                '警察': 'police',
+                'ジム': 'gym',
+                'フィットネス': 'fitness',
+                '美容院': 'hair salon',
+                '理髪店': 'barber shop',
+                
+                // ビジネス関連
                 'チームミーティング': 'team meeting',
                 'ミーティング': 'meeting',
                 '会議': 'meeting',
@@ -953,43 +1176,43 @@
                 '戦略計画': 'strategic planning',
                 '司会': 'leading',
                 '司会進行': 'facilitating',
-                
-                // プレゼンテーション関連
                 'プレゼンテーション': 'presentation',
                 'プレゼン': 'presentation',
                 '新製品提案': 'new product proposal',
                 '投資家': 'investors',
                 '質疑応答': 'Q&A session',
-                
-                // 電話・クライアント関連
                 '電話対応': 'phone call',
                 '電話': 'phone call',
                 'クライアント': 'client',
                 '顧客': 'customer',
                 'サービス問題': 'service issues',
                 '問題解決': 'problem resolution',
-                
-                // 面接関連
                 '就職面接': 'job interview',
                 '面接': 'interview',
                 'シニアマネジメント': 'senior management',
                 '管理職': 'management position',
                 '行動面': 'behavioral',
                 '技術面': 'technical',
-                
-                // 交渉関連
                 '契約交渉': 'contract negotiation',
                 '交渉': 'negotiation',
                 '価格設定': 'pricing',
                 '納期': 'delivery schedule',
                 'ベンダー': 'vendor',
-                
-                // 人事評価関連
                 '人事評価': 'performance review',
                 '評価面談': 'performance review',
                 '成果': 'achievements',
                 '改善点': 'areas for improvement',
-                '能力開発': 'professional development'
+                '能力開発': 'professional development',
+                
+                // 動作・行為
+                'について話し合': 'discussion about',
+                '討議': 'discussion',
+                'との': 'with',
+                'に対して': 'regarding',
+                '時': 'situation',
+                'での': 'at',
+                'における': 'in',
+                'で': 'at'
             };
             
             let translatedText = japaneseText;
@@ -1000,15 +1223,13 @@
             }
             
             // 基本的な文構造の調整
-            if (translatedText.includes('について話し合') || translatedText.includes('討議')) {
-                translatedText = translatedText.replace(/について話し合[う|い|っ]/, 'discussion about');
-                translatedText = translatedText.replace(/討議/, 'discussion');
-            }
-            
-            if (translatedText.includes('との') || translatedText.includes('に対して')) {
-                translatedText = translatedText.replace(/との/, 'with');
-                translatedText = translatedText.replace(/に対して/, 'regarding');
-            }
+            translatedText = translatedText.replace(/について話し合[う|い|っ]/g, 'discussion about');
+            translatedText = translatedText.replace(/討議/g, 'discussion');
+            translatedText = translatedText.replace(/との/g, 'with');
+            translatedText = translatedText.replace(/に対して/g, 'regarding');
+            translatedText = translatedText.replace(/時$/g, 'situation');
+            translatedText = translatedText.replace(/での/g, 'at');
+            translatedText = translatedText.replace(/における/g, 'in');
             
             console.log('🔄 Translation result:', translatedText);
             return translatedText;
@@ -1036,36 +1257,238 @@
             return generateGeminiStyleOpening(englishScenario, difficulty);
         }
         
-        // Geminiスタイルの開始メッセージを生成（API実装前のフォールバック）
+        // ユーザーが指定したAIの役割を抽出する関数
+        function extractAIRole(scenarioText) {
+            const text = scenarioText.toLowerCase();
+            let aiRole = '';
+            let situation = '';
+            
+            // 括弧内の役割指定を探す
+            const roleMatch = scenarioText.match(/（(.+?)）/);
+            if (roleMatch) {
+                aiRole = roleMatch[1];
+                situation = scenarioText.replace(/（.+?）/, '').trim();
+            } else {
+                // 括弧がない場合、キーワードから推測
+                situation = scenarioText;
+                aiRole = inferAIRole(text);
+            }
+            
+            console.log('🎭 Extracted AI Role:', aiRole);
+            console.log('📝 Situation:', situation);
+            
+            return { aiRole, situation };
+        }
+        
+        // テキストからAIの役割を推測する関数
+        function inferAIRole(text) {
+            if (text.includes('入国審査') || text.includes('immigration')) return '入国審査官';
+            if (text.includes('レストラン') || text.includes('restaurant')) return 'ウェイター';
+            if (text.includes('ホテル') || text.includes('hotel')) return '受付スタッフ';
+            if (text.includes('病院') || text.includes('医者') || text.includes('doctor')) return '医師';
+            if (text.includes('買い物') || text.includes('shopping')) return '店員';
+            if (text.includes('銀行') || text.includes('bank')) return '銀行員';
+            if (text.includes('タクシー') || text.includes('taxi')) return '運転手';
+            if (text.includes('郵便局') || text.includes('post office')) return '郵便局員';
+            if (text.includes('美容院') || text.includes('salon')) return '美容師';
+            if (text.includes('面接') || text.includes('interview')) return '面接官';
+            if (text.includes('会議') || text.includes('meeting')) return '同僚';
+            if (text.includes('プレゼン') || text.includes('presentation')) return '聞き手';
+            if (text.includes('顧客') || text.includes('customer')) return '顧客サービス担当';
+            if (text.includes('交渉') || text.includes('negotiation')) return '交渉相手';
+            if (text.includes('評価') || text.includes('review')) return '上司';
+            
+            return '対話相手';
+        }
+        
+        // 役割に基づいて開始メッセージを生成
+        function generateRoleBasedOpening(situation, aiRole, difficulty) {
+            const role = aiRole.toLowerCase();
+            const scene = situation.toLowerCase();
+            
+            // 入国審査官
+            if (role.includes('入国審査官') || role.includes('immigration officer')) {
+                return "Good afternoon. Welcome to the United States. Please present your passport and any necessary documentation. What is the purpose of your visit today?";
+            }
+            
+            // ウェイター
+            if (role.includes('ウェイター') || role.includes('waiter') || role.includes('server')) {
+                return "Good evening and welcome to Bella Vista Restaurant. My name is Michael, and I'll be your server tonight. Have you dined with us before? Would you like to start with something to drink?";
+            }
+            
+            // ホテル受付
+            if (role.includes('受付') || role.includes('フロント') || role.includes('reception') || role.includes('front desk')) {
+                return "Good evening! Welcome to the Grand Hotel. My name is Sarah, and I'll be assisting you with your check-in today. May I have your reservation name, please?";
+            }
+            
+            // 医師
+            if (role.includes('医師') || role.includes('医者') || role.includes('doctor')) {
+                return "Good morning. I'm Dr. Johnson. I understand you're not feeling well today. Can you tell me about your symptoms and when they started?";
+            }
+            
+            // 店員
+            if (role.includes('店員') || role.includes('sales') || role.includes('staff')) {
+                return "Hi there! Welcome to our store. I'm Jessica, one of the sales associates here. Is there anything specific you're looking for today, or would you like me to show you our featured items?";
+            }
+            
+            // 銀行員
+            if (role.includes('銀行員') || role.includes('bank') || role.includes('teller')) {
+                return "Good afternoon! Welcome to City Bank. I'm Maria, a customer service representative. How can I assist you today? Are you looking to open an account or do you have an existing account with us?";
+            }
+            
+            // タクシー運転手
+            if (role.includes('運転手') || role.includes('driver')) {
+                return "Hi! I'm your driver for today. Where would you like to go? And do you have a preferred route, or would you like me to take the fastest way?";
+            }
+            
+            // 郵便局員
+            if (role.includes('郵便局員') || role.includes('postal') || role.includes('mail')) {
+                return "Good morning! Welcome to the post office. I can help you with shipping, mailing, or any postal services you need. What can I do for you today?";
+            }
+            
+            // 美容師
+            if (role.includes('美容師') || role.includes('stylist') || role.includes('hairdresser')) {
+                return "Hi there! Welcome to Style Studio. I'm Emma, your stylist for today. What kind of look are you going for? Do you have any specific style in mind?";
+            }
+            
+            // 面接官
+            if (role.includes('面接官') || role.includes('interviewer')) {
+                return "Welcome! It's great to meet you, and thank you for your interest in this position. I'm Jennifer, the hiring manager for this role. I've had a chance to review your resume, and I'm impressed with your background. Let's start with you telling me what attracted you to this position.";
+            }
+            
+            // 同僚（会議）
+            if (role.includes('同僚') || role.includes('colleague') || scene.includes('meeting')) {
+                return "Good morning everyone! Thank you for joining today's meeting. I've reviewed the agenda, and we have some important topics to discuss. Before we dive in, I'd like to hear your thoughts on our current challenges. What do you see as our main priorities?";
+            }
+            
+            // 聞き手（プレゼンテーション）
+            if (role.includes('聞き手') || role.includes('audience') || scene.includes('presentation')) {
+                return "Thank you for taking the time to present to us today. I'm interested in hearing about your proposal. Before you begin, could you give us a brief overview of what you'll be covering and how this relates to our current objectives?";
+            }
+            
+            // 顧客サービス
+            if (role.includes('顧客') || role.includes('customer service') || role.includes('サービス')) {
+                return "Good afternoon, and thank you for calling our customer service line. My name is David, and I'm here to help you today. I understand you have some concerns. Could you please provide me with your account information and describe the issue you're experiencing?";
+            }
+            
+            // 交渉相手
+            if (role.includes('交渉') || role.includes('negotiation')) {
+                return "Thank you for meeting with us today to discuss this partnership opportunity. I'm Robert from the procurement team. I've reviewed your proposal, and while there are some interesting elements, I'd like to discuss a few aspects of the terms. What's most important to you in this agreement?";
+            }
+            
+            // 上司（評価）
+            if (role.includes('上司') || role.includes('manager') || scene.includes('評価') || scene.includes('review')) {
+                return "Hi there! Thanks for setting aside time for our quarterly review. I'm your manager, Susan, and I've been looking forward to this conversation. Let's start by discussing your recent projects. What do you feel went particularly well this quarter?";
+            }
+            
+            // デフォルト
+            return `Hello! I'm here as your ${aiRole} for this scenario: "${situation}". I'm ready to help you practice this conversation. How can I assist you today?`;
+        }
         function generateGeminiStyleOpening(englishScenario, difficulty) {
             const scenario = englishScenario.toLowerCase();
             
-            if (scenario.includes('meeting') || scenario.includes('team')) {
-                return "Good morning, everyone! Thank you for joining today's meeting. I've reviewed the agenda, and we have some important topics to discuss regarding our recent performance and upcoming initiatives. Before we dive in, I'd like to hear your thoughts on our current challenges. What do you see as our main priorities moving forward?";
+            // 入国審査
+            if (scenario.includes('immigration') || scenario.includes('入国審査') || scenario.includes('入国')) {
+                return "Good afternoon. Welcome to the United States. Please present your passport and any necessary documentation. What is the purpose of your visit today?";
             }
             
-            if (scenario.includes('presentation') || scenario.includes('proposal')) {
+            // 空港・飛行機
+            if (scenario.includes('airport') || scenario.includes('flight') || scenario.includes('空港') || scenario.includes('飛行機')) {
+                return "Good morning! Welcome aboard flight 123 to New York. I'm your flight attendant today. Can I help you find your seat, or do you have any questions about our services?";
+            }
+            
+            // ホテル
+            if (scenario.includes('hotel') || scenario.includes('check-in') || scenario.includes('ホテル') || scenario.includes('チェックイン')) {
+                return "Good evening! Welcome to the Grand Hotel. My name is Sarah, and I'll be assisting you with your check-in today. May I have your reservation name, please?";
+            }
+            
+            // レストラン
+            if (scenario.includes('restaurant') || scenario.includes('dining') || scenario.includes('レストラン') || scenario.includes('食事')) {
+                return "Good evening and welcome to Bella Vista Restaurant. My name is Michael, and I'll be your server tonight. Have you dined with us before? Would you like to start with something to drink?";
+            }
+            
+            // ショッピング
+            if (scenario.includes('shopping') || scenario.includes('store') || scenario.includes('買い物') || scenario.includes('店')) {
+                return "Hi there! Welcome to our store. I'm Jessica, one of the sales associates here. Is there anything specific you're looking for today, or would you like me to show you our featured items?";
+            }
+            
+            // 病院・医療
+            if (scenario.includes('hospital') || scenario.includes('doctor') || scenario.includes('medical') || scenario.includes('病院') || scenario.includes('医者')) {
+                return "Good morning. I'm Dr. Johnson. I understand you're not feeling well today. Can you tell me about your symptoms and when they started?";
+            }
+            
+            // 銀行
+            if (scenario.includes('bank') || scenario.includes('banking') || scenario.includes('銀行')) {
+                return "Good afternoon! Welcome to City Bank. I'm Maria, a customer service representative. How can I assist you today? Are you looking to open an account or do you have an existing account with us?";
+            }
+            
+            // タクシー・交通
+            if (scenario.includes('taxi') || scenario.includes('uber') || scenario.includes('transport') || scenario.includes('タクシー') || scenario.includes('交通')) {
+                return "Hi! I'm your driver for today. Where would you like to go? And do you have a preferred route, or would you like me to take the fastest way?";
+            }
+            
+            // 郵便局
+            if (scenario.includes('post office') || scenario.includes('mail') || scenario.includes('郵便局') || scenario.includes('郵便')) {
+                return "Good morning! Welcome to the post office. I can help you with shipping, mailing, or any postal services you need. What can I do for you today?";
+            }
+            
+            // 学校・教育
+            if (scenario.includes('school') || scenario.includes('university') || scenario.includes('education') || scenario.includes('学校') || scenario.includes('大学')) {
+                return "Hello! Welcome to our university. I'm Professor Smith from the International Student Services. Are you here for enrollment, or do you have questions about our programs?";
+            }
+            
+            // 賃貸・不動産
+            if (scenario.includes('apartment') || scenario.includes('rental') || scenario.includes('real estate') || scenario.includes('アパート') || scenario.includes('賃貸')) {
+                return "Good afternoon! I'm Lisa from Premier Real Estate. I understand you're looking for an apartment. What type of place are you searching for, and what's your budget range?";
+            }
+            
+            // 警察
+            if (scenario.includes('police') || scenario.includes('officer') || scenario.includes('警察')) {
+                return "Good afternoon. I'm Officer Davis with the Metropolitan Police. I stopped you today because you were going 45 in a 35 mph zone. May I see your driver's license and registration, please?";
+            }
+            
+            // ジム・フィットネス
+            if (scenario.includes('gym') || scenario.includes('fitness') || scenario.includes('ジム') || scenario.includes('フィットネス')) {
+                return "Hi! Welcome to FitLife Gym. I'm Alex, one of the personal trainers here. Are you interested in a membership, or would you like to know more about our fitness programs?";
+            }
+            
+            // 美容院・理髪店
+            if (scenario.includes('salon') || scenario.includes('barber') || scenario.includes('hair') || scenario.includes('美容院') || scenario.includes('理髪店')) {
+                return "Hi there! Welcome to Style Studio. I'm Emma, your stylist for today. What kind of look are you going for? Do you have any specific style in mind?";
+            }
+            
+            // ビジネスミーティング
+            if (scenario.includes('meeting') || scenario.includes('team') || scenario.includes('ミーティング') || scenario.includes('会議')) {
+                return "Good morning everyone! Thank you for joining today's meeting. I've called this meeting to discuss our quarterly results and plan our strategy for the upcoming quarter. Let's start by reviewing the key performance indicators from last quarter. What are your initial thoughts on our performance?";
+            }
+            
+            // ビジネスプレゼンテーション
+            if (scenario.includes('presentation') || scenario.includes('proposal') || scenario.includes('プレゼン') || scenario.includes('提案')) {
                 return "Thank you for taking the time to meet with me today. I'm excited to share this proposal with you, as I believe it addresses some key opportunities in your market. Before I begin the formal presentation, could you tell me about your current priorities and what success looks like for your organization this quarter?";
             }
             
-            if (scenario.includes('phone') || scenario.includes('client') || scenario.includes('customer')) {
-                return "Good afternoon, and thank you for calling. I understand you have some concerns about our service, and I want to make sure we address them thoroughly today. Could you walk me through what happened and how this has impacted your operations? I'm here to find the best solution for you.";
+            // 顧客サービス電話
+            if (scenario.includes('phone') || scenario.includes('client') || scenario.includes('customer') || scenario.includes('電話') || scenario.includes('クライアント')) {
+                return "Good afternoon, and thank you for calling our customer service line. My name is David, and I'm here to help you today. I understand you have some concerns about our service. Could you please provide me with your account number and describe the issue you're experiencing?";
             }
             
-            if (scenario.includes('interview')) {
-                return "Welcome! It's great to meet you, and thank you for your interest in this position. I've had a chance to review your background, and I'm impressed with your experience. Let's start with you telling me what attracted you to this role and how you see yourself contributing to our team's success.";
+            // 面接
+            if (scenario.includes('interview') || scenario.includes('面接')) {
+                return "Welcome! It's great to meet you, and thank you for your interest in this position. I'm Jennifer, the hiring manager for this role. I've had a chance to review your resume, and I'm impressed with your background. Let's start with you telling me what attracted you to this position and how you see yourself contributing to our team.";
             }
             
-            if (scenario.includes('negotiation') || scenario.includes('contract')) {
-                return "I appreciate you taking the time to meet today to discuss this partnership opportunity. I've reviewed your proposal, and there are definitely some areas where I think we can find mutual benefit. However, I'd like to discuss a few aspects of the terms. What's most important to you in structuring this agreement?";
+            // 交渉
+            if (scenario.includes('negotiation') || scenario.includes('contract') || scenario.includes('交渉') || scenario.includes('契約')) {
+                return "Thank you for meeting with us today to discuss this partnership opportunity. I'm Robert, the procurement manager. I've reviewed your proposal, and while there are some interesting elements, I'd like to discuss the pricing structure and delivery timeline. What flexibility do you have in these areas?";
             }
             
-            if (scenario.includes('performance') || scenario.includes('review')) {
-                return "Thanks for setting aside time for our review today. I've been looking forward to this conversation because I've observed some really positive developments in your work lately. Let's start by discussing your perspective on this period - what do you feel went particularly well, and where do you see opportunities for growth?";
+            // 人事評価
+            if (scenario.includes('performance') || scenario.includes('review') || scenario.includes('評価') || scenario.includes('人事')) {
+                return "Hi there! Thanks for setting aside time for our quarterly review. I'm your manager, Susan, and I've been looking forward to this conversation. Let's start by discussing your recent projects and achievements. What do you feel went particularly well this quarter?";
             }
             
-            // デフォルト応答
-            return `I'm ready to engage in our business scenario: "${englishScenario}". Let me set the professional context for our discussion. This is an important business interaction, so I want to make sure we approach it strategically. What's your initial assessment of the situation, and how do you think we should proceed?`;
+            // デフォルト（汎用的な対応）
+            return `Hello! I'm ready to help you practice this scenario: "${englishScenario}". Let me take on the appropriate role for this situation. Based on the context, I'll be your conversation partner. How can I assist you today, and what would you like to focus on in this interaction?`;
         }
         
         // シナリオに基づいた開始メッセージを生成
