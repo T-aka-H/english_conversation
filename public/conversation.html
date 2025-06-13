@@ -814,4 +814,230 @@
             if (isRecording) {
                 voiceButton.classList.add('recording');
                 voiceButton.textContent = '🔴';
-                voiceButton.title = '録音中 - クリ
+                voiceButton.title = '録音中 - クリックで停止';
+                voiceButton.style.backgroundColor = '#dc3545';
+            } else {
+                voiceButton.classList.remove('recording');
+                voiceButton.textContent = '🎤';
+                voiceButton.title = 'クリックで音声入力開始';
+                voiceButton.style.backgroundColor = '';
+            }
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('userInput');
+            const message = userInput.value.trim();
+            
+            if (!message) {
+                alert('メッセージを入力してください。');
+                return;
+            }
+            
+            console.log('📤 Sending message:', message);
+            
+            // ユーザーメッセージを追加
+            addMessage('user', message);
+            
+            // 入力をクリア
+            userInput.value = '';
+            
+            // 送信ボタンを無効化
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            
+            // タイピングインジケーターを表示
+            showTypingIndicator();
+            
+            // AIの応答を生成（遅延付き）
+            setTimeout(() => {
+                const aiResponse = generateContextualResponse(message, currentScenario, currentDifficulty);
+                hideTypingIndicator();
+                addMessage('ai', aiResponse);
+                sendButton.disabled = false;
+                userInput.focus();
+            }, 1500 + Math.random() * 1000); // 1.5-2.5秒のランダム遅延
+        }
+
+        function addMessage(role, content) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const roleSpan = document.createElement('div');
+            roleSpan.className = 'role';
+            roleSpan.textContent = role === 'user' ? 'You' : 'AI Assistant';
+            
+            const contentSpan = document.createElement('div');
+            contentSpan.className = 'content';
+            contentSpan.textContent = content;
+            
+            const timestampSpan = document.createElement('div');
+            timestampSpan.className = 'timestamp';
+            timestampSpan.textContent = new Date().toLocaleTimeString('ja-JP');
+            
+            messageDiv.appendChild(roleSpan);
+            messageDiv.appendChild(contentSpan);
+            messageDiv.appendChild(timestampSpan);
+            
+            // 初期メッセージを削除（最初のメッセージの場合）
+            const initialMessage = chatContainer.querySelector('.message.ai');
+            if (initialMessage && initialMessage.querySelector('#initialMessage')) {
+                chatContainer.removeChild(initialMessage);
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            
+            // スクロールを最下部に
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // メッセージカウンターを更新
+            messageCounter++;
+            document.getElementById('messageCount').textContent = messageCounter;
+            
+            // 会話履歴に追加
+            conversationHistory.push({
+                role: role,
+                content: content,
+                timestamp: new Date().toISOString()
+            });
+            
+            console.log(`✅ Message added: ${role} - ${content.substring(0, 50)}...`);
+        }
+
+        function showTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.style.display = 'block';
+                
+                // スクロールを最下部に
+                const chatContainer = document.getElementById('chatContainer');
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.style.display = 'none';
+            }
+        }
+
+        // 文脈に応じた応答を生成
+        function generateContextualResponse(userMessage, scenario, difficulty) {
+            const message = userMessage.toLowerCase().trim();
+            const scenarioLower = scenario.toLowerCase();
+            
+            console.log('🤖 Generating contextual response for:', userMessage);
+            console.log('📋 Scenario context:', scenario);
+            
+            // 会議シナリオの応答
+            if (scenarioLower.includes('meeting') || scenarioLower.includes('team') || scenarioLower.includes('会議')) {
+                return generateMeetingResponse(message);
+            }
+            
+            // プレゼンテーションシナリオの応答
+            if (scenarioLower.includes('presentation') || scenarioLower.includes('proposal') || scenarioLower.includes('プレゼン')) {
+                return generatePresentationResponse(message);
+            }
+            
+            // 顧客対応シナリオの応答
+            if (scenarioLower.includes('client') || scenarioLower.includes('customer') || scenarioLower.includes('phone') || scenarioLower.includes('クライアント')) {
+                return generateCustomerServiceResponse(message);
+            }
+            
+            // 一般的なビジネス応答
+            return generateGeneralBusinessResponse(message, scenario);
+        }
+
+        function generateMeetingResponse(message) {
+            const responses = [
+                "That's a great point! I think we should definitely consider that approach. What do you think the timeline would look like for implementation?",
+                "I appreciate you bringing that up. How do you think this aligns with our current objectives?",
+                "Excellent! That could really help us move forward. Should we assign someone to look into this further?",
+                "That's interesting. Could you elaborate on how you see this working in practice?",
+                "I agree with your assessment. What would be the next steps to make this happen?"
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        function generatePresentationResponse(message) {
+            const responses = [
+                "Thank you for that question. Let me address that point specifically. I believe our data shows...",
+                "That's an excellent observation. You're absolutely right to focus on that aspect.",
+                "I'm glad you brought that up. This is actually one of our key differentiators.",
+                "Great question! Let me show you how we've addressed that in our proposal.",
+                "That's a very valid concern. Here's how we recommend handling that situation..."
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        function generateCustomerServiceResponse(message) {
+            const responses = [
+                "I understand your concern, and I'm here to help resolve this for you. Let me look into that right away.",
+                "Thank you for bringing this to our attention. I can definitely assist you with that.",
+                "I apologize for any inconvenience this may have caused. Let me find the best solution for you.",
+                "That's a great question. I'd be happy to explain how that works.",
+                "I see what you mean. Let me check our system and get back to you with the details."
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        function generateGeneralBusinessResponse(message, scenario) {
+            const responses = [
+                "I see what you're getting at. That's definitely worth exploring further.",
+                "That makes a lot of sense. How do you think we should proceed with this?",
+                "You raise a good point. I hadn't considered that angle before.",
+                "Absolutely! I think that could work really well for our situation.",
+                "That's an interesting perspective. Could you tell me more about your thinking on this?"
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        // コントロール関数
+        function pauseSession() {
+            if (sessionTimer) {
+                clearInterval(sessionTimer);
+                sessionTimer = null;
+                alert('セッションを一時停止しました。');
+            }
+        }
+
+        function saveProgress() {
+            try {
+                const progressData = {
+                    conversationHistory: conversationHistory,
+                    messageCount: messageCounter,
+                    sessionTime: Date.now() - sessionStartTime,
+                    scenario: currentScenario,
+                    difficulty: currentDifficulty
+                };
+                
+                console.log('💾 Progress saved:', progressData);
+                alert('進捗を保存しました。');
+            } catch (error) {
+                console.error('❌ Error saving progress:', error);
+                alert('進捗の保存に失敗しました。');
+            }
+        }
+
+        function endSession() {
+            if (confirm('セッションを終了しますか？')) {
+                if (sessionTimer) {
+                    clearInterval(sessionTimer);
+                }
+                
+                // 音声認識を停止
+                if (recognition && isRecording) {
+                    try {
+                        recognition.stop();
+                    } catch (error) {
+                        console.error('Error stopping recognition:', error);
+                    }
+                }
+                
+                alert('セッションを終了しました。お疲れ様でした！');
+                
+                // セッション終了後の処理（例：メイン画面に戻る）
+                // window.location.href = 'index.html';
+            }
+        }
