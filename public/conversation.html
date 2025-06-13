@@ -7,13 +7,14 @@
     <link rel="icon" href="data:," />
 
     <style>
+        /* CSS reset and basic styles */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
+        
+        body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
-            color: white;
-            padding: 20px;
+            color: white; 
+            padding: 20px; 
             min-height: 100vh;
             font-weight: 300; /* ★追加: フォントを細く */
         }
@@ -21,12 +22,13 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255,255,255,0.08); /* ★変更: 0.05 -> 0.08 */
+            background: rgba(255,255,255,0.08); /* ★変更 */
             padding: 40px;
             border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.15); /* ★変更: 0.1 -> 0.15 */
+            border: 1px solid rgba(255,255,255,0.15); /* ★変更 */
             animation: fadeIn 0.8s ease-out;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5); /* ★追加 */
+            box-shadow: 0 0 30px rgba(0,0,0,0.3); /* ★追加: 影 */
+            overflow: hidden; /* ★追加: 角丸にコンテンツを収める */
         }
 
         @keyframes fadeIn {
@@ -37,278 +39,318 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
+            padding-bottom: 20px; /* ★追加 */
+            border-bottom: 1px solid rgba(255,255,255,0.1); /* ★追加 */
         }
 
-        h1 {
-            font-size: 2.8em;
-            color: #64FFDA; /* ★変更 */
-            text-shadow: 0 0 15px rgba(100, 255, 218, 0.6); /* ★変更 */
+        .header h1 {
+            font-size: 2.8em; /* ★変更 */
             margin-bottom: 10px;
+            color: #4CAF50; /* ★変更 */
+            text-shadow: 0 0 15px rgba(76,175,80,0.5); /* ★追加 */
         }
 
-        .scenario-info {
-            font-size: 1.1em;
-            color: #aaa;
-            margin-bottom: 20px;
+        .scenario-display {
+            background: rgba(255,255,255,0.1); /* ★変更 */
+            padding: 15px 25px; /* ★変更 */
+            border-radius: 10px; /* ★変更 */
+            margin-bottom: 25px; /* ★変更 */
+            font-size: 1.1em; /* ★変更 */
+            line-height: 1.6;
+            border-left: 5px solid #4CAF50; /* ★追加: 強調線 */
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2); /* ★追加 */
         }
 
-        .scenario-info span {
-            font-weight: bold;
-            color: #FFEB3B; /* ★変更 */
+        .difficulty-display {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 1.2em; /* ★変更 */
+            color: #FFC107; /* ★追加 */
+            text-shadow: 0 0 8px rgba(255,193,7,0.5); /* ★追加 */
         }
 
+        /* Chat area styles */
         .chat-area {
-            background: rgba(0,0,0,0.3); /* ★変更: 0.2 -> 0.3 */
-            border-radius: 15px;
-            padding: 20px;
-            min-height: 400px;
-            max-height: 600px;
+            background: rgba(0,0,0,0.2); /* ★変更 */
+            border-radius: 15px; /* ★変更 */
+            padding: 25px; /* ★変更 */
+            height: 500px;
             overflow-y: auto;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.1); /* ★変更: 0.2 -> 0.1 */
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.4); /* ★変更: 0.3 -> 0.4 */
-        }
-
-        .message {
+            margin-bottom: 25px; /* ★変更 */
             display: flex;
-            margin-bottom: 15px;
-            animation: slideIn 0.5s ease-out;
+            flex-direction: column;
+            gap: 15px; /* ★変更 */
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5); /* ★追加 */
         }
 
-        @keyframes slideIn {
+        /* Scrollbar styles */
+        .chat-area::-webkit-scrollbar {
+            width: 10px;
+            border-radius: 5px; /* ★追加 */
+        }
+        .chat-area::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05); /* ★変更 */
+            border-radius: 5px;
+        }
+        .chat-area::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3); /* ★変更 */
+            border-radius: 5px;
+        }
+        .chat-area::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.5); /* ★変更 */
+        }
+
+        /* Message styles */
+        .message-bubble {
+            max-width: 80%;
+            padding: 12px 18px; /* ★変更 */
+            border-radius: 20px; /* ★変更 */
+            line-height: 1.6;
+            word-wrap: break-word;
+            opacity: 0; /* ★追加 */
+            animation: messageFadeIn 0.5s ease-out forwards; /* ★追加 */
+        }
+        @keyframes messageFadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .message.user {
-            justify-content: flex-end;
+        .message-user {
+            background-color: #007bff; /* ★変更 */
+            align-self: flex-end;
+            border-bottom-right-radius: 5px; /* ★追加 */
+            color: #e0e0e0; /* ★追加 */
         }
 
-        .message.ai {
-            justify-content: flex-start;
+        .message-ai {
+            background-color: #333; /* ★変更 */
+            align-self: flex-start;
+            border-bottom-left-radius: 5px; /* ★追加 */
+            color: #ffffff; /* ★追加 */
+        }
+        
+        .message-feedback {
+            background-color: rgba(255, 165, 0, 0.2); /* オレンジの半透明 */
+            color: #FFD700; /* 金色 */
+            font-size: 0.9em;
+            padding: 8px 12px;
+            border-radius: 15px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            align-self: flex-start; /* AIメッセージの下に表示 */
+            max-width: 70%; /* AIメッセージより少し狭く */
+            border: 1px solid rgba(255, 165, 0, 0.4);
+            box-shadow: 0 0 8px rgba(255, 165, 0, 0.3);
+            opacity: 0; /* ★追加 */
+            animation: messageFadeIn 0.5s ease-out forwards; /* ★追加 */
+            animation-delay: 0.2s; /* メッセージの後に少し遅れて表示 */
+        }
+        
+        .message-score {
+            font-size: 0.8em;
+            color: #8BC34A; /* Light Green */
+            align-self: flex-start;
+            margin-left: 10px; /* フィードバックとの位置調整 */
+            opacity: 0; /* ★追加 */
+            animation: messageFadeIn 0.5s ease-out forwards; /* ★追加 */
+            animation-delay: 0.4s; /* さらに遅れて表示 */
         }
 
-        .message-bubble {
-            max-width: 70%;
-            padding: 12px 18px;
-            border-radius: 20px;
-            line-height: 1.6;
-            word-wrap: break-word;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
 
-        .message.user .message-bubble {
-            background: #4CAF50;
-            color: white;
-            border-bottom-right-radius: 2px;
-        }
-
-        .message.ai .message-bubble {
-            background: #2b2b3f; /* ★変更: #333 -> #2b2b3f */
-            color: white;
-            border-bottom-left-radius: 2px;
-        }
-
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            font-style: italic;
-            color: #ccc;
-        }
-
-        .dot {
-            width: 8px;
-            height: 8px;
-            background-color: #64FFDA;
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        .dot:nth-child(3) { animation-delay: 0s; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-
+        /* Input area styles */
         .input-area {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            align-items: center;
+            gap: 15px; /* ★変更 */
+            margin-bottom: 25px; /* ★変更 */
         }
 
-        #userMessageInput {
+        .input-area input[type="text"] {
             flex-grow: 1;
-            padding: 15px 20px;
-            border-radius: 25px;
-            border: 1px solid rgba(255,255,255,0.2); /* ★変更 */
-            background: rgba(0,0,0,0.4); /* ★変更 */
+            padding: 12px 20px; /* ★変更 */
+            border-radius: 25px; /* ★変更 */
+            border: 1px solid rgba(255,255,255,0.3); /* ★変更 */
+            background: rgba(255,255,255,0.1); /* ★変更 */
             color: white;
-            font-size: 1.1em;
+            font-size: 1.1em; /* ★変更 */
             outline: none;
-            transition: border-color 0.3s ease, background-color 0.3s ease; /* ★変更 */
+            transition: all 0.3s ease;
         }
 
-        #userMessageInput:focus {
-            border-color: #64FFDA;
-            background-color: rgba(0,0,0,0.5); /* ★変更 */
+        .input-area input[type="text"]:focus {
+            border-color: #4CAF50; /* ★変更 */
+            box-shadow: 0 0 10px rgba(76,175,80,0.5); /* ★追加 */
+            background: rgba(255,255,255,0.15); /* ★追加 */
         }
 
-        .action-buttons {
+        /* Button styles */
+        .btn {
+            padding: 12px 25px; /* ★変更 */
+            border: none;
+            border-radius: 25px; /* ★変更 */
+            cursor: pointer;
+            font-size: 1.1em; /* ★変更 */
+            transition: all 0.3s ease;
+            white-space: nowrap; /* ボタン内のテキストが折り返さないように */
+        }
+
+        .btn-primary {
+            background-color: #4CAF50; /* ★変更 */
+            color: white;
+            box-shadow: 0 5px 15px rgba(76,175,80,0.4); /* ★追加 */
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #66BB6A; /* ★変更 */
+            transform: translateY(-2px); /* ★追加 */
+            box-shadow: 0 7px 20px rgba(76,175,80,0.6); /* ★追加 */
+        }
+        
+        .btn-secondary {
+            background-color: rgba(255,255,255,0.2); /* ★変更 */
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3); /* ★追加 */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2); /* ★追加 */
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background-color: rgba(255,255,255,0.3); /* ★変更 */
+            transform: translateY(-2px); /* ★追加 */
+            box-shadow: 0 7px 20px rgba(0,0,0,0.3); /* ★追加 */
+        }
+
+        .btn-danger {
+            background-color: #f44336; /* ★変更 */
+            color: white;
+            box-shadow: 0 5px 15px rgba(244,67,54,0.4); /* ★追加 */
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: #e57373; /* ★変更 */
+            transform: translateY(-2px); /* ★追加 */
+            box-shadow: 0 7px 20px rgba(244,67,54,0.6); /* ★追加 */
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none; /* ★追加 */
+            box-shadow: none; /* ★追加 */
+        }
+
+        /* Voice recognition buttons */
+        .voice-buttons {
             display: flex;
             gap: 10px;
         }
 
-        button {
-            background: #4CAF50;
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2); /* ★追加 */
-            padding: 15px 25px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1.1em;
-            font-weight: bold;
-            transition: background-color 0.3s ease, transform 0.2s ease, border-color 0.3s ease; /* ★変更 */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4); /* ★変更 */
+        .voice-buttons .btn {
+            flex-grow: 1; /* ボタンが等幅になるように */
         }
 
-        button:hover {
-            background-color: #5cb85c;
-            transform: translateY(-2px);
-            border-color: rgba(255, 255, 255, 0.4); /* ★追加 */
+        .speech-active {
+            background-color: #FFC107; /* 黄色 */
+            color: #333;
+            box-shadow: 0 0 15px rgba(255,193,7,0.7);
+            animation: pulse 1.5s infinite alternate;
+        }
+        @keyframes pulse {
+            from { transform: scale(1); box-shadow: 0 0 15px rgba(255,193,7,0.7); }
+            to { transform: scale(1.03); box-shadow: 0 0 25px rgba(255,193,7,0.9); }
         }
 
-        button:active {
-            transform: translateY(0);
-        }
-
-        button:disabled {
-            background-color: #666;
-            cursor: not-allowed;
-            box-shadow: none;
-            border-color: rgba(255, 255, 255, 0.1); /* ★追加 */
-        }
-
-        #recordButton {
-            background-color: #F44336; /* Red for record */
-            border: 1px solid rgba(255, 255, 255, 0.2); /* ★追加 */
-        }
-        #recordButton:hover {
-            background-color: #d32f2f;
-            border-color: rgba(255, 255, 255, 0.4); /* ★追加 */
-        }
-        #recordButton.recording {
-            background-color: #d32f2f;
-            animation: pulse 1.5s infinite;
-        }
-
-        .end-training-area {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        #endTrainingButton {
-            background-color: #007bff; /* 青系の色 */
-            border: 1px solid rgba(255, 255, 255, 0.2); /* ★追加 */
-        }
-
-        #endTrainingButton:hover {
-            background-color: #0056b3;
-            border-color: rgba(255, 255, 255, 0.4); /* ★追加 */
-        }
-
+        /* Status messages */
         .status-message {
             text-align: center;
-            margin-top: 15px;
+            margin-bottom: 20px;
             padding: 10px;
-            border-radius: 8px;
-            font-size: 0.95em;
-            color: #eee;
-            background-color: rgba(0,0,0,0.3);
+            border-radius: 8px; /* ★変更 */
+            font-size: 1em;
             display: none; /* 初期は非表示 */
+            opacity: 0; /* ★追加 */
+            animation: fadeIn 0.5s forwards; /* ★追加 */
+        }
+
+        .status-message.info {
+            background-color: rgba(33,150,243,0.2); /* 青 */
+            color: #90CAF9;
+            border: 1px solid rgba(33,150,243,0.4);
+        }
+
+        .status-message.warning {
+            background-color: rgba(255,193,7,0.2); /* 黄 */
+            color: #FFEB3B;
+            border: 1px solid rgba(255,193,7,0.4);
         }
 
         .status-message.error {
-            background-color: rgba(244, 67, 54, 0.2);
-            color: #F44336;
-            border: 1px solid #F44336;
+            background-color: rgba(244,67,54,0.2); /* 赤 */
+            color: #FFCDD2;
+            border: 1px solid rgba(244,67,54,0.4);
         }
 
         .status-message.success {
-            background-color: rgba(76, 175, 80, 0.2);
-            color: #4CAF50;
-            border: 1px solid #4CAF50;
+            background-color: rgba(76,175,80,0.2); /* 緑 */
+            color: #A5D6A7;
+            border: 1px solid rgba(76,175,80,0.4);
         }
 
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            font-size: 0.9em;
-            color: #aaa;
+        /* Loading spinner */
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 10px;
         }
 
-        /* Mobile adjustments */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px; /* ★変更 */
+            padding-top: 20px; /* ★追加 */
+            border-top: 1px solid rgba(255,255,255,0.1); /* ★追加 */
+        }
+        
+        .control-buttons .btn {
+            margin-right: 10px;
+        }
+        
+        .control-buttons .btn:last-child {
+            margin-right: 0;
+        }
+
+        /* Responsive adjustments */
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
             .container {
                 padding: 20px;
-                border-radius: 10px;
             }
-
-            h1 {
+            .header h1 {
                 font-size: 2em;
             }
-
-            .scenario-info {
-                font-size: 0.9em;
-            }
-
-            .chat-area {
-                min-height: 300px;
-                max-height: 450px;
-                padding: 15px;
-            }
-
-            .message-bubble {
-                max-width: 85%;
-                padding: 10px 15px;
-            }
-
             .input-area {
                 flex-direction: column;
                 gap: 10px;
             }
-
-            #userMessageInput {
-                width: 100%;
-                font-size: 1em;
-                padding: 12px 15px;
-            }
-
-            .action-buttons {
-                width: 100%;
-                justify-content: stretch;
+            .voice-buttons {
+                flex-direction: column;
                 gap: 10px;
             }
-
-            button {
-                flex-grow: 1;
-                font-size: 1em;
-                padding: 12px 20px;
-                border-radius: 20px;
-            }
-
-            .end-training-area button {
+            .btn {
                 width: 100%;
-                padding: 12px 20px;
+            }
+            .controls {
+                flex-direction: column;
+                gap: 15px;
             }
         }
     </style>
@@ -316,355 +358,382 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>英語コソ練アプリ</h1>
-            <p class="scenario-info">
-                シナリオ: <span id="scenarioName">日常会話</span> |
-                難易度: <span id="difficultyLevel">中級</span>
-            </p>
+            <h1>ビジネス英会話練習</h1>
+            <div class="scenario-display" id="scenarioDisplay"></div>
+            <div class="difficulty-display" id="difficultyDisplay"></div>
         </header>
 
-        <main class="chat-area" id="chatArea">
-            <div id="typingIndicator" class="typing-indicator" style="display: none;">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-                AI is thinking...
+        <main>
+            <div class="status-message" id="statusMessage"></div>
+            <div class="chat-area" id="chatArea">
+                </div>
+
+            <div class="input-area">
+                <input type="text" id="userMessageInput" placeholder="メッセージを入力してください..." disabled>
+                <div class="voice-buttons">
+                    <button class="btn btn-primary" id="startRecordingBtn" disabled>
+                        🎤 音声入力開始
+                    </button>
+                    <button class="btn btn-secondary" id="stopRecordingBtn" disabled>
+                        ⏹️ 音声入力停止
+                    </button>
+                </div>
+                <button class="btn btn-primary" id="sendMessageBtn" disabled>送信</button>
             </div>
         </main>
 
-        <div class="input-area">
-            <input type="text" id="userMessageInput" placeholder="英語でメッセージを入力するか、マイクで話しかけてください...">
-            <div class="action-buttons">
-                <button id="sendButton">送信</button>
-                <button id="recordButton">🎤 録音</button>
+        <footer class="controls">
+            <div class="control-buttons">
+                <button class="btn btn-secondary" id="backToScenarioBtn">← シナリオ選択へ</button>
+                <button class="btn btn-danger" id="endConversationBtn">会話終了</button>
             </div>
-        </div>
-
-        <div class="end-training-area">
-            <button id="endTrainingButton">トレーニングを終える</button>
-        </div>
-
-        <div id="statusMessage" class="status-message"></div>
-
-        <footer class="footer">
-            <p>&copy; 2025 English Practice App. All rights reserved.</p>
+            <button class="btn btn-secondary" id="logoutBtn">ログアウト</button>
         </footer>
     </div>
 
     <script>
+        // DOM Elements
+        const scenarioDisplay = document.getElementById('scenarioDisplay');
+        const difficultyDisplay = document.getElementById('difficultyDisplay');
         const chatArea = document.getElementById('chatArea');
         const userMessageInput = document.getElementById('userMessageInput');
-        const sendButton = document.getElementById('sendButton');
-        const recordButton = document.getElementById('recordButton');
-        const typingIndicator = document.getElementById('typingIndicator');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        const startRecordingBtn = document.getElementById('startRecordingBtn');
+        const stopRecordingBtn = document.getElementById('stopRecordingBtn');
         const statusMessageDiv = document.getElementById('statusMessage');
-        const endTrainingButton = document.getElementById('endTrainingButton');
+        const backToScenarioBtn = document.getElementById('backToScenarioBtn');
+        const endConversationBtn = document.getElementById('endConversationBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
 
-        let conversationHistory = []; // ★最初のメッセージはAPIから取得するため空に
-        let messageCounter = 0;
+        // State variables
+        let conversationHistory = [];
+        let currentScenario = '';
+        let currentDifficulty = '';
         let isRecording = false;
-        let recognition; // SpeechRecognition API
-        let isFirstMessage = true; // ★追加: 最初のメッセージかどうかを追跡するフラグ
+        let recognition = null; // SpeechRecognition object
+        let messageCounter = 0; // メッセージ数をカウント（会話終了確認用）
 
-        // sessionStorageからシナリオと難易度を読み込む
-        // もしsessionStorageに値がなければ、HTMLのデフォルト値を使用
-        const currentScenario = sessionStorage.getItem('selectedScenario') || document.getElementById('scenarioName').textContent;
-        const currentDifficulty = sessionStorage.getItem('selectedDifficulty') || document.getElementById('difficultyLevel').textContent;
-
-        // 読み取った値をHTMLに反映させる (ユーザーに見えるように)
-        document.getElementById('scenarioName').textContent = currentScenario;
-        document.getElementById('difficultyLevel').textContent = currentDifficulty;
-
-        // !!! IMPORTANT !!!
-        // RENDERのAPP_ACCESS_PASSWORD環境変数と同じ値をここに設定してください。
-        // セキュリティのため、本番環境ではよりセキュアな認証メカニズムを導入してください。
-        const APP_ACCESS_PASSWORD = "2025_July"; // <-- RENDERのAPP_ACCESS_PASSWORDと一致させる
-
-        // --- UI 操作関数 ---
-        function addMessage(role, text) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', role);
-            const bubbleDiv = document.createElement('div');
-            bubbleDiv.classList.add('message-bubble');
-            bubbleDiv.textContent = text;
-            messageDiv.appendChild(bubbleDiv);
-            chatArea.appendChild(messageDiv);
-            chatArea.scrollTop = chatArea.scrollHeight; // スクロールを一番下へ
-        }
-
-        function showTypingIndicator() {
-            typingIndicator.style.display = 'flex';
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
-
-        function hideTypingIndicator() {
-            typingIndicator.style.display = 'none';
-        }
+        // --- Utility Functions ---
 
         function showStatus(message, type = 'info') {
             statusMessageDiv.textContent = message;
-            statusMessageDiv.className = 'status-message'; // クラスをリセット
-            statusMessageDiv.classList.add(type);
+            statusMessageDiv.className = `status-message ${type}`;
             statusMessageDiv.style.display = 'block';
-
-            // 3秒後に自動で消す
-            setTimeout(() => {
-                statusMessageDiv.style.display = 'none';
-            }, 3000);
+            statusMessageDiv.style.opacity = '1'; /* 強制的に表示アニメーションをリセット */
+            // Optional: Auto-hide after a few seconds for info/warning
+            if (type === 'info' || type === 'warning') {
+                setTimeout(() => {
+                    statusMessageDiv.style.opacity = '0';
+                    setTimeout(() => statusMessageDiv.style.display = 'none', 500); // フェードアウト後に非表示
+                }, 5000);
+            }
         }
 
-        // --- メッセージ送信ロジック ---
-        async function sendMessage() {
-            const userMessage = userMessageInput.value.trim();
-            if (userMessage === '') {
-                showStatus('メッセージが入力されていません。', 'error');
-                return;
+        function showLoading(show) {
+            if (show) {
+                userMessageInput.disabled = true;
+                sendMessageBtn.disabled = true;
+                startRecordingBtn.disabled = true;
+                stopRecordingBtn.disabled = true;
+                userMessageInput.placeholder = 'AIが考え中...';
+                showStatus('AIが応答を生成しています... <span class="loading-spinner"></span>', 'info');
+            } else {
+                userMessageInput.disabled = false;
+                sendMessageBtn.disabled = false;
+                if (recognition) startRecordingBtn.disabled = false; // 音声認識が利用可能な場合のみ有効化
+                // stopRecordingBtn は音声入力中にのみ有効化されるため、ここでは無効のまま
+                userMessageInput.placeholder = 'メッセージを入力してください...';
+                statusMessageDiv.style.opacity = '0';
+                setTimeout(() => statusMessageDiv.style.display = 'none', 500);
+            }
+        }
+
+        function addMessageToChat(role, text, feedback = null, score = null) {
+            const messageBubble = document.createElement('div');
+            messageBubble.classList.add('message-bubble');
+            messageBubble.classList.add(role === 'user' ? 'message-user' : 'message-ai');
+            messageBubble.textContent = text;
+            chatArea.appendChild(messageBubble);
+
+            if (feedback && role === 'ai') {
+                const feedbackBubble = document.createElement('div');
+                feedbackBubble.classList.add('message-bubble', 'message-feedback');
+                feedbackBubble.textContent = `フィードバック: ${feedback}`;
+                chatArea.appendChild(feedbackBubble);
+
+                const scoreElement = document.createElement('div');
+                scoreElement.classList.add('message-score');
+                scoreElement.textContent = `スコア: ${score}/100`;
+                chatArea.appendChild(scoreElement);
             }
 
-            addMessage('user', userMessage);
-            conversationHistory.push({ role: 'user', content: userMessage });
-            userMessageInput.value = '';
+            chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
             messageCounter++;
-
-            // AI応答はgenerateAIResponse内でaddMessageされる
-            await generateAIResponse(userMessage);
         }
 
-        // --- Gemini APIを呼び出す関数（バックエンド経由） ---
-        async function generateAIResponse(userMessage = "") { // ★変更: デフォルト引数を追加
-            showTypingIndicator();
+        function saveConversationState() {
+            sessionStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+            sessionStorage.setItem('messageCounter', messageCounter);
+            console.log('💾 Conversation state saved.');
+        }
 
-            // isFirstMessageがtrueかつuserMessageが空（初回呼び出し）の場合にのみ、
-            // conversationHistoryを空のプロンプトとして使用し、AIに最初の発言を生成させる
-            const isInitialCall = isFirstMessage && userMessage === "";
-            let currentConversationHistoryForApi = [...conversationHistory]; // コピーを作成
-
-            if (isInitialCall) {
-                // 初回呼び出しでは、AIにシナリオに基づく最初の発言を促すプロンプトを渡す
-                currentConversationHistoryForApi = [
-                    {
-                        role: 'user',
-                        content: `You are an English conversation partner. The user wants to practice English in a scenario: "${currentScenario}" at a "${currentDifficulty}" level. Start the conversation with an appropriate opening sentence based on this scenario and difficulty.`
-                    }
-                ];
+        function loadConversationState() {
+            const savedHistory = sessionStorage.getItem('conversationHistory');
+            const savedCounter = sessionStorage.getItem('messageCounter');
+            
+            if (savedHistory) {
+                conversationHistory = JSON.parse(savedHistory);
+                conversationHistory.forEach(msg => {
+                    // feedbackとscoreはAIメッセージにのみ関連し、かつ画面表示でのみ利用
+                    // 履歴にこれらを含める必要はない (AIの応答自体はaiResponseで十分)
+                    // ただし、もし履歴に評価を表示したいならここを調整
+                    addMessageToChat(msg.role, msg.content, msg.feedback, msg.score);
+                });
+                messageCounter = parseInt(savedCounter, 10) || 0;
+                console.log('✅ Conversation state loaded. Messages:', conversationHistory.length);
+                return true;
             }
+            return false;
+        }
 
+        // --- API Call Functions ---
+
+        async function generateAIResponse(userMessage = '', isFirstMessage = false) {
+            showLoading(true);
             try {
+                const password = sessionStorage.getItem('appPassword'); // Retrieve password
+                if (!password) {
+                    throw new Error('Authentication password not found. Please log in again.');
+                }
+
+                const payload = {
+                    history: conversationHistory,
+                    userMessage: userMessage, // Pass userMessage directly
+                    scenario: currentScenario,
+                    difficulty: currentDifficulty,
+                    isFirstMessage: isFirstMessage
+                };
+
+                console.log('Sending payload to /api/chat:', payload); // Debugging
+
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        userMessage: userMessage, // ユーザーからのメッセージ
-                        conversationHistory: currentConversationHistoryForApi, // 初回はプロンプト、以降は実際の履歴
-                        scenarioName: currentScenario,
-                        difficultyLevel: currentDifficulty,
-                        password: APP_ACCESS_PASSWORD
-                    }),
+                    body: JSON.stringify({ ...payload, password: password }) // Add password to body
                 });
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`API error! status: ${response.status}, message: ${errorData.message || errorData.error || 'Unknown error'}`);
+                    throw new Error(`API error! status: ${response.status}, message: ${errorData.message || response.statusText}`);
                 }
 
                 const data = await response.json();
-                const aiResponse = data.generatedText.trim();
-                hideTypingIndicator();
+                console.log('Received data from /api/chat:', data); // Debugging
 
-                if (isInitialCall) {
-                    // 初回呼び出しの場合のみ、生成されたAIの最初のメッセージを履歴に追加し、表示
-                    addMessage('ai', aiResponse);
-                    conversationHistory.push({ role: 'ai', content: aiResponse });
-                    isFirstMessage = false; // フラグをfalseに設定
-                } else {
-                    // 通常のメッセージ送信時には、AI応答を履歴に追加して表示
-                    addMessage('ai', aiResponse);
-                    conversationHistory.push({ role: 'ai', content: aiResponse });
-                }
+                const aiResponse = data.aiResponse;
+                const feedback = data.feedback;
+                const score = data.score;
+
+                // Add AI's message to chat history
+                conversationHistory.push({ role: 'ai', content: aiResponse });
+                // Display AI's message with feedback and score
+                addMessageToChat('ai', aiResponse, feedback, score);
+                saveConversationState(); // Save state after AI response
 
             } catch (error) {
                 console.error('Error calling Gemini API:', error);
-                showStatus(`AI応答の生成中にエラーが発生しました: ${error.message}`, 'error');
-                hideTypingIndicator();
-                // 初回メッセージの場合のフォールバック
-                if (isInitialCall) {
-                    addMessage('ai', "Hello! How can I help you practice your English today?");
-                    conversationHistory.push({ role: 'ai', content: "Hello! How can I help you practice your English today?" });
-                    isFirstMessage = false;
-                }
+                showStatus(`AI応答の取得に失敗しました: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
             }
         }
 
-        // --- ユーザーの会話全体を評価する関数 ---
-        async function evaluateUserConversation() {
-            if (conversationHistory.filter(msg => msg.role === 'user').length === 0) { // ★修正: ユーザーメッセージの有無で判断
-                showStatus('まだ会話がありません。会話を始めてから評価してください。', 'info');
+        // --- Event Handlers ---
+
+        async function sendMessage() {
+            const userMessage = userMessageInput.value.trim();
+            if (userMessage === '') {
+                showStatus('メッセージを入力してください。', 'warning');
                 return;
             }
-            showStatus('会話履歴を評価しています...', 'info');
-            showTypingIndicator(); // AIが評価中であることを示すために表示
 
-            try {
-                // 評価に送る履歴は、実際の会話履歴全体（AIとユーザーの両方）
-                // ただし、AIへの指示はユーザーの発言のみに基づいて評価するようプロンプトで制御
-                const response = await fetch('/api/evaluate', { // /api/evaluate エンドポイントを呼び出す
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        // targetMessageは評価プロンプト内の説明でカバーされるため、空文字列または短縮版でも可。
-                        // ただし、バックエンドのvalidationがuserMessageを必須としているなら空にはしない。
-                        targetMessage: conversationHistory.filter(msg => msg.role === 'user').map(msg => msg.content).join('\n'), // ユーザーの発言のみ
-                        fullConversationHistory: conversationHistory, // 会話全体も参考として送る
-                        scenarioName: currentScenario,
-                        difficultyLevel: currentDifficulty,
-                        password: APP_ACCESS_PASSWORD
-                    }),
-                });
+            // Add user's message to chat history
+            conversationHistory.push({ role: 'user', content: userMessage });
+            addMessageToChat('user', userMessage);
+            userMessageInput.value = ''; // Clear input field
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Evaluation API error! status: ${response.status}, message: ${errorData.message || errorData.error || 'Unknown error'}`);
-                }
-
-                const data = await response.json();
-                const evaluationResult = {
-                    score: data.score,
-                    feedback: data.feedback,
-                    scenario: currentScenario,
-                    difficulty: currentDifficulty,
-                    timestamp: new Date().toISOString()
-                };
-
-                // 評価結果を sessionStorage に保存
-                sessionStorage.setItem('lastEvaluationResult', JSON.stringify(evaluationResult));
-                console.log('Evaluation result saved to sessionStorage:', evaluationResult);
-
-                showStatus('評価が完了しました。レポートページへ移動します。', 'success');
-                hideTypingIndicator();
-                window.location.href = 'final-report.html'; // レポートページへ遷移
-
-            } catch (error) {
-                console.error('Error during evaluation:', error);
-                showStatus(`評価中にエラーが発生しました: ${error.message}`, 'error');
-                hideTypingIndicator();
-            }
+            // Call AI for response
+            await generateAIResponse(userMessage, false); // Not the first message
+            saveConversationState(); // Save state after user message
         }
 
-
-        // --- 音声認識（Web Speech API） ---
-        function initSpeechRecognition() {
-            if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition.lang = 'en-US';
-                recognition.interimResults = true; // 暫定結果を受け取る
-                recognition.continuous = false;    // ★修正: 連続認識は一旦無効化 (単発入力のため)
-                recognition.maxAlternatives = 1;
-
-                recognition.onstart = () => {
-                    isRecording = true;
-                    recordButton.classList.add('recording');
-                    recordButton.textContent = '🔴 録音中 (タップで停止)';
-                    userMessageInput.placeholder = '話しています...';
-                    userMessageInput.disabled = true;
-                    sendButton.disabled = true;
-                    endTrainingButton.disabled = true;
-                    showStatus('録音を開始しました。話し終わったら「録音中」ボタンをもう一度タップしてください。', 'info');
-                };
-
-                recognition.onresult = (event) => {
-                    let interimTranscript = '';
-                    let finalTranscript = '';
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        const transcript = event.results[i][0].transcript;
-                        if (event.results[i].isFinal) {
-                            finalTranscript += transcript;
-                        } else {
-                            interimTranscript += transcript;
-                        }
-                    }
-                    userMessageInput.value = finalTranscript || interimTranscript;
-                    // 最終結果が確定したら、送信ボタンを有効化してユーザーに促す
-                    if (finalTranscript !== '') {
-                        sendButton.disabled = false;
-                        // showStatus('音声入力が完了しました。送信ボタンを押してください。', 'success'); // onendで表示
-                    } else {
-                        sendButton.disabled = true; // 暫定結果の表示中は送信できないように
-                    }
-                };
-
-                recognition.onerror = (event) => {
-                    console.error('Speech recognition error:', event.error);
-                    showStatus(`音声認識エラー: ${event.error}. マイクへのアクセスを許可しているか確認してください。`, 'error');
-                    resetRecordingState();
-                };
-
-                recognition.onend = () => {
-                    // recognition.stop() が明示的に呼ばれた後、またはエラーで終了した場合
-                    if (isRecording) { // isRecording が true のままなら、予期せぬ終了
-                        showStatus('録音が予期せず停止しました。もう一度マイクボタンを押してください。', 'error');
-                    } else {
-                        // ユーザーが明示的に停止した場合のメッセージ
-                        if (userMessageInput.value.trim() !== '') {
-                            showStatus('録音を停止しました。送信ボタンを押してメッセージを送信してください。', 'success');
-                            sendButton.disabled = false;
-                        } else {
-                            showStatus('録音は停止されましたが、入力された音声はありませんでした。', 'info');
-                        }
-                    }
-                    resetRecordingState(); // 録音状態をリセット
-                };
-
-            } else {
-                recordButton.disabled = true;
-                recordButton.textContent = '🎤 不可';
-                showStatus('お使いのブラウザは音声認識に対応していません。', 'error');
-                console.warn('Web Speech API not supported in this browser.');
-            }
-        }
-
-        function toggleRecording() {
-            if (isRecording) {
-                recognition.stop(); // 録音を停止
-            } else {
-                userMessageInput.value = ''; // 新しい録音開始前にテキストをクリア
-                sendButton.disabled = true; // 録音開始時は送信ボタンを無効化
-                recognition.start(); // 録音を開始
-            }
-        }
-
-        function resetRecordingState() {
-            isRecording = false;
-            recordButton.classList.remove('recording');
-            recordButton.textContent = '🎤 録音';
-            userMessageInput.placeholder = '英語でメッセージを入力するか、マイクで話しかけてください...';
-            userMessageInput.disabled = false;
-            // 録音終了時に、入力フィールドにテキストがあれば送信ボタンを有効にする
-            sendButton.disabled = (userMessageInput.value.trim() === '');
-            endTrainingButton.disabled = false;
-        }
-
-        // --- イベントリスナー ---
-        sendButton.addEventListener('click', sendMessage);
+        sendMessageBtn.addEventListener('click', sendMessage);
         userMessageInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 sendMessage();
             }
         });
-        recordButton.addEventListener('click', toggleRecording);
-        endTrainingButton.addEventListener('click', evaluateUserConversation);
 
-        // --- 初期化 ---
-        window.addEventListener('load', () => {
-            initSpeechRecognition();
-            showStatus('準備完了！英語の練習を始めましょう！', 'success');
-            // ページロード時にシナリオに基づいた最初のAIメッセージを生成
-            generateAIResponse();
-            console.log('✅ Application fully loaded and ready');
-            console.log('💡 Type showDebugInfo() in console for debug information');
+        // --- Speech Recognition ---
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false; // 一言ずつ認識
+            recognition.interimResults = false; // 最終結果のみ返す
+            recognition.lang = 'en-US'; // 英語を設定
+
+            recognition.onstart = () => {
+                isRecording = true;
+                startRecordingBtn.classList.add('speech-active');
+                startRecordingBtn.textContent = '録音中...';
+                stopRecordingBtn.disabled = false;
+                startRecordingBtn.disabled = true;
+                userMessageInput.disabled = true; // 音声入力中はテキスト入力を無効に
+                sendMessageBtn.disabled = true;
+                showStatus('音声入力を開始しました。話し終えたら停止ボタンを押してください。', 'info');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userMessageInput.value = transcript;
+                showStatus('音声認識結果: ' + transcript, 'info');
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                showStatus('音声認識エラー: ' + event.error + ' マイクが利用可能か確認してください。', 'error');
+                isRecording = false;
+                startRecordingBtn.classList.remove('speech-active');
+                startRecordingBtn.textContent = '🎤 音声入力開始';
+                startRecordingBtn.disabled = false;
+                stopRecordingBtn.disabled = true;
+                userMessageInput.disabled = false;
+                sendMessageBtn.disabled = false;
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                startRecordingBtn.classList.remove('speech-active');
+                startRecordingBtn.textContent = '🎤 音声入力開始';
+                startRecordingBtn.disabled = false;
+                stopRecordingBtn.disabled = true;
+                userMessageInput.disabled = false;
+                sendMessageBtn.disabled = false;
+                // 認識結果があれば自動送信
+                if (userMessageInput.value.trim() !== '') {
+                    sendMessage();
+                }
+            };
+
+            startRecordingBtn.addEventListener('click', () => {
+                recognition.start();
+            });
+
+            stopRecordingBtn.addEventListener('click', () => {
+                if (isRecording) {
+                    recognition.stop();
+                }
+            });
+
+            startRecordingBtn.disabled = false; // 音声認識が利用可能なら有効化
+        } else {
+            showStatus('お使いのブラウザは音声認識に対応していません。Google Chromeを推奨します。', 'warning');
+            startRecordingBtn.disabled = true;
+            stopRecordingBtn.disabled = true;
+        }
+
+        // --- Page Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const isAuthenticated = sessionStorage.getItem('isAuthenticated');
+            if (!isAuthenticated) {
+                alert('認証されていません。ログインページに戻ります。');
+                window.location.replace('index.html');
+                return;
+            }
+
+            currentScenario = sessionStorage.getItem('selectedScenario');
+            currentDifficulty = sessionStorage.getItem('selectedDifficulty');
+
+            if (!currentScenario || !currentDifficulty) {
+                alert('シナリオまたは難易度が選択されていません。シナリオ選択ページに戻ります。');
+                window.location.replace('scenario.html');
+                return;
+            }
+
+            scenarioDisplay.textContent = `シナリオ: ${currentScenario}`;
+            difficultyDisplay.textContent = `難易度: ${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)}`;
+
+            // 会話状態をロード、なければAIからの最初のメッセージを生成
+            if (!loadConversationState()) {
+                console.log('No saved conversation found. Generating first AI response...');
+                generateAIResponse('', true); // 最初のメッセージを生成
+            } else {
+                console.log('Conversation state loaded. Ready to continue.');
+                showLoading(false); // UIを有効化
+            }
+        });
+
+        // --- Navigation Buttons ---
+        backToScenarioBtn.addEventListener('click', () => {
+            if (confirm('現在の会話データは失われますが、よろしいですか？')) {
+                sessionStorage.removeItem('conversationHistory');
+                sessionStorage.removeItem('messageCounter');
+                sessionStorage.removeItem('selectedScenario');
+                sessionStorage.removeItem('selectedDifficulty');
+                window.location.href = 'scenario.html';
+            }
+        });
+
+        endConversationBtn.addEventListener('click', async () => {
+            if (confirm('会話を終了し、評価レポートを作成しますか？')) {
+                showLoading(true);
+                try {
+                    const password = sessionStorage.getItem('appPassword');
+                    if (!password) {
+                        throw new Error('Authentication password not found. Please log in again.');
+                    }
+
+                    const response = await fetch('/api/finalize', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            conversationHistory: conversationHistory,
+                            scenario: currentScenario,
+                            difficulty: currentDifficulty,
+                            password: password // パスワードを含める
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`API error! status: ${response.status}, message: ${errorData.message || response.statusText}`);
+                    }
+
+                    const finalReport = await response.json();
+                    sessionStorage.setItem('lastEvaluationResult', JSON.stringify(finalReport)); // レポートを保存
+
+                    // 会話履歴をクリア
+                    sessionStorage.removeItem('conversationHistory');
+                    sessionStorage.removeItem('messageCounter');
+                    
+                    window.location.href = 'final-report.html'; // レポートページへ遷移
+
+                } catch (error) {
+                    console.error('Error finalizing conversation:', error);
+                    showStatus(`会話の終了とレポート作成に失敗しました: ${error.message}`, 'error');
+                    showLoading(false);
+                }
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('ログアウトしてもよろしいですか？現在の会話データは失われます。')) {
+                sessionStorage.clear(); // 全てのセッションデータをクリア
+                window.location.replace('index.html');
+            }
         });
 
         // エラーハンドリング
@@ -700,7 +769,10 @@
                 userAgent: navigator.userAgent
             });
         }
-        window.showDebugInfo = showDebugInfo;
+        window.showDebugInfo = showDebugInfo; // コンソールでデバッグ情報を確認できるように
+
+        console.log('✅ Application fully loaded and ready');
+        console.log('💡 Type showDebugInfo() in console for debug information');
     </script>
 </body>
 </html>
