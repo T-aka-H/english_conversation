@@ -3,29 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英語コソ練アプリ - 英会話練習</title>
+    <title>英語コソ練アプリ - 最終レポート</title>
     <link rel="icon" href="data:," />
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body { 
+
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
-            color: white; 
-            padding: 20px; 
+            color: white;
+            padding: 20px;
             min-height: 100vh;
+            font-weight: 300; /* ★追加: フォントを細く */
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255,255,255,0.08); /* ★変更 */
+            background: rgba(255,255,255,0.08);
             padding: 40px;
             border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.15); /* ★変更 */
+            border: 1px solid rgba(255,255,255,0.15);
             animation: fadeIn 0.8s ease-out;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5); /* ★追加 */
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
 
         @keyframes fadeIn {
@@ -40,8 +41,8 @@
 
         h1 {
             font-size: 2.8em;
-            color: #64FFDA; /* ★変更 */
-            text-shadow: 0 0 15px rgba(100, 255, 218, 0.6); /* ★変更 */
+            color: #64FFDA;
+            text-shadow: 0 0 15px rgba(100, 255, 218, 0.6);
             margin-bottom: 10px;
         }
 
@@ -53,195 +54,70 @@
 
         .scenario-info span {
             font-weight: bold;
-            color: #FFEB3B; /* ★変更 */
+            color: #FFEB3B;
         }
 
-        .chat-area {
-            background: rgba(0,0,0,0.3); /* ★変更 */
+        .report-section {
+            background: rgba(0,0,0,0.3);
             border-radius: 15px;
-            padding: 20px;
-            min-height: 400px;
-            max-height: 600px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.1); /* ★変更 */
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.4); /* ★変更 */
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.4);
         }
 
-        .message {
-            display: flex;
+        .report-section h2 {
+            color: #64FFDA;
+            font-size: 1.8em;
             margin-bottom: 15px;
-            animation: slideIn 0.5s ease-out;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.3);
+            padding-bottom: 10px;
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        #scoreDisplay {
+            font-size: 4em;
+            color: #FFEB3B;
+            text-align: center;
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(255, 235, 59, 0.8);
         }
 
-        .message.user {
-            justify-content: flex-end;
-        }
-
-        .message.ai {
-            justify-content: flex-start;
-        }
-
-        .message-bubble {
-            max-width: 70%;
-            padding: 12px 18px;
-            border-radius: 20px;
-            line-height: 1.6;
-            word-wrap: break-word;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
-        .message.user .message-bubble {
-            background: #4CAF50;
-            color: white;
-            border-bottom-right-radius: 2px;
-        }
-
-        .message.ai .message-bubble {
-            background: #2b2b3f; /* ★変更 */
-            color: white;
-            border-bottom-left-radius: 2px;
-        }
-
-        .typing-indicator {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            font-style: italic;
-            color: #ccc;
-        }
-
-        .dot {
-            width: 8px;
-            height: 8px;
-            background-color: #64FFDA;
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-        .dot:nth-child(3) { animation-delay: 0s; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-
-        .input-area {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            align-items: center;
-        }
-
-        #userMessageInput {
-            flex-grow: 1;
-            padding: 15px 20px;
-            border-radius: 25px;
-            border: 1px solid rgba(255,255,255,0.2); /* ★変更 */
-            background: rgba(0,0,0,0.4); /* ★変更 */
-            color: white;
+        #feedbackDisplay {
             font-size: 1.1em;
-            outline: none;
-            transition: border-color 0.3s ease, background-color 0.3s ease; /* ★変更 */
-        }
-
-        #userMessageInput:focus {
-            border-color: #64FFDA;
-            background-color: rgba(0,0,0,0.5); /* ★変更 */
+            line-height: 1.8;
+            white-space: pre-wrap; /* 改行を保持 */
+            color: #E0E0E0;
         }
 
         .action-buttons {
+            text-align: center;
+            margin-top: 30px;
             display: flex;
-            gap: 10px;
+            justify-content: center;
+            gap: 20px;
         }
 
         button {
-            background: #4CAF50;
+            background: #007bff;
             color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2); /* ★追加 */
-            padding: 15px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px 30px;
             border-radius: 25px;
             cursor: pointer;
             font-size: 1.1em;
             font-weight: bold;
-            transition: background-color 0.3s ease, transform 0.2s ease, border-color 0.3s ease; /* ★変更 */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4); /* ★変更 */
+            transition: background-color 0.3s ease, transform 0.2s ease, border-color 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
         }
 
         button:hover {
-            background-color: #5cb85c;
+            background-color: #0056b3;
             transform: translateY(-2px);
-            border-color: rgba(255, 255, 255, 0.4); /* ★追加 */
+            border-color: rgba(255, 255, 255, 0.4);
         }
 
         button:active {
             transform: translateY(0);
-        }
-
-        button:disabled {
-            background-color: #666;
-            cursor: not-allowed;
-            box-shadow: none;
-            border-color: rgba(255, 255, 255, 0.1); /* ★追加 */
-        }
-
-        #recordButton {
-            background-color: #F44336; /* Red for record */
-            border: 1px solid rgba(255, 255, 255, 0.2); /* ★追加 */
-        }
-        #recordButton:hover {
-            background-color: #d32f2f;
-            border-color: rgba(255, 255, 255, 0.4); /* ★追加 */
-        }
-        #recordButton.recording {
-            background-color: #d32f2f;
-            animation: pulse 1.5s infinite;
-        }
-
-        .end-training-area {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        #endTrainingButton {
-            background-color: #007bff; /* 青系の色 */
-            border: 1px solid rgba(255, 255, 255, 0.2); /* ★追加 */
-        }
-
-        #endTrainingButton:hover {
-            background-color: #0056b3;
-            border-color: rgba(255, 255, 255, 0.4); /* ★追加 */
-        }
-
-        .status-message {
-            text-align: center;
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.95em;
-            color: #eee;
-            background-color: rgba(0,0,0,0.3);
-            display: none; /* 初期は非表示 */
-        }
-
-        .status-message.error {
-            background-color: rgba(244, 67, 54, 0.2);
-            color: #F44336;
-            border: 1px solid #F44336;
-        }
-
-        .status-message.success {
-            background-color: rgba(76, 175, 80, 0.2);
-            color: #4CAF50;
-            border: 1px solid #4CAF50;
         }
 
         .footer {
@@ -270,44 +146,31 @@
                 font-size: 0.9em;
             }
 
-            .chat-area {
-                min-height: 300px;
-                max-height: 450px;
+            .report-section {
                 padding: 15px;
             }
 
-            .message-bubble {
-                max-width: 85%;
-                padding: 10px 15px;
+            .report-section h2 {
+                font-size: 1.5em;
             }
 
-            .input-area {
-                flex-direction: column;
-                gap: 10px;
+            #scoreDisplay {
+                font-size: 3em;
             }
 
-            #userMessageInput {
-                width: 100%;
+            #feedbackDisplay {
                 font-size: 1em;
-                padding: 12px 15px;
             }
 
             .action-buttons {
-                width: 100%;
-                justify-content: stretch;
-                gap: 10px;
+                flex-direction: column;
+                gap: 15px;
             }
 
             button {
-                flex-grow: 1;
-                font-size: 1em;
-                padding: 12px 20px;
-                border-radius: 20px;
-            }
-
-            .end-training-area button {
                 width: 100%;
                 padding: 12px 20px;
+                font-size: 1em;
             }
         }
     </style>
@@ -315,365 +178,143 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>🗣️ 英語コソ練アプリ</h1>
+            <h1>英語コソ練アプリ</h1>
             <p class="scenario-info">
-                シナリオ: <span id="scenarioName">日常会話</span> | 
-                難易度: <span id="difficultyLevel">中級</span>
+                シナリオ: <span id="scenarioName"></span> |
+                難易度: <span id="difficultyLevel"></span>
             </p>
         </header>
 
-        <main class="chat-area" id="chatArea">
-            <div class="message ai">
-                <div class="message-bubble">
-                    Hello! How can I help you practice your English today?
-                </div>
+        <main>
+            <div class="report-section">
+                <h2>最終スコア</h2>
+                <div id="scoreDisplay">--</div>
             </div>
-            <div id="typingIndicator" class="typing-indicator" style="display: none;">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-                AI is typing...
+
+            <div class="report-section">
+                <h2>AIからのフィードバック</h2>
+                <div id="feedbackDisplay"></div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="restartButton">もう一度練習する</button>
+                <button id="archiveButton">結果を保存する</button>
+                <button id="logoutButton">ログアウト</button>
             </div>
         </main>
 
-        <div class="input-area">
-            <input type="text" id="userMessageInput" placeholder="英語でメッセージを入力するか、マイクで話しかけてください...">
-            <div class="action-buttons">
-                <button id="sendButton">送信</button>
-                <button id="recordButton">🎤 録音</button>
-            </div>
-        </div>
-        
-        <div class="end-training-area">
-            <button id="endTrainingButton">トレーニングを終える</button>
-        </div>
-        
-        <div id="statusMessage" class="status-message"></div>
-
         <footer class="footer">
-            <p>&copy; 2025 English Practice App. All rights reserved.</p>
+            <p>2025 KOSO-REN APP developed by T.H.</p>
         </footer>
     </div>
 
     <script>
-        const chatArea = document.getElementById('chatArea');
-        const userMessageInput = document.getElementById('userMessageInput');
-        const sendButton = document.getElementById('sendButton');
-        const recordButton = document.getElementById('recordButton');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const statusMessageDiv = document.getElementById('statusMessage');
-        const endTrainingButton = document.getElementById('endTrainingButton');
+        document.addEventListener('DOMContentLoaded', () => {
+            const lastEvaluationResult = sessionStorage.getItem('lastEvaluationResult');
+            if (lastEvaluationResult) {
+                const result = JSON.parse(lastEvaluationResult);
+                document.getElementById('scoreDisplay').textContent = result.score;
+                document.getElementById('feedbackDisplay').textContent = result.feedback;
+                document.getElementById('scenarioName').textContent = result.scenario;
+                document.getElementById('difficultyLevel').textContent = result.difficulty;
+                console.log('📊 Report loaded:', result);
+            } else {
+                document.getElementById('scoreDisplay').textContent = 'N/A';
+                document.getElementById('feedbackDisplay').textContent = '評価データが見つかりませんでした。';
+                document.getElementById('scenarioName').textContent = 'N/A';
+                document.getElementById('difficultyLevel').textContent = 'N/A';
+                console.warn('⚠️ No evaluation data found in sessionStorage.');
+            }
 
-        let conversationHistory = [{ role: 'ai', content: 'Hello! How can I help you practice your English today?' }];
-        let messageCounter = 0;
-        let isRecording = false;
-        let recognition; // SpeechRecognition API
+            document.getElementById('restartButton').addEventListener('click', () => {
+                clearSessionData(); // セッションデータをクリア
+                window.location.href = 'scenario.html'; // シナリオ選択画面へ戻る
+            });
 
-        // sessionStorageからシナリオと難易度を読み込む
-        // もしsessionStorageに値がなければ、HTMLのデフォルト値を使用
-        const currentScenario = sessionStorage.getItem('selectedScenario') || document.getElementById('scenarioName').textContent;
-        const currentDifficulty = sessionStorage.getItem('selectedDifficulty') || document.getElementById('difficultyLevel').textContent;
+            document.getElementById('archiveButton').addEventListener('click', () => {
+                archiveSession();
+            });
 
-        // 読み取った値をHTMLに反映させる (ユーザーに見えるように)
-        document.getElementById('scenarioName').textContent = currentScenario;
-        document.getElementById('difficultyLevel').textContent = currentDifficulty;
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                if (confirm('ログアウトしてもよろしいですか？')) {
+                    sessionStorage.clear(); // 全てのセッションデータをクリア
+                    window.location.replace('index.html'); // ログイン画面へ戻る
+                }
+            });
+        });
 
-        // !!! IMPORTANT !!!
-        // RENDERのAPP_PASSWORD環境変数と同じ値をここに設定してください。
-        // セキュリティのため、本番環境ではよりセキュアな認証メカニズムを導入してください。
-        const APP_ACCESS_PASSWORD = "YOUR_APP_PASSWORD_HERE"; // <-- RENDERのAPP_PASSWORDと一致させる
-
-        // --- UI 操作関数 ---
-        function addMessage(role, text) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', role);
-            const bubbleDiv = document.createElement('div');
-            bubbleDiv.classList.add('message-bubble');
-            bubbleDiv.textContent = text;
-            messageDiv.appendChild(bubbleDiv);
-            chatArea.appendChild(messageDiv);
-            chatArea.scrollTop = chatArea.scrollHeight; // スクロールを一番下へ
-        }
-
-        function showTypingIndicator() {
-            typingIndicator.style.display = 'flex';
-            chatArea.scrollTop = chatArea.scrollHeight;
-        }
-
-        function hideTypingIndicator() {
-            typingIndicator.style.display = 'none';
-        }
-
-        function showStatus(message, type = 'info') {
-            statusMessageDiv.textContent = message;
-            statusMessageDiv.className = 'status-message'; // クラスをリセット
-            statusMessageDiv.classList.add(type);
-            statusMessageDiv.style.display = 'block';
-
-            // 3秒後に自動で消す
-            setTimeout(() => {
-                statusMessageDiv.style.display = 'none';
-            }, 3000);
-        }
-
-        // --- メッセージ送信ロジック ---
-        async function sendMessage() {
-            const userMessage = userMessageInput.value.trim();
-            if (userMessage === '') {
-                showStatus('メッセージが入力されていません。', 'error');
+        function archiveSession() {
+            const lastEvaluationResult = sessionStorage.getItem('lastEvaluationResult');
+            if (!lastEvaluationResult) {
+                alert('保存するデータがありません。');
                 return;
             }
 
-            addMessage('user', userMessage);
-            conversationHistory.push({ role: 'user', content: userMessage });
-            userMessageInput.value = '';
-            messageCounter++;
+            let sessionArchives = JSON.parse(localStorage.getItem('sessionArchives') || '[]');
+            const newSession = JSON.parse(lastEvaluationResult);
 
-            const aiResponse = await generateAIResponse(userMessage);
-            addMessage('ai', aiResponse);
-            conversationHistory.push({ role: 'ai', content: aiResponse });
+            // 重複保存を防ぐ（日付とシナリオ、難易度が完全に一致する場合）
+            const isDuplicate = sessionArchives.some(archive =>
+                archive.timestamp === newSession.timestamp &&
+                archive.scenario === newSession.scenario &&
+                archive.difficulty === newSession.difficulty
+            );
+
+            if (!isDuplicate) {
+                sessionArchives.push(newSession);
+                localStorage.setItem('sessionArchives', JSON.stringify(sessionArchives));
+                alert('セッション結果が保存されました！');
+                console.log('✅ Session archived:', newSession);
+            } else {
+                alert('このセッションは既に保存されています。');
+                console.warn('⚠️ Duplicate session archive attempt.');
+            }
         }
 
-        // --- Gemini APIを呼び出す関数（バックエンド経由） ---
-        async function generateAIResponse(userMessage) {
-            showTypingIndicator();
-            
+        function clearSessionData() {
             try {
-                // バックエンドAPIへのリクエスト
-                const response = await fetch('/api/chat', { 
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ 
-                        userMessage: userMessage,
-                        conversationHistory: conversationHistory, 
-                        scenarioName: currentScenario, 
-                        difficultyLevel: currentDifficulty, 
-                        password: APP_ACCESS_PASSWORD 
-                    }),
-                });
+                // セッション関連データをクリア（認証情報は保持）
+                const keysToKeep = ['isAuthenticated', 'authTime', 'userName', 'sessionArchives'];
+                const keysToRemove = [];
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`API error! status: ${response.status}, message: ${errorData.message || errorData.error || 'Unknown error'}`);
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    if (!keysToKeep.includes(key)) {
+                        keysToRemove.push(key);
+                    }
                 }
 
-                const data = await response.json();
-                const aiResponse = data.generatedText.trim(); 
-                hideTypingIndicator();
-                return aiResponse;
-
-            } catch (error) {
-                console.error('Error calling Gemini API:', error);
-                showStatus(`AI応答の生成中にエラーが発生しました: ${error.message}`, 'error');
-                hideTypingIndicator();
-                return "I'm sorry, I'm having trouble responding right now. Could you please try again?";
-            }
-        }
-
-        // --- ユーザーの会話全体を評価する関数 ---
-        async function evaluateUserConversation() {
-            if (messageCounter === 0) {
-                showStatus('まだ会話がありません。会話を始めてから評価してください。', 'info');
-                return;
-            }
-            showStatus('会話履歴を評価しています...', 'info');
-            showTypingIndicator(); // AIが評価中であることを示すために表示
-
-            try {
-                const userConversationOnly = conversationHistory.filter(msg => msg.role === 'user');
-                // ユーザーの会話履歴全体を一つの文字列として結合（評価用）
-                const fullUserTranscript = userConversationOnly.map(msg => msg.content).join('\n');
-
-                const response = await fetch('/api/evaluate', { // /api/evaluate エンドポイントを呼び出す
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        targetMessage: fullUserTranscript, // 評価対象は全会話履歴
-                        fullConversationHistory: conversationHistory, // 会話全体も参考として送る
-                        scenarioName: currentScenario,
-                        difficultyLevel: currentDifficulty,
-                        password: APP_ACCESS_PASSWORD
-                    }),
+                keysToRemove.forEach(key => {
+                    sessionStorage.removeItem(key);
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Evaluation API error! status: ${response.status}, message: ${errorData.message || errorData.error || 'Unknown error'}`);
-                }
-
-                const data = await response.json();
-                const evaluationResult = {
-                    score: data.score,
-                    feedback: data.feedback,
-                    scenario: currentScenario,
-                    difficulty: currentDifficulty,
-                    timestamp: new Date().toISOString()
-                };
-
-                // 評価結果を sessionStorage に保存
-                sessionStorage.setItem('lastEvaluationResult', JSON.stringify(evaluationResult));
-                console.log('Evaluation result saved to sessionStorage:', evaluationResult);
-
-                showStatus('評価が完了しました。レポートページへ移動します。', 'success');
-                hideTypingIndicator();
-                window.location.href = 'final-report.html'; // レポートページへ遷移
+                console.log('🧹 Session data cleared for new session');
 
             } catch (error) {
-                console.error('Error during evaluation:', error);
-                showStatus(`評価中にエラーが発生しました: ${error.message}`, 'error');
-                hideTypingIndicator();
+                console.error('❌ Error clearing session data:', error);
             }
         }
-
-
-        // --- 音声認識（Web Speech API） ---
-        function initSpeechRecognition() {
-            if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition.lang = 'en-US'; 
-                recognition.interimResults = true; // 暫定結果を受け取る
-                recognition.continuous = true;    // 連続認識を有効にする
-                recognition.maxAlternatives = 1; 
-
-                recognition.onstart = () => {
-                    isRecording = true;
-                    recordButton.classList.add('recording');
-                    recordButton.textContent = '🔴 録音中 (タップで停止)'; // ★変更
-                    userMessageInput.placeholder = '話しています...';
-                    userMessageInput.disabled = true;
-                    sendButton.disabled = true;
-                    endTrainingButton.disabled = true;
-                    showStatus('録音を開始しました。話し終わったら「録音中」ボタンをもう一度タップしてください。', 'info'); // ★変更
-                };
-
-                recognition.onresult = (event) => {
-                    let interimTranscript = '';
-                    let finalTranscript = '';
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        const transcript = event.results[i][0].transcript;
-                        if (event.results[i].isFinal) {
-                            finalTranscript += transcript;
-                        } else {
-                            interimTranscript += transcript;
-                        }
-                    }
-                    userMessageInput.value = finalTranscript || interimTranscript;
-                    // 最終結果が確定したら、送信ボタンを有効化してユーザーに促す
-                    if (finalTranscript !== '') {
-                        sendButton.disabled = false;
-                        showStatus('音声入力が完了しました。送信ボタンを押してください。', 'success');
-                    } else {
-                        sendButton.disabled = true; // 暫定結果の表示中は送信できないように
-                    }
-                };
-
-                recognition.onerror = (event) => {
-                    console.error('Speech recognition error:', event.error);
-                    showStatus(`音声認識エラー: ${event.error}. マイクへのアクセスを許可しているか確認してください。`, 'error'); // ★変更
-                    resetRecordingState(); 
-                };
-
-                recognition.onend = () => {
-                    // recognition.stop() が明示的に呼ばれた後、またはエラーで終了した場合
-                    if (isRecording) { // isRecording が true のままなら、予期せぬ終了
-                        showStatus('録音が予期せず停止しました。もう一度マイクボタンを押してください。', 'error'); // ★変更
-                    } else {
-                        // ユーザーが明示的に停止した場合のメッセージ
-                        if (userMessageInput.value.trim() !== '') {
-                            showStatus('録音を停止しました。送信ボタンを押してメッセージを送信してください。', 'success');
-                            sendButton.disabled = false;
-                        } else {
-                            showStatus('録音は停止されましたが、入力された音声はありませんでした。', 'info');
-                        }
-                    }
-                    resetRecordingState(); // 録音状態をリセット
-                };
-
-            } else {
-                recordButton.disabled = true;
-                recordButton.textContent = '🎤 不可';
-                showStatus('お使いのブラウザは音声認識に対応していません。', 'error');
-                console.warn('Web Speech API not supported in this browser.');
-            }
-        }
-
-        function toggleRecording() {
-            if (isRecording) {
-                recognition.stop(); // 録音を停止
-            } else {
-                userMessageInput.value = ''; // 新しい録音開始前にテキストをクリア
-                sendButton.disabled = true; // 録音開始時は送信ボタンを無効化
-                recognition.start(); // 録音を開始
-            }
-        }
-
-        function resetRecordingState() {
-            isRecording = false;
-            recordButton.classList.remove('recording');
-            recordButton.textContent = '🎤 録音';
-            userMessageInput.placeholder = '英語でメッセージを入力するか、マイクで話しかけてください...';
-            userMessageInput.disabled = false;
-            // 録音終了時に、入力フィールドにテキストがあれば送信ボタンを有効にする
-            sendButton.disabled = (userMessageInput.value.trim() === ''); 
-            endTrainingButton.disabled = false;
-        }
-
-        // --- イベントリスナー ---
-        sendButton.addEventListener('click', sendMessage);
-        userMessageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-        recordButton.addEventListener('click', toggleRecording);
-        endTrainingButton.addEventListener('click', evaluateUserConversation);
-
-        // --- 初期化 ---
-        window.addEventListener('load', () => {
-            initSpeechRecognition();
-            showStatus('準備完了！英語の練習を始めましょう！', 'success');
-            console.log('✅ Application fully loaded and ready');
-            console.log('💡 Type showDebugInfo() in console for debug information');
-        });
 
         // エラーハンドリング
-        window.addEventListener('error', function(event) {
-            console.error('❌ Global error:', event.error);
-            showStatus('エラーが発生しました: ' + event.error.message, 'error');
+        window.addEventListener('error', function(e) {
+            console.error('❌ Report page error:', e.error);
         });
 
-        // 未処理の Promise エラー
-        window.addEventListener('unhandledrejection', function(event) {
-            console.error('❌ Unhandled promise rejection:', event.reason);
-            showStatus('システムエラーが発生しました', 'error');
-        });
-
-        // ページが閉じられる前の確認
-        window.addEventListener('beforeunload', function(event) {
-            if (messageCounter > 0) {
-                event.preventDefault();
-                event.returnValue = '会話データが失われます。本当に終了しますか？';
-                return event.returnValue;
+        // ページ離脱前の確認
+        window.addEventListener('beforeunload', function(e) {
+            // 重要なデータが失われる可能性がある場合のみ確認
+            // （今回は `archiveSession` で明示的に保存するため、ここでは不要かもしれないが、
+            //   ユーザーが保存せずに離れようとした場合に確認を入れるのは良いプラクティス）
+            const hasUnsavedData = !localStorage.getItem('sessionArchives'); // これは適切ではない。保存されたかどうかを正確に追跡する必要がある。
+            // 簡略化のため、ここではセッションデータが残っているかどうかで判断する
+            const hasEvaluationResult = sessionStorage.getItem('lastEvaluationResult') !== null;
+            if (hasEvaluationResult) {
+                e.preventDefault();
+                e.returnValue = 'レポートデータが保存されていない可能性があります。ページを離れますか？';
             }
         });
 
-        // デバッグ情報表示（開発時のみ）
-        function showDebugInfo() {
-            console.log('🔍 Debug Info:', {
-                messageCounter,
-                conversationHistory: conversationHistory.length,
-                isRecording,
-                currentScenario,
-                currentDifficulty,
-                speechRecognitionAvailable: !!recognition,
-                userAgent: navigator.userAgent
-            });
-        }
-        window.showDebugInfo = showDebugInfo; 
+        console.log('📊 Final report script loaded');
     </script>
 </body>
 </html>

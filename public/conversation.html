@@ -8,13 +8,14 @@
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body { 
+
+        body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
-            color: white; 
-            padding: 20px; 
+            color: white;
+            padding: 20px;
             min-height: 100vh;
+            font-weight: 300; /* ★追加: フォントを細く */
         }
 
         .container {
@@ -315,24 +316,19 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>🗣️ 英語コソ練アプリ</h1>
+            <h1>英語コソ練アプリ</h1>
             <p class="scenario-info">
-                シナリオ: <span id="scenarioName">日常会話</span> | 
+                シナリオ: <span id="scenarioName">日常会話</span> |
                 難易度: <span id="difficultyLevel">中級</span>
             </p>
         </header>
 
         <main class="chat-area" id="chatArea">
-            <div class="message ai">
-                <div class="message-bubble">
-                    Hello! How can I help you practice your English today?
-                </div>
-            </div>
             <div id="typingIndicator" class="typing-indicator" style="display: none;">
                 <div class="dot"></div>
                 <div class="dot"></div>
                 <div class="dot"></div>
-                AI is typing...
+                AI is thinking...
             </div>
         </main>
 
@@ -343,15 +339,15 @@
                 <button id="recordButton">🎤 録音</button>
             </div>
         </div>
-        
+
         <div class="end-training-area">
             <button id="endTrainingButton">トレーニングを終える</button>
         </div>
-        
+
         <div id="statusMessage" class="status-message"></div>
 
         <footer class="footer">
-            <p>&copy; 2025 English Practice App. All rights reserved.</p>
+            <p>2025 KOSO-REN APP developed by T.H.</p>
         </footer>
     </div>
 
@@ -362,12 +358,13 @@
         const recordButton = document.getElementById('recordButton');
         const typingIndicator = document.getElementById('typingIndicator');
         const statusMessageDiv = document.getElementById('statusMessage');
-        const endTrainingButton = document.getElementById('endTrainingButton'); // ★追加
+        const endTrainingButton = document.getElementById('endTrainingButton');
 
-        let conversationHistory = [{ role: 'ai', content: 'Hello! How can I help you practice your English today?' }];
+        let conversationHistory = []; // ★最初のメッセージはAPIから取得するため空に
         let messageCounter = 0;
         let isRecording = false;
         let recognition; // SpeechRecognition API
+        let isFirstMessage = true; // ★追加: 最初のメッセージかどうかを追跡するフラグ
 
         // sessionStorageからシナリオと難易度を読み込む
         // もしsessionStorageに値がなければ、HTMLのデフォルト値を使用
@@ -429,28 +426,45 @@
             userMessageInput.value = '';
             messageCounter++;
 
-            const aiResponse = await generateAIResponse(userMessage);
-            addMessage('ai', aiResponse);
-            conversationHistory.push({ role: 'ai', content: aiResponse });
+            // AI応答はgenerateAIResponse内でaddMessageされる
+            await generateAIResponse(userMessage);
         }
 
         // --- Gemini APIを呼び出す関数（バックエンド経由） ---
-        async function generateAIResponse(userMessage) {
+        async function generateAIResponse(userMessage = "") { // ★変更: デフォルト引数を追加
             showTypingIndicator();
-            
+
+            // isFirstMessageがtrueかつuserMessageが空（初回呼び出し）の場合にのみ、
+            // conversationHistoryを空のプロンプトとして使用し、AIに最初の発言を生成させる
+            const isInitialCall = isFirstMessage && userMessage === "";
+            let currentConversationHistory = conversationHistory;
+
+            if (isInitialCall) {
+                // 初回呼び出しでは、AIにシナリオに基づく最初の発言を促すプロンプトを渡す
+                currentConversationHistory = [
+                    {
+                        role: 'user',
+                        content: `You are an English conversation partner. The user wants to practice English in a scenario: "${currentScenario}" at a "${currentDifficulty}" level. Start the conversation with an appropriate opening sentence based on this scenario and difficulty.`
+                    }
+                ];
+            } else {
+                 // 通常の会話では、userMessageを追加して送信
+                 // ただし、AIは初回発言以外はユーザーメッセージを受けて応答するため、
+                 // ここでconversationHistoryにuserMessageは追加しない（sendMessageで既に追加済み）
+            }
+
             try {
-                // バックエンドAPIへのリクエスト
-                const response = await fetch('/api/chat', { 
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ 
-                        userMessage: userMessage,
-                        conversationHistory: conversationHistory, 
-                        scenarioName: currentScenario, 
-                        difficultyLevel: currentDifficulty, 
-                        password: APP_ACCESS_PASSWORD 
+                    body: JSON.stringify({
+                        userMessage: userMessage, // ユーザーからのメッセージ
+                        conversationHistory: currentConversationHistory, // 初回はプロンプト、以降は実際の履歴
+                        scenarioName: currentScenario,
+                        difficultyLevel: currentDifficulty,
+                        password: APP_ACCESS_PASSWORD
                     }),
                 });
 
@@ -460,21 +474,39 @@
                 }
 
                 const data = await response.json();
-                const aiResponse = data.generatedText.trim(); 
+                const aiResponse = data.generatedText.trim();
                 hideTypingIndicator();
-                return aiResponse;
+
+                if (isInitialCall) {
+                    // 初回呼び出しの場合のみ、生成されたAIの最初のメッセージを履歴に追加し、表示
+                    addMessage('ai', aiResponse);
+                    conversationHistory.push({ role: 'ai', content: aiResponse });
+                    isFirstMessage = false; // フラグをfalseに設定
+                } else {
+                    // 通常のメッセージ送信時には、AI応答を履歴に追加するのみ（表示はsendMessageで既にaddMessageしているため不要）
+                    // ★ 修正: ここでaddMessage('ai', aiResponse)をしてしまうと二重表示になるので、呼び出し元で処理するか、初回時以外は履歴に追加するだけに留める
+                    // addMessage('ai', aiResponse); // これはsendMessage関数で既に処理されているため不要
+                    // conversationHistory.push({ role: 'ai', content: aiResponse }); // これはsendMessage関数で既に処理されているため不要
+                    return aiResponse; // 通常のAI応答はsendMessageに返す
+                }
 
             } catch (error) {
                 console.error('Error calling Gemini API:', error);
                 showStatus(`AI応答の生成中にエラーが発生しました: ${error.message}`, 'error');
                 hideTypingIndicator();
+                // 初回メッセージの場合のフォールバック
+                if (isInitialCall) {
+                    addMessage('ai', "Hello! How can I help you practice your English today?");
+                    conversationHistory.push({ role: 'ai', content: "Hello! How can I help you practice your English today?" });
+                    isFirstMessage = false;
+                }
                 return "I'm sorry, I'm having trouble responding right now. Could you please try again?";
             }
         }
 
         // --- ユーザーの会話全体を評価する関数 ---
         async function evaluateUserConversation() {
-            if (messageCounter === 0) {
+            if (conversationHistory.filter(msg => msg.role === 'user').length === 0) { // ★修正: ユーザーメッセージの有無で判断
                 showStatus('まだ会話がありません。会話を始めてから評価してください。', 'info');
                 return;
             }
@@ -534,20 +566,20 @@
         function initSpeechRecognition() {
             if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
                 recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition.lang = 'en-US'; 
+                recognition.lang = 'en-US';
                 recognition.interimResults = true; // 暫定結果を受け取る
                 recognition.continuous = true;    // 連続認識を有効にする
-                recognition.maxAlternatives = 1; 
+                recognition.maxAlternatives = 1;
 
                 recognition.onstart = () => {
                     isRecording = true;
                     recordButton.classList.add('recording');
-                    recordButton.textContent = '🔴 録音中 (タップで停止)'; // ★変更
+                    recordButton.textContent = '🔴 録音中 (タップで停止)';
                     userMessageInput.placeholder = '話しています...';
                     userMessageInput.disabled = true;
                     sendButton.disabled = true;
-                    endTrainingButton.disabled = true; // ★追加
-                    showStatus('録音を開始しました。話し終わったら「録音中」ボタンをもう一度タップしてください。', 'info'); // ★変更
+                    endTrainingButton.disabled = true;
+                    showStatus('録音を開始しました。話し終わったら「録音中」ボタンをもう一度タップしてください。', 'info');
                 };
 
                 recognition.onresult = (event) => {
@@ -573,14 +605,14 @@
 
                 recognition.onerror = (event) => {
                     console.error('Speech recognition error:', event.error);
-                    showStatus(`音声認識エラー: ${event.error}. マイクへのアクセスを許可しているか確認してください。`, 'error'); // ★変更
-                    resetRecordingState(); 
+                    showStatus(`音声認識エラー: ${event.error}. マイクへのアクセスを許可しているか確認してください。`, 'error');
+                    resetRecordingState();
                 };
 
                 recognition.onend = () => {
                     // recognition.stop() が明示的に呼ばれた後、またはエラーで終了した場合
                     if (isRecording) { // isRecording が true のままなら、予期せぬ終了
-                        showStatus('録音が予期せず停止しました。もう一度マイクボタンを押してください。', 'error'); // ★変更
+                        showStatus('録音が予期せず停止しました。もう一度マイクボタンを押してください。', 'error');
                     } else {
                         // ユーザーが明示的に停止した場合のメッセージ
                         if (userMessageInput.value.trim() !== '') {
@@ -618,8 +650,8 @@
             userMessageInput.placeholder = '英語でメッセージを入力するか、マイクで話しかけてください...';
             userMessageInput.disabled = false;
             // 録音終了時に、入力フィールドにテキストがあれば送信ボタンを有効にする
-            sendButton.disabled = (userMessageInput.value.trim() === ''); 
-            endTrainingButton.disabled = false; // ★追加
+            sendButton.disabled = (userMessageInput.value.trim() === '');
+            endTrainingButton.disabled = false;
         }
 
         // --- イベントリスナー ---
@@ -630,12 +662,14 @@
             }
         });
         recordButton.addEventListener('click', toggleRecording);
-        endTrainingButton.addEventListener('click', evaluateUserConversation); // ★追加
+        endTrainingButton.addEventListener('click', evaluateUserConversation);
 
         // --- 初期化 ---
         window.addEventListener('load', () => {
             initSpeechRecognition();
             showStatus('準備完了！英語の練習を始めましょう！', 'success');
+            // ページロード時にシナリオに基づいた最初のAIメッセージを生成
+            generateAIResponse();
             console.log('✅ Application fully loaded and ready');
             console.log('💡 Type showDebugInfo() in console for debug information');
         });
@@ -673,7 +707,7 @@
                 userAgent: navigator.userAgent
             });
         }
-        window.showDebugInfo = showDebugInfo; 
+        window.showDebugInfo = showDebugInfo;
     </script>
 </body>
 </html>

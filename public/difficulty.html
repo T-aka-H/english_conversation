@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Situational AI English - Difficulty Selection</title>
+    <title>英語コソ練アプリ - 難易度選択</title>
     <link rel="icon" href="data:,">
     
     <style>
@@ -65,9 +65,9 @@
         }
         
         .difficulty-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
             margin-bottom: 40px;
         }
         
@@ -75,11 +75,13 @@
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 15px;
-            padding: 30px;
+            padding: 20px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
+            flex: 1;
+            max-width: 400px;
         }
         
         .difficulty-card:hover {
@@ -212,7 +214,13 @@
             }
             
             .difficulty-options {
-                grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .difficulty-card {
+                width: 100%;
+                max-width: 100%;
             }
             
             .action-buttons {
@@ -231,7 +239,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Situational AI English</h1>
+            <h1>英語コソ練アプリ</h1>
             <p>難易度レベルを選択してください</p>
         </div>
         
@@ -286,9 +294,9 @@
             </button>
         </div>
         
-        <div class="footer">
-            <p>developed by T.H.</p>
-        </div>
+        <footer class="footer">
+            <p>2025 KOSO-REN APP developed by T.H.</p>
+        </footer>
     </div>
 
     <script>
