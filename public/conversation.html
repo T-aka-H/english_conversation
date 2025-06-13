@@ -502,6 +502,11 @@
             console.log('🚀 DOM Content Loaded');
             
             try {
+                // 認証チェック
+                if (!checkAuthentication()) {
+                    return;
+                }
+                
                 // セッション情報を読み込み
                 loadSessionInfo();
                 
@@ -524,6 +529,44 @@
                 showStatus('初期化エラー: ' + error.message, 'error');
             }
         });
+
+        // 認証チェック
+        function checkAuthentication() {
+            try {
+                const isAuthenticated = sessionStorage.getItem('isAuthenticated');
+                const authTime = sessionStorage.getItem('authTime');
+                
+                if (!isAuthenticated) {
+                    console.log('❌ No authentication found - redirecting to login');
+                    alert('Please login first.');
+                    window.location.replace('index.html');
+                    return false;
+                }
+                
+                // 認証の有効期限をチェック（24時間）
+                if (authTime) {
+                    const currentTime = new Date().getTime();
+                    const authTimeStamp = parseInt(authTime);
+                    const hoursDiff = (currentTime - authTimeStamp) / (1000 * 60 * 60);
+                    
+                    if (hoursDiff > 24) {
+                        console.log('⏰ Authentication expired - clearing session');
+                        sessionStorage.clear();
+                        alert('Session expired. Please login again.');
+                        window.location.replace('index.html');
+                        return false;
+                    }
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Authentication check error:', error);
+                alert('Authentication error. Please login again.');
+                window.location.replace('index.html');
+                return false;
+            }
+        }
 
         // ステータスメッセージ表示
         function showStatus(message, type = 'success') {
@@ -548,15 +591,33 @@
                 const storedScenario = sessionStorage.getItem('selectedScenario');
                 const storedDifficulty = sessionStorage.getItem('selectedDifficulty');
                 
-                if (storedScenario) {
-                    currentScenario = storedScenario;
-                }
-                if (storedDifficulty) {
-                    currentDifficulty = storedDifficulty;
+                console.log('📊 Stored scenario:', storedScenario);
+                console.log('📊 Stored difficulty:', storedDifficulty);
+                
+                // シナリオが存在しない場合はシナリオ選択に戻る
+                if (!storedScenario) {
+                    console.log('❌ No scenario found - redirecting to scenario selection');
+                    alert('シナリオが選択されていません。シナリオ選択画面に戻ります。');
+                    window.location.href = 'scenario.html';
+                    return;
                 }
                 
-                console.log('📊 Loaded scenario:', currentScenario);
-                console.log('📊 Loaded difficulty:', currentDifficulty);
+                // 難易度が存在しない場合は難易度選択に戻る
+                if (!storedDifficulty) {
+                    console.log('❌ No difficulty found - redirecting to difficulty selection');
+                    alert('難易度が選択されていません。難易度選択画面に戻ります。');
+                    window.location.href = 'difficulty.html';
+                    return;
+                }
+                
+                // グローバル変数に設定
+                currentScenario = storedScenario;
+                currentDifficulty = storedDifficulty;
+                
+                console.log('✅ Session info loaded:', {
+                    scenario: currentScenario,
+                    difficulty: currentDifficulty
+                });
                 
                 // UIに反映
                 document.getElementById('scenarioName').textContent = currentScenario;
@@ -571,10 +632,10 @@
                 console.error('❌ Error loading session info:', error);
                 showStatus('セッション情報の読み込みに失敗しました', 'error');
                 
-                // フォールバック処理
-                document.getElementById('scenarioName').textContent = currentScenario;
-                document.getElementById('difficultyLevel').textContent = '中級';
-                generateInitialMessage();
+                // エラー時はシナリオ選択に戻る
+                setTimeout(() => {
+                    window.location.href = 'scenario.html';
+                }, 3000);
             }
         }
 
@@ -778,22 +839,91 @@
             }
         }
 
-        // AI応答生成
+        // AI応答生成（シナリオ対応版）
         function generateAIResponse(userMessage) {
-            const responses = [
-                "That's a great point! I think we should definitely consider that approach. What do you think the timeline would look like for implementation?",
-                "I appreciate you bringing that up. How do you think this aligns with our current objectives?",
-                "Excellent! That could really help us move forward. Should we assign someone to look into this further?",
-                "That's interesting. Could you elaborate on how you see this working in practice?",
-                "I agree with your assessment. What would be the next steps to make this happen?",
-                "Thank you for that question. Let me address that point specifically.",
-                "That's an excellent observation. You're absolutely right to focus on that aspect.",
-                "I understand your concern, and I'm here to help resolve this for you.",
-                "That makes a lot of sense. How do you think we should proceed with this?",
-                "You raise a good point. I hadn't considered that angle before."
-            ];
+            const scenarioLower = currentScenario.toLowerCase();
+            const difficultyLevel = currentDifficulty;
+            const message = userMessage.toLowerCase();
             
-            return responses[Math.floor(Math.random() * responses.length)];
+            console.log('🤖 Generating AI response for scenario:', currentScenario);
+            console.log('🎯 Difficulty level:', difficultyLevel);
+            console.log('💬 User message:', userMessage);
+            
+            let responses = [];
+            
+            // シナリオ別の応答生成
+            if (scenarioLower.includes('雑談') || scenarioLower.includes('casual')) {
+                responses = [
+                    "That sounds really interesting! I had a pretty good weekend too. Did you catch the news about the new project announcement?",
+                    "Oh, I know what you mean! Speaking of which, have you tried that new restaurant downtown?",
+                    "That's great to hear! By the way, how's your family doing? You mentioned your kids were starting school.",
+                    "I completely agree! You know, it reminds me of something similar that happened last month.",
+                    "That's a good point! Have you been following the latest industry trends? There's been some interesting developments."
+                ];
+            } else if (scenarioLower.includes('会食') || scenarioLower.includes('dinner')) {
+                responses = [
+                    "That's fascinating! I've always been curious about that culture. How did you first get interested in it?",
+                    "The food here really is exceptional. I particularly recommend their signature dish. Have you had a chance to travel much for business?",
+                    "That's an interesting perspective! In my experience, building relationships over meals really does make a difference in business.",
+                    "I appreciate you sharing that! Speaking of traditions, how do you usually celebrate holidays in your family?",
+                    "That sounds like a great approach! Food really does bring people together, doesn't it?"
+                ];
+            } else if (scenarioLower.includes('アポ') || scenarioLower.includes('appointment') || scenarioLower.includes('電話')) {
+                responses = [
+                    "Let me check my calendar. I have some availability next week. Would Tuesday or Wednesday afternoon work for you?",
+                    "That sounds good. How about we schedule it for 2 PM? That should give us enough time to cover all the topics you mentioned.",
+                    "I understand you're quite busy. Would a shorter 30-minute meeting be more manageable for your schedule?",
+                    "Perfect! I'll send you a calendar invitation shortly. Should I include anyone else from our team in this meeting?",
+                    "That works for me. Just to confirm, we'll be discussing the quarterly review and budget planning, correct?"
+                ];
+            } else if (scenarioLower.includes('タスク') || scenarioLower.includes('task') || scenarioLower.includes('スケジュール')) {
+                responses = [
+                    "Good update! Where do we stand on the deliverables for the client presentation? Are we still on track for Friday?",
+                    "I see. That's a bit concerning about the timeline. What resources do you think we need to get back on schedule?",
+                    "Excellent progress! Should we schedule a checkpoint meeting with the stakeholders to update them on our status?",
+                    "That makes sense. Who else needs to be looped in on this decision? I think we should involve the product team.",
+                    "I agree with that approach. Can you send me the updated timeline by end of day so I can review it?"
+                ];
+            } else if (scenarioLower.includes('プレゼン') || scenarioLower.includes('presentation') || scenarioLower.includes('質疑')) {
+                responses = [
+                    "Thank you for that explanation. Could you elaborate on the risk mitigation strategies you've outlined?",
+                    "That's a solid proposal. What's your contingency plan if the market conditions change during implementation?",
+                    "I'm impressed with the research depth. How did you validate these assumptions with our target customers?",
+                    "The numbers look promising. What would be the resource requirements from our end to support this initiative?",
+                    "Interesting approach! How does this compare to what our competitors are doing in the same space?"
+                ];
+            } else if (scenarioLower.includes('m&a') || scenarioLower.includes('交渉') || scenarioLower.includes('価格')) {
+                responses = [
+                    "I understand your position, but our analysis shows a different valuation range. Can we discuss the EBITDA multiples you're using?",
+                    "That's a significant gap from our initial offer. What specific assets or synergies justify this premium in your view?",
+                    "We appreciate the comprehensive due diligence materials. However, we need to address the working capital adjustments.",
+                    "From our perspective, the market conditions have changed since we started this process. How do you see that affecting the valuation?",
+                    "We're willing to consider that proposal, but we'd need some additional warranties and indemnifications to move forward."
+                ];
+            } else {
+                // 一般的なビジネス応答
+                responses = [
+                    "That's a great point! I think we should definitely consider that approach. What do you think the timeline would look like for implementation?",
+                    "I appreciate you bringing that up. How do you think this aligns with our current objectives?",
+                    "Excellent! That could really help us move forward. Should we assign someone to look into this further?",
+                    "That's interesting. Could you elaborate on how you see this working in practice?",
+                    "I agree with your assessment. What would be the next steps to make this happen?"
+                ];
+            }
+            
+            // 難易度に応じて応答を調整
+            if (difficultyLevel === 'hard') {
+                // ハードモードでは、より詳細で挑戦的な応答を追加
+                const hardResponses = responses.map(response => {
+                    return response + " I'd also like to understand the long-term implications and potential challenges we might face.";
+                });
+                responses = responses.concat(hardResponses);
+            }
+            
+            const selectedResponse = responses[Math.floor(Math.random() * responses.length)];
+            console.log('✅ AI response generated:', selectedResponse.substring(0, 50) + '...');
+            
+            return selectedResponse;
         }
 
         // 音声認識初期化
