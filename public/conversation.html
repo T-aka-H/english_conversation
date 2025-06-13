@@ -1540,6 +1540,12 @@
         // 音声認識の初期化
         function initializeSpeechRecognition() {
             console.log('🎤 Initializing speech recognition...');
+            console.log('📱 User Agent:', navigator.userAgent);
+            console.log('🌐 Platform:', navigator.platform);
+            
+            // モバイルデバイスの検出
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            console.log('📱 Is Mobile:', isMobile);
             
             // HTTPSチェック
             if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
@@ -1555,14 +1561,21 @@
             }
             
             // ブラウザサポートチェック
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            const hasWebkitSpeech = 'webkitSpeechRecognition' in window;
+            const hasSpeech = 'SpeechRecognition' in window;
+            console.log('🎤 webkitSpeechRecognition:', hasWebkitSpeech);
+            console.log('🎤 SpeechRecognition:', hasSpeech);
+            
+            if (!hasWebkitSpeech && !hasSpeech) {
                 console.log('❌ Speech recognition not supported in this browser');
                 const voiceButton = document.getElementById('voiceButton');
                 if (voiceButton) {
                     voiceButton.disabled = true;
-                    voiceButton.textContent = '🚫 音声非対応';
+                    voiceButton.textContent = isMobile ? '📱 モバイル非対応' : '🚫 音声非対応';
                     voiceButton.style.opacity = '0.5';
-                    voiceButton.title = 'このブラウザは音声認識をサポートしていません';
+                    voiceButton.title = isMobile ? 
+                        'このモバイルブラウザは音声認識をサポートしていません。Chromeをお試しください。' : 
+                        'このブラウザは音声認識をサポートしていません';
                 }
                 return;
             }
@@ -1572,17 +1585,31 @@
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
                 
-                // 設定
+                // モバイル向けの設定調整
                 recognition.continuous = false;
                 recognition.interimResults = false;
                 recognition.lang = 'en-US';
                 recognition.maxAlternatives = 1;
+                
+                // モバイルでは短いタイムアウトを設定
+                if (isMobile) {
+                    recognition.maxAlternatives = 1;
+                    // モバイルでは音声認識の感度を調整
+                }
                 
                 // イベントリスナー
                 recognition.onstart = function() {
                     console.log('🎤 Speech recognition started');
                     isRecording = true;
                     updateVoiceButton();
+                    
+                    // モバイルでは視覚的フィードバックを強化
+                    if (isMobile) {
+                        document.body.style.backgroundColor = '#f0f8ff';
+                        setTimeout(() => {
+                            document.body.style.backgroundColor = '';
+                        }, 300);
+                    }
                 };
                 
                 recognition.onresult = function(event) {
@@ -1597,36 +1624,61 @@
                         if (userInput) {
                             userInput.value = transcript;
                             userInput.focus();
+                            
+                            // モバイルでは成功フィードバック
+                            if (isMobile) {
+                                navigator.vibrate && navigator.vibrate(100);
+                            }
                         }
                     }
                 };
                 
                 recognition.onerror = function(event) {
                     console.error('🎤 Speech recognition error:', event.error);
+                    console.error('🎤 Error details:', event);
                     isRecording = false;
                     updateVoiceButton();
                     
                     let errorMessage;
                     switch(event.error) {
                         case 'no-speech':
-                            errorMessage = '音声が検出されませんでした。もう一度お試しください。';
+                            errorMessage = isMobile ? 
+                                '音声が検出されませんでした。マイクに近づいてもう一度お試しください。' :
+                                '音声が検出されませんでした。もう一度お試しください。';
                             break;
                         case 'audio-capture':
-                            errorMessage = 'マイクにアクセスできません。権限を確認してください。';
+                            errorMessage = isMobile ?
+                                'マイクにアクセスできません。設定でマイクの使用を許可してください。' :
+                                'マイクにアクセスできません。権限を確認してください。';
                             break;
                         case 'not-allowed':
-                            errorMessage = 'マイクの使用が許可されていません。ブラウザ設定を確認してください。';
+                            errorMessage = isMobile ?
+                                'マイクの使用が許可されていません。ブラウザ設定でマイクアクセスを有効にしてください。' :
+                                'マイクの使用が許可されていません。ブラウザ設定を確認してください。';
                             break;
                         case 'network':
-                            errorMessage = 'ネットワークエラーが発生しました。';
+                            errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
                             break;
                         case 'service-not-allowed':
-                            errorMessage = 'HTTPSが必要です。セキュアな接続でお試しください。';
+                            errorMessage = isMobile ?
+                                'このサイトでは音声認識が許可されていません。HTTPSサイトでお試しください。' :
+                                'HTTPSが必要です。セキュアな接続でお試しください。';
+                            break;
+                        case 'aborted':
+                            errorMessage = '音声認識が中断されました。';
                             break;
                         default:
-                            errorMessage = '音声認識エラーが発生しました: ' + event.error;
+                            errorMessage = `音声認識エラーが発生しました: ${event.error}`;
                     }
-                    alert('🎤 ' + errorMessage);
+                    
+                    // モバイルではより分かりやすいアラート
+                    if (isMobile) {
+                        setTimeout(() => {
+                            alert('🎤 ' + errorMessage);
+                        }, 100);
+                    } else {
+                        alert('🎤 ' + errorMessage);
+                    }
                 };
                 
                 recognition.onend = function() {
@@ -1635,6 +1687,31 @@
                     updateVoiceButton();
                 };
                 
+                // 音声認識の可用性をテスト
+                if (isMobile) {
+                    console.log('📱 Mobile device detected - testing speech recognition...');
+                    // モバイルでは実際にテストしてみる
+                    setTimeout(() => {
+                        try {
+                            recognition.start();
+                            setTimeout(() => {
+                                if (isRecording) {
+                                    recognition.stop();
+                                    console.log('✅ Mobile speech recognition test successful');
+                                }
+                            }, 100);
+                        } catch (testError) {
+                            console.error('❌ Mobile speech recognition test failed:', testError);
+                            const voiceButton = document.getElementById('voiceButton');
+                            if (voiceButton) {
+                                voiceButton.disabled = true;
+                                voiceButton.textContent = '📱 モバイル非対応';
+                                voiceButton.style.opacity = '0.5';
+                            }
+                        }
+                    }, 2000);
+                }
+                
                 console.log('✅ Speech recognition initialized successfully');
                 
             } catch (error) {
@@ -1642,7 +1719,7 @@
                 const voiceButton = document.getElementById('voiceButton');
                 if (voiceButton) {
                     voiceButton.disabled = true;
-                    voiceButton.textContent = '🚫 初期化エラー';
+                    voiceButton.textContent = isMobile ? '📱 初期化エラー' : '🚫 初期化エラー';
                     voiceButton.style.opacity = '0.5';
                 }
             }
@@ -1651,6 +1728,8 @@
         // 音声入力のトグル
         function toggleVoiceInput() {
             console.log('🎤 toggleVoiceInput called, isRecording:', isRecording);
+            
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
             if (!recognition) {
                 alert('音声認識が初期化されていません。ページを再読み込みしてください。');
@@ -1668,26 +1747,39 @@
                 }
             } else {
                 console.log('🎤 Starting speech recognition');
-                try {
-                    // マイク権限の確認
-                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                        navigator.mediaDevices.getUserMedia({ audio: true })
-                            .then(function(stream) {
-                                // 権限が取得できた場合
-                                stream.getTracks().forEach(track => track.stop()); // ストリームを停止
-                                recognition.start();
-                            })
-                            .catch(function(err) {
-                                console.error('🎤 Microphone access denied:', err);
-                                alert('マイクへのアクセスが拒否されました。ブラウザの設定でマイクの使用を許可してください。');
-                            });
-                    } else {
-                        // getUserMediaが利用できない場合は直接開始を試行
+                
+                // モバイルでは追加の準備処理
+                if (isMobile) {
+                    // ユーザーの明示的なアクションから直接開始（重要）
+                    try {
                         recognition.start();
+                    } catch (error) {
+                        console.error('🎤 Failed to start recognition on mobile:', error);
+                        alert('音声認識を開始できませんでした。マイクの権限を確認してください。');
                     }
-                } catch (error) {
-                    console.error('🎤 Failed to start recognition:', error);
-                    alert('音声認識を開始できませんでした: ' + error.message);
+                } else {
+                    // PC版では従来通りの権限チェック
+                    try {
+                        // マイク権限の確認
+                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                            navigator.mediaDevices.getUserMedia({ audio: true })
+                                .then(function(stream) {
+                                    // 権限が取得できた場合
+                                    stream.getTracks().forEach(track => track.stop()); // ストリームを停止
+                                    recognition.start();
+                                })
+                                .catch(function(err) {
+                                    console.error('🎤 Microphone access denied:', err);
+                                    alert('マイクへのアクセスが拒否されました。ブラウザの設定でマイクの使用を許可してください。');
+                                });
+                        } else {
+                            // getUserMediaが利用できない場合は直接開始を試行
+                            recognition.start();
+                        }
+                    } catch (error) {
+                        console.error('🎤 Failed to start recognition:', error);
+                        alert('音声認識を開始できませんでした: ' + error.message);
+                    }
                 }
             }
         }
