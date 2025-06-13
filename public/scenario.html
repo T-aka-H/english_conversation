@@ -1,415 +1,439 @@
-<!DOCTYPE html>
+.input-guide {
+    background: rgba(74, 144, 226, 0.1);
+    border: 1px solid rgba(74, 144, 226, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 15px 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.input-guide strong {
+    color: #4A90E2;
+}
+
+.input-guide em {
+    color: rgba(255, 255, 255, 0.8);
+    font-style: italic;
+}<!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Situational AI English - Scenario Selection</title>
-    <link rel="icon" href="data:,">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英語コソ練アプリ - シナリオ選択</title>
+<link rel="icon" href="data:,">
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
+    color: white; 
+    padding: 20px; 
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: rgba(255,255,255,0.05);
+    padding: 40px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    animation: fadeIn 0.8s ease-out;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.header h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+    color: #4A90E2;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
+.header p {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.scenario-form {
+    margin-bottom: 40px;
+}
+
+.form-group {
+    margin-bottom: 30px;
+}
+
+.form-label {
+    display: block;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 15px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.scenario-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    font-family: inherit;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.scenario-textarea:focus {
+    outline: none;
+    border-color: #4A90E2;
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+}
+
+.scenario-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.suggested-scenarios {
+    margin-top: 20px;
+}
+
+.suggested-scenarios h3 {
+    font-size: 16px;
+    color: #4A90E2;
+    margin-bottom: 15px;
+}
+
+.scenario-suggestions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.suggestion-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.suggestion-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #4A90E2;
+    transform: translateY(-2px);
+}
+
+.suggestion-item h4 {
+    color: #4A90E2;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.suggestion-item p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.4;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.button {
+    padding: 18px 30px;
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    min-width: 180px;
+}
+
+.button:hover {
+    background: linear-gradient(135deg, #357ABD, #2E6DA4);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+    text-decoration: none;
+    color: white;
+}
+
+.button.primary {
+    background: linear-gradient(135deg, #28A745, #20A042);
+}
+
+.button.primary:hover {
+    background: linear-gradient(135deg, #20A042, #1E7E3A);
+}
+
+.button.secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.button.secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.auth-info {
+    background: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    color: #28a745;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 12px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+    }
     
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
-            color: white; 
-            padding: 20px; 
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: rgba(255,255,255,0.05);
-            padding: 40px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            animation: fadeIn 0.8s ease-out;
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .header h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-            color: #4A90E2;
-            font-weight: 300;
-            letter-spacing: 1px;
-        }
-        
-        .header p {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.7);
-        }
-        
-        .scenario-form {
-            margin-bottom: 40px;
-        }
-        
-        .form-group {
-            margin-bottom: 30px;
-        }
-        
-        .form-label {
-            display: block;
-            font-size: 18px;
-            font-weight: 500;
-            margin-bottom: 15px;
-            color: rgba(255, 255, 255, 0.9);
-        }
-        
-        .scenario-textarea {
-            width: 100%;
-            min-height: 120px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            font-family: inherit;
-            resize: vertical;
-            transition: all 0.3s ease;
-        }
-        
-        .scenario-textarea:focus {
-            outline: none;
-            border-color: #4A90E2;
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
-        }
-        
-        .scenario-textarea::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-        
-        .suggested-scenarios {
-            margin-top: 20px;
-        }
-        
-        .suggested-scenarios h3 {
-            font-size: 16px;
-            color: #4A90E2;
-            margin-bottom: 15px;
-        }
-        
-        .scenario-suggestions {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
-        }
-        
-        .suggestion-item {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .suggestion-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #4A90E2;
-            transform: translateY(-2px);
-        }
-        
-        .suggestion-item h4 {
-            color: #4A90E2;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-        
-        .suggestion-item p {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.7);
-            line-height: 1.4;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .button {
-            padding: 18px 30px;
-            background: linear-gradient(135deg, #4A90E2, #357ABD);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            letter-spacing: 0.5px;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-            min-width: 180px;
-        }
-        
-        .button:hover {
-            background: linear-gradient(135deg, #357ABD, #2E6DA4);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
-            text-decoration: none;
-            color: white;
-        }
-        
-        .button.primary {
-            background: linear-gradient(135deg, #28A745, #20A042);
-        }
-        
-        .button.primary:hover {
-            background: linear-gradient(135deg, #20A042, #1E7E3A);
-        }
-        
-        .button.secondary {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .button.secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-        
-        .auth-info {
-            background: rgba(40, 167, 69, 0.1);
-            border: 1px solid rgba(40, 167, 69, 0.3);
-            color: #28a745;
-            padding: 12px 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            text-align: center;
-            font-size: 14px;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 12px;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .button {
-                width: 100%;
-                max-width: 300px;
-            }
-            
-            .scenario-suggestions {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .button {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .scenario-suggestions {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Situational AI English</h1>
-            <p>ビジネス英会話の練習シナリオを選択してください</p>
+<div class="container">
+<div class="header">
+    <h1>英語コソ練アプリ</h1>
+    <p>ビジネス英会話の練習シナリオを選択してください</p>
+</div>
+
+<div class="auth-info">
+    ✅ 認証が完了しました！シナリオ選択へようこそ。
+</div>
+
+<form class="scenario-form" id="scenarioForm">
+    <div class="form-group">
+        <label for="scenarioInput" class="form-label">練習したいシナリオとAIの役割を入力してください:</label>
+        <textarea 
+            id="scenarioInput" 
+            class="scenario-textarea"
+            placeholder="例: 会議前の雑談（AIは同僚として天気や週末の話題を提供）、電話でのアポ取り（AIは多忙な相手として日程調整）、M&A交渉（AIは売却側として企業価値を主張）..."
+            required
+        ></textarea>
+        
+        <div class="input-guide">
+            <p><strong>📝 入力のコツ:</strong></p>
+            <p>• シナリオ: どんな場面で練習したいか</p>
+            <p>• AIの役割: AIにどんな相手役をしてもらいたいか</p>
+            <p><em>例: 「病院での診察（AIは医師として質問）」</em></p>
         </div>
         
-        <div class="auth-info">
-            ✅ 認証が完了しました！シナリオ選択へようこそ。
-        </div>
-        
-        <form class="scenario-form" id="scenarioForm">
-            <div class="form-group">
-                <label for="scenarioInput" class="form-label">練習したいビジネスシナリオを入力してください:</label>
-                <textarea 
-                    id="scenarioInput" 
-                    class="scenario-textarea"
-                    placeholder="例: 会議での議論、プレゼンテーション、クライアントとの電話、新プロジェクト提案、人事評価、交渉、カスタマーサービス対応..."
-                    required
-                ></textarea>
+        <div class="suggested-scenarios">
+            <h3>💡 おすすめシナリオ (クリックで選択):</h3>
+            <div class="scenario-suggestions">
+                <div class="suggestion-item" onclick="selectScenario('会議冒頭での雑談（AIは同僚として、週末の話や時事問題について軽く談笑）')">
+                    <h4>☕ 会議冒頭の雑談</h4>
+                    <p>AIが同僚として、週末の出来事や時事ネタで場を和ませる</p>
+                </div>
                 
-                <div class="suggested-scenarios">
-                    <h3>💡 おすすめシナリオ (クリックで選択):</h3>
-                    <div class="scenario-suggestions">
-                        <div class="suggestion-item" onclick="selectScenario('四半期業績について話し合い、次四半期の戦略を計画するチームミーティングの司会')">
-                            <h4>📊 チームミーティング</h4>
-                            <p>四半期業績の討議と戦略計画セッションの司会進行</p>
-                        </div>
-                        
-                        <div class="suggestion-item" onclick="selectScenario('潜在的投資家に新製品提案をプレゼンテーションし、質疑応答に対応')">
-                            <h4>🎯 製品プレゼンテーション</h4>
-                            <p>投資家への新製品提案とQ&Aセッションの実施</p>
-                        </div>
-                        
-                        <div class="suggestion-item" onclick="selectScenario('国際的なクライアントとサービス問題を解決するための電話対応')">
-                            <h4>☎️ クライアントサービス電話</h4>
-                            <p>国際クライアントの懸念事項への対応とソリューション提供</p>
-                        </div>
-                        
-                        <div class="suggestion-item" onclick="selectScenario('行動面と技術面の質問を含む、シニアマネジメントポジションの就職面接')">
-                            <h4>💼 就職面接</h4>
-                            <p>行動面と技術面の質問を含むシニア管理職面接</p>
-                        </div>
-                        
-                        <div class="suggestion-item" onclick="selectScenario('価格設定と納期スケジュールを含む、ベンダーとの契約条件交渉')">
-                            <h4>🤝 契約交渉</h4>
-                            <p>ベンダーとの価格、条件、納期スケジュールの交渉</p>
-                        </div>
-                        
-                        <div class="suggestion-item" onclick="selectScenario('チームメンバーとの成果と改善点について話し合う人事評価面談')">
-                            <h4>📈 人事評価</h4>
-                            <p>従業員の業績評価と能力開発計画の実施</p>
-                        </div>
-                    </div>
+                <div class="suggestion-item" onclick="selectScenario('会食時の雑談（AIはビジネスパートナーとして、趣味や家族の話で親睦を深める）')">
+                    <h4>🍽️ 会食時の雑談</h4>
+                    <p>AIがビジネスパートナーとして、趣味や文化について談笑</p>
+                </div>
+                
+                <div class="suggestion-item" onclick="selectScenario('電話でのアポイントメント申し入れ（AIは忙しい取引先として、スケジュール調整について応答）')">
+                    <h4>📞 アポイント取得</h4>
+                    <p>AIが忙しい取引先として、会議の日程調整に応じる</p>
+                </div>
+                
+                <div class="suggestion-item" onclick="selectScenario('会議でのタスクとスケジュール確認（AIはプロジェクトマネージャーとして、担当者や締切を整理）')">
+                    <h4>📋 タスク・スケジュール確認</h4>
+                    <p>AIがプロジェクトマネージャーとして、役割分担や期限を確認</p>
+                </div>
+                
+                <div class="suggestion-item" onclick="selectScenario('プレゼンテーション後の質疑応答（AIは役員として、提案内容について鋭い質問を投げかけ）')">
+                    <h4>❓ プレゼン質疑応答</h4>
+                    <p>AIが役員として、提案の詳細や実現可能性について質問</p>
+                </div>
+                
+                <div class="suggestion-item" onclick="selectScenario('M&Aにおける株式価格交渉（AIは買収先企業の代表として、企業価値や条件について交渉）')">
+                    <h4>💼 M&A価格交渉</h4>
+                    <p>AIが買収先企業代表として、バリュエーションや条件を交渉</p>
                 </div>
             </div>
-            
-            <div class="action-buttons">
-                <button type="submit" class="button primary">
-                    難易度選択へ進む
-                </button>
-                <button type="button" class="button secondary" onclick="logout()">
-                    ログアウト
-                </button>
-            </div>
-        </form>
-        
-        <div class="footer">
-            <p>developed by T.H.</p>
         </div>
     </div>
+    
+    <div class="action-buttons">
+        <button type="submit" class="button primary">
+            難易度選択へ進む
+        </button>
+        <button type="button" class="button secondary" onclick="logout()">
+            ログアウト
+        </button>
+    </div>
+</form>
 
-    <script>
-        console.log('🎬 Scenario selection page loaded');
+<div class="footer">
+    <p>developed by T.H.</p>
+</div>
+</div>
+
+<script>
+console.log('🎬 Scenario selection page loaded');
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔍 Checking authentication status...');
+    
+    // 認証チェック
+    if (!checkAuthentication()) {
+        return;
+    }
+    
+    console.log('✅ Authentication verified successfully');
+    
+    // フォーム処理
+    const scenarioForm = document.getElementById('scenarioForm');
+    const scenarioInput = document.getElementById('scenarioInput');
+    
+    scenarioForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        handleScenarioSubmission();
+    });
+    
+    // フォーカスを当てる
+    scenarioInput.focus();
+    
+    console.log('📝 Scenario selection page initialized');
+});
+
+function checkAuthentication() {
+    try {
+        const isAuthenticated = sessionStorage.getItem('isAuthenticated');
+        const authTime = sessionStorage.getItem('authTime');
         
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🔍 Checking authentication status...');
-            
-            // 認証チェック
-            if (!checkAuthentication()) {
-                return;
-            }
-            
-            console.log('✅ Authentication verified successfully');
-            
-            // フォーム処理
-            const scenarioForm = document.getElementById('scenarioForm');
-            const scenarioInput = document.getElementById('scenarioInput');
-            
-            scenarioForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                handleScenarioSubmission();
-            });
-            
-            // フォーカスを当てる
-            scenarioInput.focus();
-            
-            console.log('📝 Scenario selection page initialized');
-        });
+        console.log('🔐 Auth status:', isAuthenticated);
+        console.log('⏰ Auth time:', authTime);
         
-        function checkAuthentication() {
-            try {
-                const isAuthenticated = sessionStorage.getItem('isAuthenticated');
-                const authTime = sessionStorage.getItem('authTime');
-                
-                console.log('🔐 Auth status:', isAuthenticated);
-                console.log('⏰ Auth time:', authTime);
-                
-                if (!isAuthenticated) {
-                    console.log('❌ No authentication found - redirecting to login');
-                    alert('Please login first.');
-                    window.location.replace('index.html');
-                    return false;
-                }
-                
-                // 認証の有効期限をチェック（24時間）
-                if (authTime) {
-                    const currentTime = new Date().getTime();
-                    const authTimeStamp = parseInt(authTime);
-                    const hoursDiff = (currentTime - authTimeStamp) / (1000 * 60 * 60);
-                    
-                    console.log('⏱️ Hours since auth:', hoursDiff.toFixed(2));
-                    
-                    if (hoursDiff > 24) {
-                        console.log('⏰ Authentication expired - clearing session');
-                        sessionStorage.clear();
-                        alert('Session expired. Please login again.');
-                        window.location.replace('index.html');
-                        return false;
-                    }
-                }
-                
-                return true;
-                
-            } catch (error) {
-                console.error('❌ Authentication check error:', error);
-                alert('Authentication error. Please login again.');
+        if (!isAuthenticated) {
+            console.log('❌ No authentication found - redirecting to login');
+            alert('Please login first.');
+            window.location.replace('index.html');
+            return false;
+        }
+        
+        // 認証の有効期限をチェック（24時間）
+        if (authTime) {
+            const currentTime = new Date().getTime();
+            const authTimeStamp = parseInt(authTime);
+            const hoursDiff = (currentTime - authTimeStamp) / (1000 * 60 * 60);
+            
+            console.log('⏱️ Hours since auth:', hoursDiff.toFixed(2));
+            
+            if (hoursDiff > 24) {
+                console.log('⏰ Authentication expired - clearing session');
+                sessionStorage.clear();
+                alert('Session expired. Please login again.');
                 window.location.replace('index.html');
                 return false;
             }
         }
         
-        function selectScenario(scenarioText) {
-            console.log('📋 Scenario selected:', scenarioText);
-            document.getElementById('scenarioInput').value = scenarioText;
-        }
+        return true;
         
-        function handleScenarioSubmission() {
-            const scenario = document.getElementById('scenarioInput').value.trim();
-            
-            console.log('🚀 Submitting scenario:', scenario);
-            
-            if (!scenario) {
-                alert('ビジネスシナリオを入力してください。');
-                return;
-            }
-            
-            try {
-                // シナリオをsessionStorageに保存
-                sessionStorage.setItem('selectedScenario', scenario);
-                console.log('💾 Scenario saved to sessionStorage');
-                
-                // 難易度選択ページに遷移
-                console.log('➡️ Redirecting to difficulty selection...');
-                window.location.href = 'difficulty.html';
-                
-            } catch (error) {
-                console.error('❌ Error saving scenario:', error);
-                alert('Error occurred while saving scenario. Please try again.');
-            }
-        }
+    } catch (error) {
+        console.error('❌ Authentication check error:', error);
+        alert('Authentication error. Please login again.');
+        window.location.replace('index.html');
+        return false;
+    }
+}
+
+function selectScenario(scenarioText) {
+    console.log('📋 Scenario selected:', scenarioText);
+    document.getElementById('scenarioInput').value = scenarioText;
+}
+
+function handleScenarioSubmission() {
+    const scenario = document.getElementById('scenarioInput').value.trim();
+    
+    console.log('🚀 Submitting scenario:', scenario);
+    
+    if (!scenario) {
+        alert('ビジネスシナリオを入力してください。');
+        return;
+    }
+    
+    try {
+        // シナリオをsessionStorageに保存
+        sessionStorage.setItem('selectedScenario', scenario);
+        console.log('💾 Scenario saved to sessionStorage');
         
-        function logout() {
-            if (confirm('ログアウトしてもよろしいですか？')) {
-                console.log('👋 User logging out...');
-                sessionStorage.clear();
-                window.location.replace('index.html');
-            }
-        }
+        // 難易度選択ページに遷移
+        console.log('➡️ Redirecting to difficulty selection...');
+        window.location.href = 'difficulty.html';
         
-        // エラーハンドリング
-        window.addEventListener('error', function(e) {
-            console.error('❌ Page error:', e.error);
-        });
-        
-        console.log('📜 Scenario selection script loaded');
-    </script>
+    } catch (error) {
+        console.error('❌ Error saving scenario:', error);
+        alert('Error occurred while saving scenario. Please try again.');
+    }
+}
+
+function logout() {
+    if (confirm('ログアウトしてもよろしいですか？')) {
+        console.log('👋 User logging out...');
+        sessionStorage.clear();
+        window.location.replace('index.html');
+    }
+}
+
+// エラーハンドリング
+window.addEventListener('error', function(e) {
+    console.error('❌ Page error:', e.error);
+});
+
+console.log('📜 Scenario selection script loaded');
+</script>
 </body>
 </html>
