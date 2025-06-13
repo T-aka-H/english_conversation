@@ -99,6 +99,16 @@
             background: #f8f9fa;
             border-radius: 8px;
             border: 1px solid #e0e0e0;
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            align-items: center;
         }
 
         #userMessageInput {
@@ -108,12 +118,13 @@
             border-radius: 6px;
             font-size: 1em;
             background: #ffffff;
+            min-height: 44px; /* タッチターゲットの最小サイズ */
         }
 
-        #userMessageInput:focus {
-            outline: none;
-            border-color: #2196f3;
-            box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+        .button-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
 
         .button {
@@ -127,6 +138,8 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
+            min-height: 44px; /* タッチターゲットの最小サイズ */
+            min-width: 44px; /* タッチターゲットの最小サイズ */
         }
 
         .primary-button {
@@ -219,6 +232,7 @@
         @media (max-width: 600px) {
             .container {
                 padding: 10px;
+                padding-bottom: 80px; /* 入力エリアの高さ分の余白を確保 */
             }
 
             .header h1 {
@@ -227,14 +241,38 @@
 
             .input-container {
                 flex-direction: column;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                margin: 0;
+                border-radius: 0;
+                border-top: 1px solid #e0e0e0;
+                padding: 10px;
+                background: #ffffff;
+            }
+
+            .input-wrapper {
+                width: 100%;
+            }
+
+            .button-group {
+                width: 100%;
+                justify-content: space-between;
             }
 
             .button {
-                width: 100%;
+                flex: 1;
+                padding: 10px;
+                font-size: 0.9em;
             }
 
             .message {
                 max-width: 90%;
+            }
+
+            .chat-container {
+                margin-bottom: 70px; /* 入力エリアの高さ分の余白を確保 */
             }
         }
     </style>
@@ -252,17 +290,18 @@
             <div class="chat-area" id="chatArea">
                 </div>
 
-            <div class="input-area">
-                <input type="text" id="userMessageInput" placeholder="メッセージを入力してください..." disabled>
-                <div class="voice-buttons">
-                    <button class="btn btn-primary" id="startRecordingBtn" disabled>
-                        🎤 音声入力開始
-                    </button>
-                    <button class="btn btn-secondary" id="stopRecordingBtn" disabled>
-                        ⏹️ 音声入力停止
-                    </button>
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <input type="text" id="userMessageInput" placeholder="メッセージを入力...">
+                    <div class="button-group">
+                        <button id="startRecordingBtn" class="button secondary-button">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button id="sendMessageBtn" class="button primary-button">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
                 </div>
-                <button class="btn btn-primary" id="sendMessageBtn" disabled>送信</button>
             </div>
         </main>
 
