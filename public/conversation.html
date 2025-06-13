@@ -160,6 +160,17 @@
             gap: 10px;
         }
         
+        .voice-recording {
+            background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
         .button {
             padding: 12px 20px;
             background: linear-gradient(135deg, #4A90E2, #357ABD);
@@ -380,6 +391,9 @@
                     </div>
                     
                     <div class="input-buttons">
+                        <button id="voiceButton" class="button secondary" onclick="toggleVoiceInput()">
+                            🎤 音声入力
+                        </button>
                         <button id="sendButton" class="button primary" onclick="sendMessage()">
                             送信
                         </button>
@@ -451,6 +465,8 @@
         let sessionStartTime = new Date();
         let timerInterval;
         let conversationHistory = [];
+        let recognition = null;
+        let isRecording = false;
         
         console.log('💬 Conversation page loaded');
         
@@ -470,6 +486,9 @@
             
             // イベントリスナーを設定
             setupEventListeners();
+            
+            // 音声認識を初期化
+            initializeSpeechRecognition();
             
             console.log('✅ Conversation session initialized');
         });
@@ -816,6 +835,112 @@
             
             // 一般的なビジネスシナリオ（デフォルト）
             return `Good morning! I'm ready to engage in our business scenario: "${scenario}". Let me set the context and begin our professional interaction. How would you like to approach this situation, and what are your initial thoughts on how we should proceed?`;
+        }
+        
+        // 音声認識の初期化
+        function initializeSpeechRecognition() {
+            console.log('🎤 Initializing speech recognition...');
+            
+            // ブラウザサポートチェック
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                console.log('❌ Speech recognition not supported');
+                document.getElementById('voiceButton').disabled = true;
+                document.getElementById('voiceButton').textContent = '🚫 音声非対応';
+                return;
+            }
+            
+            // 音声認識オブジェクトを作成
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            
+            // 設定
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            recognition.maxAlternatives = 1;
+            
+            // イベントリスナー
+            recognition.onstart = function() {
+                console.log('🎤 Speech recognition started');
+                isRecording = true;
+                updateVoiceButton();
+            };
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                console.log('🎤 Speech recognized:', transcript);
+                
+                // 結果をテキストエリアに挿入
+                const userInput = document.getElementById('userInput');
+                userInput.value = transcript;
+                userInput.focus();
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('🎤 Speech recognition error:', event.error);
+                isRecording = false;
+                updateVoiceButton();
+                
+                let errorMessage;
+                switch(event.error) {
+                    case 'no-speech':
+                        errorMessage = '音声が検出されませんでした。もう一度お試しください。';
+                        break;
+                    case 'audio-capture':
+                        errorMessage = 'マイクにアクセスできません。権限を確認してください。';
+                        break;
+                    case 'not-allowed':
+                        errorMessage = 'マイクの使用が許可されていません。ブラウザ設定を確認してください。';
+                        break;
+                    case 'network':
+                        errorMessage = 'ネットワークエラーが発生しました。';
+                        break;
+                    default:
+                        errorMessage = '音声認識エラーが発生しました: ' + event.error;
+                }
+                alert('🎤 ' + errorMessage);
+            };
+            
+            recognition.onend = function() {
+                console.log('🎤 Speech recognition ended');
+                isRecording = false;
+                updateVoiceButton();
+            };
+            
+            console.log('✅ Speech recognition initialized successfully');
+        }
+        
+        // 音声入力のトグル
+        function toggleVoiceInput() {
+            if (!recognition) {
+                alert('音声認識がサポートされていません。');
+                return;
+            }
+            
+            if (isRecording) {
+                console.log('🎤 Stopping speech recognition');
+                recognition.stop();
+            } else {
+                console.log('🎤 Starting speech recognition');
+                try {
+                    recognition.start();
+                } catch (error) {
+                    console.error('🎤 Failed to start recognition:', error);
+                    alert('音声認識を開始できませんでした。マイクの権限を確認してください。');
+                }
+            }
+        }
+        
+        // 音声ボタンの表示更新
+        function updateVoiceButton() {
+            const voiceButton = document.getElementById('voiceButton');
+            if (isRecording) {
+                voiceButton.textContent = '⏹️ 停止';
+                voiceButton.classList.add('voice-recording');
+            } else {
+                voiceButton.textContent = '🎤 音声入力';
+                voiceButton.classList.remove('voice-recording');
+            }
         }
         
         // エラーハンドリング
