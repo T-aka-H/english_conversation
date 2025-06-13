@@ -848,7 +848,7 @@
         function setupSendButton() {
             const sendButton = document.getElementById('sendMessageBtn');
             if (sendButton) {
-                sendButton.onclick = sendMessage;
+                sendButton.addEventListener('click', sendMessage);
             }
             const inputField = document.getElementById('userMessageInput');
             if (inputField) {
