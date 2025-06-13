@@ -3,40 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Situational AI English - Scenario Setup</title>
+    <title>Situational AI English - Difficulty Selection</title>
     <link rel="icon" href="data:,">
     
-    <!-- Authentication Check -->
-    <script>
-        function checkAuthentication() {
-            const isAuthenticated = sessionStorage.getItem('isAuthenticated');
-            const authTime = sessionStorage.getItem('authTime');
-            const currentTime = new Date().getTime();
-            const selectedDifficulty = sessionStorage.getItem('selectedDifficulty');
-            
-            if (!isAuthenticated || !authTime || (currentTime - parseInt(authTime)) > 24 * 60 * 60 * 1000 || !selectedDifficulty) {
-                console.log('Authentication or difficulty selection missing - redirecting');
-                window.location.href = 'index.html';
-                return false;
-            }
-            
-            // Display selected difficulty
-            document.getElementById('selectedDifficultyDisplay').textContent = 
-                selectedDifficulty === 'hard' ? 'Hard Mode' : 'Normal Mode';
-            
-            return true;
-        }
-        
-        // Check on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            if (!checkAuthentication()) {
-                return;
-            }
-        });
-    </script>
-    
     <style>
-        /* Base styles */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -45,222 +15,215 @@
             padding: 20px; 
             min-height: 100vh;
         }
-        .container { 
-            max-width: 700px; 
-            margin: 0 auto; 
-            background: rgba(255,255,255,0.05); 
-            padding: 40px; 
-            border-radius: 20px; 
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.05);
+            padding: 40px;
+            border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.1);
-            animation: fadeIn 0.6s ease-out;
+            animation: fadeIn 0.8s ease-out;
         }
         
-        .header h1 { 
-            text-align: center; 
-            font-size: 32px; 
-            margin-bottom: 10px; 
-            color: white;
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: #4A90E2;
             font-weight: 300;
             letter-spacing: 1px;
         }
         
-        .difficulty-display {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 15px;
-            background: rgba(74, 144, 226, 0.1);
-            border-radius: 10px;
-            border: 1px solid rgba(74, 144, 226, 0.3);
-        }
-        
-        .difficulty-display span {
-            color: #4A90E2;
-            font-weight: 500;
+        .header p {
             font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
         }
         
-        .progress-bar { 
-            width: 100%; 
-            height: 6px; 
-            background: rgba(255,255,255,0.1); 
-            border-radius: 3px; 
-            margin: 20px 0;
-        }
-        .progress-fill { 
-            height: 100%; 
-            background: linear-gradient(90deg, #4A90E2, #357ABD); 
-            width: 10%; 
-            transition: width 0.5s ease; 
-            border-radius: 3px;
-        }
-        
-        .turn-counter { 
-            text-align: center; 
-            color: rgba(255, 255, 255, 0.8); 
-            margin-bottom: 30px; 
-            font-size: 14px;
-        }
-        
-        .scenario-section {
-            margin: 30px 0;
-        }
-        
-        .scenario-examples {
-            background: rgba(255, 255, 255, 0.03);
+        .scenario-display {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
             border-radius: 12px;
-            padding: 25px;
-            margin: 20px 0;
+            margin-bottom: 40px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .scenario-examples h3 {
+        .scenario-display h3 {
             color: #4A90E2;
-            margin-bottom: 15px;
-            font-size: 18px;
-            font-weight: 500;
+            font-size: 16px;
+            margin-bottom: 10px;
         }
         
-        .example-list {
+        .scenario-display p {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+            font-size: 15px;
+        }
+        
+        .difficulty-options {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
         }
         
-        .example-item {
+        .difficulty-card {
             background: rgba(255, 255, 255, 0.05);
-            padding: 15px;
-            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
         }
         
-        .example-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .difficulty-card:hover {
             border-color: #4A90E2;
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(74, 144, 226, 0.2);
         }
         
-        .example-item h4 {
-            color: white;
-            font-size: 14px;
-            margin-bottom: 5px;
+        .difficulty-card.selected {
+            border-color: #4A90E2;
+            background: rgba(74, 144, 226, 0.1);
         }
         
-        .example-item p {
+        .difficulty-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #4A90E2;
+        }
+        
+        .difficulty-card .subtitle {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+        
+        .difficulty-card .features {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        
+        .difficulty-card .features li {
             color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            margin-bottom: 8px;
+            list-style: none;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .difficulty-card .features li:before {
+            content: "•";
+            color: #4A90E2;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .difficulty-card .recommendation {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
             font-size: 12px;
-            line-height: 1.4;
+            color: rgba(255, 255, 255, 0.6);
         }
         
-        label { 
-            display: block; 
-            margin: 20px 0 10px 0; 
-            color: white; 
-            font-weight: 500;
-            font-size: 16px;
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         
-        textarea { 
-            width: 100%; 
-            min-height: 120px; 
-            padding: 20px; 
-            background: rgba(255,255,255,0.05); 
-            color: white; 
-            border: 1px solid rgba(255,255,255,0.2); 
-            border-radius: 12px; 
-            font-family: inherit;
-            font-size: 16px;
-            line-height: 1.6;
-            resize: vertical;
-            transition: all 0.3s ease;
-        }
-        
-        textarea:focus {
-            outline: none;
-            border-color: #4A90E2;
-            background: rgba(255,255,255,0.1);
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-        }
-        
-        .button { 
-            width: 100%; 
-            padding: 18px; 
+        .button {
+            padding: 18px 30px;
             background: linear-gradient(135deg, #4A90E2, #357ABD);
-            color: white; 
-            border: none; 
-            border-radius: 12px; 
-            margin: 20px 0; 
-            cursor: pointer; 
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
             font-size: 16px;
             font-weight: 500;
             transition: all 0.3s ease;
             letter-spacing: 0.5px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            min-width: 180px;
         }
-        .button:hover { 
+        
+        .button:hover {
             background: linear-gradient(135deg, #357ABD, #2E6DA4);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+            text-decoration: none;
+            color: white;
         }
-        .button:disabled {
+        
+        .button.primary {
+            background: linear-gradient(135deg, #28A745, #20A042);
+        }
+        
+        .button.primary:hover {
+            background: linear-gradient(135deg, #20A042, #1E7E3A);
+        }
+        
+        .button.primary:disabled {
             background: rgba(255, 255, 255, 0.1);
+            opacity: 0.5;
             cursor: not-allowed;
             transform: none;
-            box-shadow: none;
         }
         
         .button.secondary {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            width: auto;
-            padding: 12px 25px;
-            margin: 10px 5px;
-            display: inline-block;
         }
+        
         .button.secondary:hover {
             background: rgba(255, 255, 255, 0.15);
-        }
-        
-        .button-group {
-            text-align: center;
-            margin: 30px 0;
-        }
-        
-        .error {
-            color: #ff6b6b;
-            background: rgba(255, 107, 107, 0.1);
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border: 1px solid rgba(255, 107, 107, 0.3);
-            display: none;
-        }
-        
-        .loading {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.8);
-            padding: 30px;
-            display: none;
         }
         
         .footer {
             text-align: center;
             margin-top: 40px;
-            padding-top: 20px;
+            padding-top: 30px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             color: rgba(255, 255, 255, 0.4);
             font-size: 12px;
         }
         
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .difficulty-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .button {
+                width: 100%;
+                max-width: 300px;
+            }
         }
     </style>
 </head>
@@ -269,72 +232,54 @@
     <div class="container">
         <div class="header">
             <h1>Situational AI English</h1>
-            <div class="difficulty-display">
-                Selected: <span id="selectedDifficultyDisplay">Normal Mode</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill"></div>
-            </div>
-            <div class="turn-counter">Setup Phase - Ready to Start</div>
+            <p>Select Difficulty Level</p>
         </div>
         
-        <div id="error" class="error"></div>
-        <div id="loading" class="loading">
-            <div style="width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1); border-left: 4px solid #4A90E2; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px;"></div>
-            Preparing your learning session...
+        <div class="scenario-display">
+            <h3>📋 Selected Scenario:</h3>
+            <p id="scenarioDisplay">Loading scenario...</p>
         </div>
         
-        <div class="scenario-section">
-            <label for="scenario">Describe your business scenario:</label>
-            <textarea id="scenario" placeholder="Enter a detailed business scenario you'd like to practice. For example: 'Weekly team meeting to discuss project progress and upcoming deadlines' or 'Client presentation for a new marketing proposal'..."></textarea>
-            
-            <div class="scenario-examples">
-                <h3>💡 Popular Scenario Examples</h3>
-                <p style="color: rgba(255,255,255,0.7); margin-bottom: 15px; font-size: 14px;">
-                    Click any example below to use it, or create your own custom scenario
-                </p>
+        <div class="difficulty-options">
+            <div class="difficulty-card" onclick="selectDifficulty('normal')" id="normalCard">
+                <h3>Normal Mode</h3>
+                <div class="subtitle">Evaluates basic communication ability</div>
                 
-                <div class="example-list">
-                    <div class="example-item" onclick="useExample('Weekly team meeting to discuss project progress, current challenges, and next week\'s priorities')">
-                        <h4>Team Meeting</h4>
-                        <p>Discuss progress, challenges, and priorities</p>
-                    </div>
-                    
-                    <div class="example-item" onclick="useExample('Client presentation for a new marketing campaign proposal including budget and timeline')">
-                        <h4>Client Presentation</h4>
-                        <p>Marketing campaign proposal with budget details</p>
-                    </div>
-                    
-                    <div class="example-item" onclick="useExample('Job interview as a candidate for a project manager position')">
-                        <h4>Job Interview</h4>
-                        <p>Project manager position interview</p>
-                    </div>
-                    
-                    <div class="example-item" onclick="useExample('Customer service call handling a complaint about product delivery delay')">
-                        <h4>Customer Service</h4>
-                        <p>Handle delivery delay complaint professionally</p>
-                    </div>
-                    
-                    <div class="example-item" onclick="useExample('Negotiation meeting with vendor about contract terms and pricing')">
-                        <h4>Business Negotiation</h4>
-                        <p>Contract terms and pricing discussion</p>
-                    </div>
-                    
-                    <div class="example-item" onclick="useExample('Performance review meeting with team member to discuss achievements and improvement areas')">
-                        <h4>Performance Review</h4>
-                        <p>Discuss achievements and areas for growth</p>
-                    </div>
+                <ul class="features">
+                    <li>Focus on communication</li>
+                    <li>Minor grammar errors allowed</li>
+                    <li>Business tone check</li>
+                    <li>Supportive feedback</li>
+                </ul>
+                
+                <div class="recommendation">
+                    Recommended: Beginner to Intermediate
                 </div>
             </div>
             
-            <button class="button" onclick="startLearning()">
-                🚀 Start Learning Session
-            </button>
+            <div class="difficulty-card" onclick="selectDifficulty('hard')" id="hardCard">
+                <h3>Hard Mode</h3>
+                <div class="subtitle">Advanced challenge with strict evaluation</div>
+                
+                <ul class="features">
+                    <li>Perfect grammar required</li>
+                    <li>Professional vocabulary</li>
+                    <li>Complex business scenarios</li>
+                    <li>Detailed feedback</li>
+                </ul>
+                
+                <div class="recommendation">
+                    Recommended: Advanced Level
+                </div>
+            </div>
         </div>
         
-        <div class="button-group">
+        <div class="action-buttons">
+            <button id="startButton" class="button primary" onclick="startPractice()" disabled>
+                Start Learning Session
+            </button>
             <button class="button secondary" onclick="goBack()">
-                ← Back to Difficulty
+                Back to Scenario Selection
             </button>
             <button class="button secondary" onclick="logout()">
                 Logout
@@ -347,130 +292,93 @@
     </div>
 
     <script>
+        let selectedDifficulty = null;
         
-        // scenario.htmlの<script>タグ内の最初に追加
         document.addEventListener('DOMContentLoaded', function() {
             // 認証チェック
             if (!checkAuthentication()) {
                 return;
             }
             
-            // 既存のシナリオ初期化処理
-            initializeScenario(); // または既存の初期化関数
+            // シナリオ表示
+            loadScenario();
         });
-
+        
         function checkAuthentication() {
             const isAuthenticated = sessionStorage.getItem('isAuthenticated');
+            const authTime = sessionStorage.getItem('authTime');
+            
             if (!isAuthenticated) {
+                alert('Please login first.');
                 window.location.replace('index.html');
                 return false;
             }
+            
+            // 認証の有効期限をチェック（24時間）
+            const currentTime = new Date().getTime();
+            const authTimeStamp = parseInt(authTime);
+            const hoursDiff = (currentTime - authTimeStamp) / (1000 * 60 * 60);
+            
+            if (hoursDiff > 24) {
+                sessionStorage.clear();
+                alert('Session expired. Please login again.');
+                window.location.replace('index.html');
+                return false;
+            }
+            
             return true;
         }
-                
-        const CORRECT_PASSWORD = "2025_July";
         
-        function useExample(exampleText) {
-            document.getElementById('scenario').value = exampleText;
-            
-            // Add visual feedback
-            const textarea = document.getElementById('scenario');
-            textarea.style.borderColor = '#4A90E2';
-            setTimeout(() => {
-                textarea.style.borderColor = 'rgba(255,255,255,0.2)';
-            }, 1000);
-        }
-        
-        function showError(message) {
-            const errorDiv = document.getElementById('error');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
-        }
-        
-        function showLoading(show = true) {
-            const loadingDiv = document.getElementById('loading');
-            loadingDiv.style.display = show ? 'block' : 'none';
-        }
-        
-        async function callAPI(endpoint, data) {
-            try {
-                console.log(`Calling API: ${endpoint}`, data);
-                
-                const requestData = {
-                    ...data,
-                    password: CORRECT_PASSWORD,
-                    difficulty: sessionStorage.getItem('selectedDifficulty') || 'normal'
-                };
-                
-                const response = await fetch(`/api/${endpoint}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestData)
-                });
-
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        throw new Error('Authentication error: Invalid password');
-                    }
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-
-                const result = await response.json();
-                console.log(`API response from ${endpoint}:`, result);
-                return result;
-            } catch (error) {
-                console.error('API call failed:', error);
-                throw error;
-            }
-        }
-        
-        async function startLearning() {
-            const scenario = document.getElementById('scenario').value.trim();
-            
+        function loadScenario() {
+            const scenario = sessionStorage.getItem('selectedScenario');
             if (!scenario) {
-                showError('Please enter a business scenario or select from examples above.');
+                alert('No scenario selected. Redirecting to scenario selection.');
+                window.location.href = 'scenario.html';
                 return;
             }
             
-            if (scenario.length < 20) {
-                showError('Please provide a more detailed scenario (at least 20 characters).');
+            document.getElementById('scenarioDisplay').textContent = scenario;
+        }
+        
+        function selectDifficulty(difficulty) {
+            selectedDifficulty = difficulty;
+            
+            // カードの選択状態を更新
+            document.querySelectorAll('.difficulty-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            if (difficulty === 'normal') {
+                document.getElementById('normalCard').classList.add('selected');
+            } else {
+                document.getElementById('hardCard').classList.add('selected');
+            }
+            
+            // ボタンを有効化
+            document.getElementById('startButton').disabled = false;
+        }
+        
+        function startPractice() {
+            if (!selectedDifficulty) {
+                alert('Please select a difficulty level.');
                 return;
             }
             
-            showLoading(true);
+            // 選択した難易度を保存
+            sessionStorage.setItem('selectedDifficulty', selectedDifficulty);
             
-            try {
-                // Store scenario for the learning session
-                sessionStorage.setItem('currentScenario', scenario);
-                
-                // Initialize session with API
-                const result = await callAPI('start-conversation', { scenario });
-                
-                console.log('Learning session initialized successfully');
-                
-                // Redirect to learning page
-                window.location.href = 'learning.html';
-                
-            } catch (error) {
-                showError('Failed to start learning session: ' + error.message);
-                showLoading(false);
-            }
+            // 会話ページに遷移（会話ページがない場合は適切なページに変更）
+            window.location.href = 'conversation.html';
         }
         
         function goBack() {
-            window.location.href = 'difficulty.html';
+            window.location.href = 'scenario.html';
         }
         
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
                 sessionStorage.clear();
-                window.location.href = 'index.html';
+                window.location.replace('index.html');
             }
         }
     </script>
