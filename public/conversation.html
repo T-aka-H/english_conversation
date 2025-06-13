@@ -699,6 +699,10 @@
             scenarioDisplay.textContent = `シナリオ: ${currentScenario}`;
             difficultyDisplay.textContent = `難易度: ${currentDifficulty.charAt(0).toUpperCase() + currentDifficulty.slice(1)}`;
 
+            // 新しい会話開始時に履歴をクリア
+            sessionStorage.removeItem('conversationHistory');
+            sessionStorage.removeItem('messageCounter');
+
             // 会話状態をロード、なければAIからの最初のメッセージを生成
             if (!loadConversationState()) {
                 console.log('No saved conversation found. Generating first AI response...');
