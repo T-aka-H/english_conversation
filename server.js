@@ -64,7 +64,48 @@ async function callGeminiAPI(prompt, isEvaluation = false) {
         const model = genAI.getGenerativeModel({ model: modelName });
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        return response.text();
+        let geminiResponseText = response.text();
+
+        console.log("Gemini Raw Response (Before Cleanup):", geminiResponseText); // デバッグ用
+
+        // JSONパースの堅牢化
+        let parsedResponse;
+        try {
+            // 1. レスポンス文字列の先頭・末尾の空白をトリム
+            let cleanedResponseText = geminiResponseText.trim();
+
+            // 2. Renderのログタイムスタンプを除去
+            // 例: "Jun 13 07:47:44 PM" のような行を削除
+            // 複数行にわたる可能性があるため 'gm' フラグを使用
+            cleanedResponseText = cleanedResponseText.replace(/^Jun \d{1,2} \d{2}:\d{2}:\d{2} PM\s*\n?/gm, '').trim();
+
+            // 3. ```json と ``` で囲まれた部分を抽出する
+            const jsonMatch = cleanedResponseText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+
+            if (jsonMatch && jsonMatch[1]) {
+                parsedResponse = JSON.parse(jsonMatch[1]);
+            } else {
+                // ```json がない場合でも、純粋なJSON文字列としてパースを試みる
+                // ただし、ログで見られたような末尾の余分な '{' に対応
+                if (cleanedResponseText.endsWith('} {')) { // もし "}" と "{" の間にスペースがあれば
+                    cleanedResponseText = cleanedResponseText.slice(0, -2).trim(); // "{ " を削除
+                } else if (cleanedResponseText.endsWith('{')) {
+                    cleanedResponseText = cleanedResponseText.slice(0, -1).trim(); // 最後の "{" を削除
+                }
+                
+                // 念のため、それでも残っている可能性のある ```json や ``` を取り除く
+                cleanedResponseText = cleanedResponseText.replace(/```json\s*/g, '').replace(/\s*```/g, '').trim();
+
+                parsedResponse = JSON.parse(cleanedResponseText);
+            }
+        } catch (parseError) {
+            console.error("Failed to parse Gemini response as JSON after cleanup:", parseError);
+            throw new Error("Invalid JSON response from AI after cleanup: " + geminiResponseText);
+        }
+        
+        console.log("Parsed Gemini Response:", parsedResponse); // デバッグ用
+
+        return parsedResponse; // オブジェクトとして返す
     } catch (error) {
         console.error("Error calling Gemini API:", error);
         throw new Error("Failed to get response from AI. Please try again.");
@@ -100,7 +141,6 @@ app.post('/api/chat', verifyPassword, async (req, res) => {
 - 応答は英語のみ。
 - 最初の一言として、シナリオに沿った質問や状況説明を行い、ユーザーの返答を促してください。
 - ユーザーの発言に対しては、必ず評価（点数とフィードバック）と、それに対する次の質問や返答をセットで返してください。
-- 評価は100点満点。具体的なフィードバックを簡潔に提供してください。
 - 各応答はJSON形式で返すこと。フォーマットは以下の通りです。
 {
   "aiResponse": "AIの次の発言（英語）",
@@ -135,26 +175,8 @@ ${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
     }
 
     try {
-        const geminiResponseText = await callGeminiAPI(prompt);
-        console.log("Gemini Raw Response:", geminiResponseText); // デバッグ用
-
-        // JSONパースの堅牢化
-        let parsedResponse;
-        try {
-            // Gemini APIがJSON文字列をそのまま返すことを想定
-            parsedResponse = JSON.parse(geminiResponseText);
-        } catch (parseError) {
-            console.error("Failed to parse Gemini response as JSON, attempting cleanup:", parseError);
-            // JSONPや余分なテキストが含まれる場合に対応
-            const jsonMatch = geminiResponseText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
-            if (jsonMatch && jsonMatch[1]) {
-                parsedResponse = JSON.parse(jsonMatch[1]);
-            } else {
-                throw new Error("Invalid JSON response from AI: " + geminiResponseText);
-            }
-        }
-
-        const { aiResponse, feedback, score } = parsedResponse;
+        const geminiResponse = await callGeminiAPI(prompt); // オブジェクトとして受け取る
+        const { aiResponse, feedback, score } = geminiResponse; // 分割代入
 
         if (typeof aiResponse !== 'string' || typeof feedback !== 'string' || typeof score !== 'number') {
             throw new Error('AI response is not in the expected format.');
@@ -202,23 +224,8 @@ ${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
 `;
 
     try {
-        const geminiResponseText = await callGeminiAPI(evaluationPrompt, true);
-        console.log("Gemini Evaluation Raw Response:", geminiResponseText); // デバッグ用
-
-        let parsedResponse;
-        try {
-            parsedResponse = JSON.parse(geminiResponseText);
-        } catch (parseError) {
-            console.error("Failed to parse Gemini evaluation response as JSON, attempting cleanup:", parseError);
-            const jsonMatch = geminiResponseText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
-            if (jsonMatch && jsonMatch[1]) {
-                parsedResponse = JSON.parse(jsonMatch[1]);
-            } else {
-                throw new Error("Invalid JSON evaluation response from AI: " + geminiResponseText);
-            }
-        }
-
-        const { overallEvaluation, scenarioPerformance, recommendations, overallScore } = parsedResponse;
+        const geminiResponse = await callGeminiAPI(evaluationPrompt, true); // オブジェクトとして受け取る
+        const { overallEvaluation, scenarioPerformance, recommendations, overallScore } = geminiResponse; // 分割代入
 
         if (typeof overallEvaluation !== 'string' || typeof scenarioPerformance !== 'string' || typeof recommendations !== 'string' || typeof overallScore !== 'number') {
             throw new Error('AI evaluation response is not in the expected format.');
@@ -229,18 +236,14 @@ ${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
     } catch (error) {
         console.error('Error in /api/finalize:', error);
         // フォールバックレスポンスを返す
-        const fallbackResponse = `
-総合評価: AIからの評価を取得できませんでした。ネットワーク接続を確認するか、後で再度お試しください。
-シナリオ対応とコミュニケーション能力: AIからの評価を取得できませんでした。
-今後の推奨事項: AIからの推奨事項を取得できませんでした。今回の経験を活かして、より複雑なビジネス状況にも挑戦してみましょう。`;
-        const score = 50; // エラー時のデフォルトスコア
-
-        res.json({ 
-            overallEvaluation: fallbackResponse,
-            scenarioPerformance: "", // フォールバックでは省略
-            recommendations: "", // フォールバックでは省略
-            overallScore: Math.round(score)
-        });
+        const fallbackResponse = {
+            overallEvaluation: "AIからの評価を取得できませんでした。ネットワーク接続を確認するか、後で再度お試しください。",
+            scenarioPerformance: "AIからの評価を取得できませんでした。",
+            recommendations: "AIからの推奨事項を取得できませんでした。今回の経験を活かして、より複雑なビジネス状況にも挑戦してみましょう。",
+            overallScore: 50 // エラー時のデフォルトスコア
+        };
+        
+        res.json(fallbackResponse);
     }
 });
 
@@ -259,7 +262,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve the main HTML file
-// ルートパス (http://your-render-url.com/) で index.html を提供
+// ルートパス ([http://your-render-url.com/](http://your-render-url.com/)) で index.html を提供
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
