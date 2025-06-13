@@ -544,6 +544,20 @@
             try {
                 console.log('📋 Loading session info...');
                 
+                // sessionStorageからシナリオと難易度を読み込み
+                const storedScenario = sessionStorage.getItem('selectedScenario');
+                const storedDifficulty = sessionStorage.getItem('selectedDifficulty');
+                
+                if (storedScenario) {
+                    currentScenario = storedScenario;
+                }
+                if (storedDifficulty) {
+                    currentDifficulty = storedDifficulty;
+                }
+                
+                console.log('📊 Loaded scenario:', currentScenario);
+                console.log('📊 Loaded difficulty:', currentDifficulty);
+                
                 // UIに反映
                 document.getElementById('scenarioName').textContent = currentScenario;
                 document.getElementById('difficultyLevel').textContent = getDifficultyLabel(currentDifficulty);
@@ -576,7 +590,33 @@
 
         // 初期メッセージ生成
         function generateInitialMessage() {
-            const initialMessage = "Hello! I'm excited to practice English conversation with you today. Let's have a great discussion about our business scenario. How would you like to begin?";
+            const scenarioLower = currentScenario.toLowerCase();
+            let initialMessage = '';
+            
+            // シナリオに応じた初期メッセージ
+            if (scenarioLower.includes('雑談') || scenarioLower.includes('casual')) {
+                initialMessage = "Hey there! Good to see you. How's your day going? I just grabbed a coffee - the weather's been pretty nice lately, hasn't it?";
+            } else if (scenarioLower.includes('会食') || scenarioLower.includes('dinner')) {
+                initialMessage = "Thank you for joining me for dinner today. This place has excellent reviews. How was your journey here? Have you tried this type of cuisine before?";
+            } else if (scenarioLower.includes('アポ') || scenarioLower.includes('appointment') || scenarioLower.includes('電話')) {
+                initialMessage = "Hello, thank you for calling. I understand you'd like to schedule a meeting with us. I'd be happy to help you find a suitable time. What works best for your schedule?";
+            } else if (scenarioLower.includes('タスク') || scenarioLower.includes('task') || scenarioLower.includes('スケジュール')) {
+                initialMessage = "Good morning! Let's review our project status. I've been looking at our timeline and I think we need to clarify a few things. What's the current status on your deliverables?";
+            } else if (scenarioLower.includes('プレゼン') || scenarioLower.includes('presentation') || scenarioLower.includes('質疑')) {
+                initialMessage = "Thank you for that comprehensive presentation. I have several questions about your proposal. First, could you clarify the expected ROI and timeline for implementation?";
+            } else if (scenarioLower.includes('m&a') || scenarioLower.includes('交渉') || scenarioLower.includes('価格')) {
+                initialMessage = "Good afternoon. I appreciate you taking the time to meet with us today to discuss this acquisition opportunity. We've reviewed your proposal, and I'd like to discuss our valuation concerns.";
+            } else if (scenarioLower.includes('会議') || scenarioLower.includes('meeting')) {
+                initialMessage = "Good morning! Thanks for joining today's meeting. I'm excited to discuss our project progress with you. How has your week been going so far?";
+            } else {
+                // デフォルトメッセージ（より具体的な業務シナリオに対応）
+                initialMessage = "Hello! I'm ready to engage in our business scenario. Let's make this conversation productive and realistic. How would you like to begin?";
+            }
+            
+            // 難易度に応じてメッセージを調整
+            if (currentDifficulty === 'hard') {
+                initialMessage += " I expect detailed responses and professional business language.";
+            }
             
             // 初期メッセージを表示
             document.getElementById('initialMessage').textContent = initialMessage;
@@ -589,7 +629,7 @@
                 timestamp: new Date().toISOString()
             });
             
-            console.log('💬 Initial message generated');
+            console.log('💬 Initial message generated for scenario:', currentScenario);
         }
 
         // セッションタイマー開始
@@ -947,7 +987,7 @@
 
         // セッション終了
         function endSession() {
-            if (confirm('セッションを終了しますか？')) {
+            if (confirm('セッションを終了しますか？\n終了後にFinal Reportが生成されます。')) {
                 // タイマー停止
                 if (sessionTimer) {
                     clearInterval(sessionTimer);
@@ -965,43 +1005,322 @@
                     }
                 }
                 
-                // 最終データ保存
-                saveProgress();
+                // セッションデータを保存
+                const sessionEndTime = Date.now();
+                const totalSessionTime = sessionEndTime - sessionStartTime;
+                const sessionMinutes = Math.floor(totalSessionTime / 60000);
+                const sessionSeconds = Math.floor((totalSessionTime % 60000) / 1000);
                 
-                showStatus('セッションを終了しました。お疲れ様でした！', 'success');
+                // final-report.html用のデータを準備
+                sessionStorage.setItem('messageCount', messageCounter.toString());
+                sessionStorage.setItem('sessionDuration', `${sessionMinutes}分${sessionSeconds}秒`);
+                sessionStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+                sessionStorage.setItem('sessionStartTime', sessionStartTime.toString());
+                sessionStorage.setItem('sessionEndTime', sessionEndTime.toString());
                 
-                // セッション終了後の処理
+                // スコア計算（簡易版）
+                const userMessages = conversationHistory.filter(msg => msg.role === 'user');
+                const totalWords = userMessages.reduce((total, msg) => {
+                    return total + msg.content.split(' ').filter(word => word.length > 0).length;
+                }, 0);
+                const avgWordsPerMessage = userMessages.length > 0 ? Math.round(totalWords / userMessages.length) : 0;
+                
+                const overallScore = Math.min(100, Math.max(60, 
+                    (messageCounter * 5) + (avgWordsPerMessage * 2) + 40));
+                const fluencyScore = Math.min(100, Math.max(50, overallScore + Math.random() * 20 - 10));
+                const accuracyScore = Math.min(100, Math.max(50, overallScore + Math.random() * 20 - 10));
+                
+                sessionStorage.setItem('overallScore', overallScore.toString());
+                sessionStorage.setItem('fluencyScore', fluencyScore.toString());
+                sessionStorage.setItem('accuracyScore', accuracyScore.toString());
+                sessionStorage.setItem('averageMessageLength', avgWordsPerMessage.toString());
+                sessionStorage.setItem('voiceUsageCount', '0'); // 音声使用回数（実装必要）
+                
+                showStatus('セッションを終了しました。Final Reportページに移動中...', 'success');
+                
+                // Final Reportページに遷移
                 setTimeout(() => {
-                    // ここで通常はメイン画面に戻るか、結果画面を表示
-                    console.log('Session ended successfully');
-                    showSessionSummary();
+                    window.location.href = 'final-report.html';
                 }, 2000);
             }
         }
 
-        // セッション概要表示
-        function showSessionSummary() {
-            const chatContainer = document.getElementById('chatContainer');
-            if (chatContainer) {
-                const summaryDiv = document.createElement('div');
-                summaryDiv.className = 'message ai';
-                summaryDiv.innerHTML = `
-                    <div class="role">Session Summary</div>
-                    <div class="content">
-                        <strong>🎉 セッション完了！</strong><br>
-                        📝 メッセージ数: ${messageCounter}<br>
-                        ⏱️ 経過時間: ${document.getElementById('sessionTimer').textContent}<br>
-                        📋 シナリオ: ${currentScenario}<br>
-                        💪 難易度: ${getDifficultyLabel(currentDifficulty)}<br><br>
-                        お疲れ様でした！また練習しましょう。
-                    </div>
-                    <div class="timestamp">${new Date().toLocaleTimeString('ja-JP')}</div>
-                `;
-                
-                chatContainer.appendChild(summaryDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
+        // Final Report生成
+        function generateFinalReport() {
+            const sessionEndTime = Date.now();
+            const totalSessionTime = sessionEndTime - sessionStartTime;
+            const sessionMinutes = Math.floor(totalSessionTime / 60000);
+            const sessionSeconds = Math.floor((totalSessionTime % 60000) / 1000);
+            
+            // 会話分析
+            const userMessages = conversationHistory.filter(msg => msg.role === 'user');
+            const aiMessages = conversationHistory.filter(msg => msg.role === 'ai');
+            
+            // 単語数計算
+            const totalUserWords = userMessages.reduce((total, msg) => {
+                return total + msg.content.split(' ').filter(word => word.length > 0).length;
+            }, 0);
+            
+            // 平均応答時間（推定）
+            const avgResponseTime = userMessages.length > 0 ? Math.round(totalSessionTime / userMessages.length / 1000) : 0;
+            
+            // 学習レベル評価
+            const vocabularyLevel = evaluateVocabularyLevel(userMessages);
+            const fluencyScore = evaluateFluency(userMessages, totalSessionTime);
+            const engagementScore = evaluateEngagement(userMessages, aiMessages);
+            
+            // Final Reportデータ
+            const finalReport = {
+                sessionInfo: {
+                    scenario: currentScenario,
+                    difficulty: currentDifficulty,
+                    startTime: new Date(sessionStartTime).toLocaleString('ja-JP'),
+                    endTime: new Date(sessionEndTime).toLocaleString('ja-JP'),
+                    duration: `${sessionMinutes}分${sessionSeconds}秒`
+                },
+                statistics: {
+                    totalMessages: messageCounter,
+                    userMessages: userMessages.length,
+                    aiMessages: aiMessages.length,
+                    totalWords: totalUserWords,
+                    averageWordsPerMessage: userMessages.length > 0 ? Math.round(totalUserWords / userMessages.length) : 0,
+                    averageResponseTime: `${avgResponseTime}秒`
+                },
+                performance: {
+                    vocabularyLevel: vocabularyLevel,
+                    fluencyScore: fluencyScore,
+                    engagementScore: engagementScore,
+                    overallScore: Math.round((vocabularyLevel + fluencyScore + engagementScore) / 3)
+                },
+                recommendations: generateRecommendations(vocabularyLevel, fluencyScore, engagementScore),
+                conversationSample: getConversationSample(userMessages)
+            };
+            
+            // レポートを表示
+            displayFinalReport(finalReport);
+            
+            // ダウンロード可能な形式で保存
+            saveFinalReportAsFile(finalReport);
+            
+            console.log('📊 Final Report generated:', finalReport);
+            return finalReport;
         }
+        
+        // 語彙レベル評価
+        function evaluateVocabularyLevel(userMessages) {
+            if (userMessages.length === 0) return 0;
+            
+            const allWords = userMessages.join(' ').toLowerCase().split(/\s+/);
+            const uniqueWords = new Set(allWords.filter(word => word.length > 3));
+            const vocabularyDiversity = uniqueWords.size / allWords.length;
+            
+            // 複雑な単語の使用頻度をチェック
+            const complexWords = allWords.filter(word => word.length > 6).length;
+            const complexityRatio = complexWords / allWords.length;
+            
+            const score = Math.min(100, Math.round((vocabularyDiversity * 50) + (complexityRatio * 50)));
+            return Math.max(10, score); // 最低10点
+        }
+        
+        // 流暢性評価
+        function evaluateFluency(userMessages, totalTime) {
+            if (userMessages.length === 0) return 0;
+            
+            const totalWords = userMessages.reduce((total, msg) => {
+                return total + msg.content.split(' ').length;
+            }, 0);
+            
+            const wordsPerMinute = (totalWords / (totalTime / 60000));
+            const messageFrequency = userMessages.length / (totalTime / 60000);
+            
+            // 適度なペースを評価（早すぎず遅すぎず）
+            const paceScore = Math.min(100, Math.max(0, (wordsPerMinute / 50) * 100));
+            const frequencyScore = Math.min(100, messageFrequency * 20);
+            
+            return Math.round((paceScore + frequencyScore) / 2);
+        }
+        
+        // エンゲージメント評価
+        function evaluateEngagement(userMessages, aiMessages) {
+            if (userMessages.length === 0) return 0;
+            
+            // 質問の使用頻度
+            const questionsCount = userMessages.filter(msg => msg.content.includes('?')).length;
+            const questionRatio = questionsCount / userMessages.length;
+            
+            // メッセージの長さの多様性
+            const messageLengths = userMessages.map(msg => msg.content.length);
+            const avgLength = messageLengths.reduce((a, b) => a + b, 0) / messageLengths.length;
+            const lengthVariance = messageLengths.reduce((acc, len) => acc + Math.pow(len - avgLength, 2), 0) / messageLengths.length;
+            
+            const engagementScore = Math.min(100, (questionRatio * 40) + (Math.sqrt(lengthVariance) / 10) + 20);
+            return Math.round(engagementScore);
+        }
+        
+        // 推奨事項生成
+        function generateRecommendations(vocab, fluency, engagement) {
+            const recommendations = [];
+            
+            if (vocab < 50) {
+                recommendations.push("📚 語彙力向上: より多様な単語を使って表現してみましょう");
+            }
+            if (fluency < 50) {
+                recommendations.push("⚡ 流暢性向上: もう少し早いペースで会話してみましょう");
+            }
+            if (engagement < 50) {
+                recommendations.push("🤝 積極性向上: より多くの質問をして会話を深めましょう");
+            }
+            
+            // ポジティブなフィードバックも追加
+            if (vocab >= 70) {
+                recommendations.push("✨ 素晴らしい語彙力です！この調子で続けましょう");
+            }
+            if (fluency >= 70) {
+                recommendations.push("🎯 流暢な会話ができています！");
+            }
+            if (engagement >= 70) {
+                recommendations.push("🌟 積極的な参加、素晴らしいです！");
+            }
+            
+            return recommendations;
+        }
+        
+        // 会話サンプル取得
+        function getConversationSample(userMessages) {
+            if (userMessages.length === 0) return "No conversation recorded.";
+            
+            // 最も長いメッセージを取得
+            const longestMessage = userMessages.reduce((longest, current) => {
+                return current.content.length > longest.content.length ? current : longest;
+            });
+            
+            return longestMessage.content;
+        }
+        
+        // Final Report表示
+        function displayFinalReport(report) {
+            const chatContainer = document.getElementById('chatContainer');
+            if (!chatContainer) return;
+            
+            const reportDiv = document.createElement('div');
+            reportDiv.className = 'message ai final-report';
+            reportDiv.style.maxWidth = '95%';
+            reportDiv.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            
+            reportDiv.innerHTML = `
+                <div class="role">📊 FINAL REPORT</div>
+                <div class="content">
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #fff; margin-bottom: 10px;">🎯 セッション概要</h3>
+                        <p><strong>シナリオ:</strong> ${report.sessionInfo.scenario}</p>
+                        <p><strong>難易度:</strong> ${getDifficultyLabel(report.sessionInfo.difficulty)}</p>
+                        <p><strong>実施時間:</strong> ${report.sessionInfo.duration}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #fff; margin-bottom: 10px;">📈 統計データ</h3>
+                        <p><strong>総メッセージ数:</strong> ${report.statistics.totalMessages}</p>
+                        <p><strong>あなたのメッセージ:</strong> ${report.statistics.userMessages}</p>
+                        <p><strong>総単語数:</strong> ${report.statistics.totalWords}</p>
+                        <p><strong>1メッセージ平均単語数:</strong> ${report.statistics.averageWordsPerMessage}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #fff; margin-bottom: 10px;">⭐ パフォーマンス評価</h3>
+                        <p><strong>語彙力スコア:</strong> ${report.performance.vocabularyLevel}/100</p>
+                        <p><strong>流暢性スコア:</strong> ${report.performance.fluencyScore}/100</p>
+                        <p><strong>積極性スコア:</strong> ${report.performance.engagementScore}/100</p>
+                        <p style="font-size: 18px; color: #ffeb3b;"><strong>総合スコア: ${report.performance.overallScore}/100</strong></p>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #fff; margin-bottom: 10px;">💡 改善提案</h3>
+                        ${report.recommendations.map(rec => `<p>• ${rec}</p>`).join('')}
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #fff; margin-bottom: 10px;">📝 ベストメッセージ</h3>
+                        <p style="font-style: italic; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px;">
+                            "${report.conversationSample}"
+                        </p>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button onclick="downloadReport()" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                            📄 レポートをダウンロード
+                        </button>
+                    </div>
+                </div>
+                <div class="timestamp">${new Date().toLocaleTimeString('ja-JP')}</div>
+            `;
+            
+            chatContainer.appendChild(reportDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // レポートファイル保存
+        function saveFinalReportAsFile(report) {
+            window.finalReportData = report; // グローバルに保存してダウンロード用に
+            
+            const reportText = `
+ENGLISH CONVERSATION PRACTICE - FINAL REPORT
+=============================================
+
+Session Information:
+- Scenario: ${report.sessionInfo.scenario}
+- Difficulty: ${getDifficultyLabel(report.sessionInfo.difficulty)}
+- Start Time: ${report.sessionInfo.startTime}
+- End Time: ${report.sessionInfo.endTime}
+- Duration: ${report.sessionInfo.duration}
+
+Statistics:
+- Total Messages: ${report.statistics.totalMessages}
+- Your Messages: ${report.statistics.userMessages}
+- Total Words: ${report.statistics.totalWords}
+- Average Words per Message: ${report.statistics.averageWordsPerMessage}
+- Average Response Time: ${report.statistics.averageResponseTime}
+
+Performance Evaluation:
+- Vocabulary Level: ${report.performance.vocabularyLevel}/100
+- Fluency Score: ${report.performance.fluencyScore}/100
+- Engagement Score: ${report.performance.engagementScore}/100
+- Overall Score: ${report.performance.overallScore}/100
+
+Recommendations:
+${report.recommendations.map(rec => `- ${rec}`).join('\n')}
+
+Best Message Sample:
+"${report.conversationSample}"
+
+Generated on: ${new Date().toLocaleString('ja-JP')}
+            `;
+            
+            console.log('📄 Final report prepared for download');
+            window.finalReportText = reportText;
+        }
+        
+        // レポートダウンロード機能
+        function downloadReport() {
+            if (!window.finalReportText) {
+                showStatus('レポートデータが見つかりません', 'error');
+                return;
+            }
+            
+            const blob = new Blob([window.finalReportText], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `English_Practice_Report_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showStatus('レポートをダウンロードしました', 'success');
+        }
+        
+        // グローバル関数として登録
+        window.downloadReport = downloadReport;
 
         // エラーハンドリング
         window.addEventListener('error', function(event) {
