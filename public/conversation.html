@@ -21,10 +21,10 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255,255,255,0.08); /* ★変更 */
+            background: rgba(255,255,255,0.08); /* ★変更: 0.05 -> 0.08 */
             padding: 40px;
             border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.15); /* ★変更 */
+            border: 1px solid rgba(255,255,255,0.15); /* ★変更: 0.1 -> 0.15 */
             animation: fadeIn 0.8s ease-out;
             box-shadow: 0 0 30px rgba(0,0,0,0.5); /* ★追加 */
         }
@@ -58,15 +58,15 @@
         }
 
         .chat-area {
-            background: rgba(0,0,0,0.3); /* ★変更 */
+            background: rgba(0,0,0,0.3); /* ★変更: 0.2 -> 0.3 */
             border-radius: 15px;
             padding: 20px;
             min-height: 400px;
             max-height: 600px;
             overflow-y: auto;
             margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.1); /* ★変更 */
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.4); /* ★変更 */
+            border: 1px solid rgba(255,255,255,0.1); /* ★変更: 0.2 -> 0.1 */
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.4); /* ★変更: 0.3 -> 0.4 */
         }
 
         .message {
@@ -104,7 +104,7 @@
         }
 
         .message.ai .message-bubble {
-            background: #2b2b3f; /* ★変更 */
+            background: #2b2b3f; /* ★変更: #333 -> #2b2b3f */
             color: white;
             border-bottom-left-radius: 2px;
         }
@@ -347,7 +347,7 @@
         <div id="statusMessage" class="status-message"></div>
 
         <footer class="footer">
-            <p>2025 KOSO-REN APP developed by T.H.</p>
+            <p>&copy; 2025 English Practice App. All rights reserved.</p>
         </footer>
     </div>
 
@@ -376,9 +376,9 @@
         document.getElementById('difficultyLevel').textContent = currentDifficulty;
 
         // !!! IMPORTANT !!!
-        // RENDERのAPP_PASSWORD環境変数と同じ値をここに設定してください。
+        // RENDERのAPP_ACCESS_PASSWORD環境変数と同じ値をここに設定してください。
         // セキュリティのため、本番環境ではよりセキュアな認証メカニズムを導入してください。
-        const APP_ACCESS_PASSWORD = "2025_July"; // <-- RENDERのAPP_PASSWORDと一致させる
+        const APP_ACCESS_PASSWORD = "2025_July"; // <-- RENDERのAPP_ACCESS_PASSWORDと一致させる
 
         // --- UI 操作関数 ---
         function addMessage(role, text) {
@@ -437,20 +437,16 @@
             // isFirstMessageがtrueかつuserMessageが空（初回呼び出し）の場合にのみ、
             // conversationHistoryを空のプロンプトとして使用し、AIに最初の発言を生成させる
             const isInitialCall = isFirstMessage && userMessage === "";
-            let currentConversationHistory = conversationHistory;
+            let currentConversationHistoryForApi = [...conversationHistory]; // コピーを作成
 
             if (isInitialCall) {
                 // 初回呼び出しでは、AIにシナリオに基づく最初の発言を促すプロンプトを渡す
-                currentConversationHistory = [
+                currentConversationHistoryForApi = [
                     {
                         role: 'user',
                         content: `You are an English conversation partner. The user wants to practice English in a scenario: "${currentScenario}" at a "${currentDifficulty}" level. Start the conversation with an appropriate opening sentence based on this scenario and difficulty.`
                     }
                 ];
-            } else {
-                 // 通常の会話では、userMessageを追加して送信
-                 // ただし、AIは初回発言以外はユーザーメッセージを受けて応答するため、
-                 // ここでconversationHistoryにuserMessageは追加しない（sendMessageで既に追加済み）
             }
 
             try {
@@ -461,7 +457,7 @@
                     },
                     body: JSON.stringify({
                         userMessage: userMessage, // ユーザーからのメッセージ
-                        conversationHistory: currentConversationHistory, // 初回はプロンプト、以降は実際の履歴
+                        conversationHistory: currentConversationHistoryForApi, // 初回はプロンプト、以降は実際の履歴
                         scenarioName: currentScenario,
                         difficultyLevel: currentDifficulty,
                         password: APP_ACCESS_PASSWORD
@@ -483,11 +479,9 @@
                     conversationHistory.push({ role: 'ai', content: aiResponse });
                     isFirstMessage = false; // フラグをfalseに設定
                 } else {
-                    // 通常のメッセージ送信時には、AI応答を履歴に追加するのみ（表示はsendMessageで既にaddMessageしているため不要）
-                    // ★ 修正: ここでaddMessage('ai', aiResponse)をしてしまうと二重表示になるので、呼び出し元で処理するか、初回時以外は履歴に追加するだけに留める
-                    // addMessage('ai', aiResponse); // これはsendMessage関数で既に処理されているため不要
-                    // conversationHistory.push({ role: 'ai', content: aiResponse }); // これはsendMessage関数で既に処理されているため不要
-                    return aiResponse; // 通常のAI応答はsendMessageに返す
+                    // 通常のメッセージ送信時には、AI応答を履歴に追加して表示
+                    addMessage('ai', aiResponse);
+                    conversationHistory.push({ role: 'ai', content: aiResponse });
                 }
 
             } catch (error) {
@@ -500,7 +494,6 @@
                     conversationHistory.push({ role: 'ai', content: "Hello! How can I help you practice your English today?" });
                     isFirstMessage = false;
                 }
-                return "I'm sorry, I'm having trouble responding right now. Could you please try again?";
             }
         }
 
@@ -514,17 +507,17 @@
             showTypingIndicator(); // AIが評価中であることを示すために表示
 
             try {
-                const userConversationOnly = conversationHistory.filter(msg => msg.role === 'user');
-                // ユーザーの会話履歴全体を一つの文字列として結合（評価用）
-                const fullUserTranscript = userConversationOnly.map(msg => msg.content).join('\n');
-
+                // 評価に送る履歴は、実際の会話履歴全体（AIとユーザーの両方）
+                // ただし、AIへの指示はユーザーの発言のみに基づいて評価するようプロンプトで制御
                 const response = await fetch('/api/evaluate', { // /api/evaluate エンドポイントを呼び出す
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        targetMessage: fullUserTranscript, // 評価対象は全会話履歴
+                        // targetMessageは評価プロンプト内の説明でカバーされるため、空文字列または短縮版でも可。
+                        // ただし、バックエンドのvalidationがuserMessageを必須としているなら空にはしない。
+                        targetMessage: conversationHistory.filter(msg => msg.role === 'user').map(msg => msg.content).join('\n'), // ユーザーの発言のみ
                         fullConversationHistory: conversationHistory, // 会話全体も参考として送る
                         scenarioName: currentScenario,
                         difficultyLevel: currentDifficulty,
@@ -568,7 +561,7 @@
                 recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
                 recognition.lang = 'en-US';
                 recognition.interimResults = true; // 暫定結果を受け取る
-                recognition.continuous = true;    // 連続認識を有効にする
+                recognition.continuous = false;    // ★修正: 連続認識は一旦無効化 (単発入力のため)
                 recognition.maxAlternatives = 1;
 
                 recognition.onstart = () => {
@@ -597,7 +590,7 @@
                     // 最終結果が確定したら、送信ボタンを有効化してユーザーに促す
                     if (finalTranscript !== '') {
                         sendButton.disabled = false;
-                        showStatus('音声入力が完了しました。送信ボタンを押してください。', 'success');
+                        // showStatus('音声入力が完了しました。送信ボタンを押してください。', 'success'); // onendで表示
                     } else {
                         sendButton.disabled = true; // 暫定結果の表示中は送信できないように
                     }
