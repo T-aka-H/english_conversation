@@ -445,7 +445,13 @@
                 // なければ作る
                 chatContainer = document.createElement('div');
                 chatContainer.className = 'chat-container';
-                document.querySelector('.container').insertBefore(chatContainer, document.querySelector('.input-container'));
+                const container = document.querySelector('.container');
+                const inputContainer = document.querySelector('.input-container');
+                if (container && inputContainer && inputContainer.parentNode === container) {
+                    container.insertBefore(chatContainer, inputContainer);
+                } else if (container) {
+                    container.appendChild(chatContainer);
+                }
             }
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message ' + (role === 'user' ? 'user-message' : 'ai-message');
