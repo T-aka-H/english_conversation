@@ -290,6 +290,53 @@
                 margin-bottom: 70px; /* 入力エリアの高さ分の余白を確保 */
             }
         }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .nav-button {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            background: #f5f5f5;
+            color: #333;
+            transition: background 0.2s, color 0.2s;
+            text-decoration: none;
+        }
+        .nav-button i {
+            font-size: 1.1em;
+        }
+        .nav-button:hover {
+            background: #e0e0e0;
+        }
+        .nav-button.logout {
+            background: #f44336;
+            color: #fff;
+        }
+        .nav-button.logout:hover {
+            background: #d32f2f;
+        }
+        .nav-button.end {
+            background: #2196f3;
+            color: #fff;
+        }
+        .nav-button.end:hover {
+            background: #1976d2;
+        }
+        .nav-button.scenario {
+            background: #4caf50;
+            color: #fff;
+        }
+        .nav-button.scenario:hover {
+            background: #388e3c;
+        }
     </style>
 </head>
 <body>
@@ -321,11 +368,11 @@
         </main>
 
         <footer class="controls">
-            <div class="control-buttons">
-                <button class="btn btn-secondary" id="backToScenarioBtn">← シナリオ選択へ</button>
-                <button class="btn btn-danger" id="endConversationBtn">会話終了</button>
+            <div class="nav-buttons">
+                <a href="scenario.html" class="nav-button scenario"><i class="fas fa-list-alt"></i> シナリオ選択へ</a>
+                <button type="button" class="nav-button end" id="endConversationBtn"><i class="fas fa-flag-checkered"></i> 会話終了</button>
+                <button type="button" class="nav-button logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> ログアウト</button>
             </div>
-            <button class="btn btn-secondary" id="logoutBtn">ログアウト</button>
         </footer>
     </div>
 
@@ -694,6 +741,28 @@
 
             // 音声認識の初期化
             initializeSpeechRecognition();
+
+            // 送信ボタンのイベントリスナーを再設定
+            setupSendButton();
+
+            // ナビゲーションボタンのイベント
+            const endBtn = document.getElementById('endConversationBtn');
+            if (endBtn) {
+                endBtn.onclick = () => {
+                    if (confirm('会話を終了してレポート画面に進みますか？')) {
+                        window.location.href = 'final-report.html';
+                    }
+                };
+            }
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.onclick = () => {
+                    if (confirm('ログアウトしますか？')) {
+                        sessionStorage.clear();
+                        window.location.href = 'index.html';
+                    }
+                };
+            }
         });
 
         // --- Navigation Buttons ---
@@ -795,6 +864,23 @@
 
         console.log('✅ Application fully loaded and ready');
         console.log('💡 Type showDebugInfo() in console for debug information');
+
+        // 送信ボタンのイベントリスナーを再設定
+        function setupSendButton() {
+            const sendButton = document.getElementById('sendMessageBtn');
+            if (sendButton) {
+                sendButton.onclick = sendMessage;
+            }
+            const inputField = document.getElementById('userMessageInput');
+            if (inputField) {
+                inputField.onkeypress = (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                };
+            }
+        }
     </script>
 </body>
 </html>
