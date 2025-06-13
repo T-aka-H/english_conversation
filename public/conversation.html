@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>英語コソ練アプリ - 英会話練習</title>
-    <link rel="icon" href="data:,">
+    <link rel="icon" href="data:," />
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -27,1726 +27,440 @@
             animation: fadeIn 0.8s ease-out;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .header {
             text-align: center;
             margin-bottom: 30px;
         }
 
-        .header h1 {
-            font-size: 32px;
+        h1 {
+            font-size: 2.8em;
+            color: #4CAF50;
+            text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
             margin-bottom: 10px;
-            color: #4A90E2;
-            font-weight: 300;
-            letter-spacing: 1px;
         }
 
-        .session-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .scenario-info {
+            font-size: 1.1em;
+            color: #aaa;
+            margin-bottom: 20px;
         }
 
-        .session-details {
-            display: flex;
-            gap: 30px;
-            align-items: center;
+        .scenario-info span {
+            font-weight: bold;
+            color: #64FFDA;
         }
 
-        .session-item {
-            text-align: center;
-        }
-
-        .session-item .label {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
-        }
-
-        .session-item .value {
-            font-size: 16px;
-            font-weight: 600;
-            color: #4A90E2;
-        }
-
-        .chat-container {
-            background: rgba(255, 255, 255, 0.03);
+        .chat-area {
+            background: rgba(0,0,0,0.2);
             border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
+            padding: 20px;
             min-height: 400px;
-            max-height: 500px;
+            max-height: 600px;
             overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
         }
 
         .message {
-            margin-bottom: 20px;
-            padding: 15px;
-            border-radius: 12px;
-            max-width: 80%;
-            animation: messageSlide 0.3s ease-out;
+            display: flex;
+            margin-bottom: 15px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message.user {
-            background: linear-gradient(135deg, #4A90E2, #357ABD);
-            margin-left: auto;
-            text-align: right;
+            justify-content: flex-end;
         }
 
         .message.ai {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-right: auto;
+            justify-content: flex-start;
         }
 
-        .message .role {
-            font-size: 12px;
-            opacity: 0.7;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        .message .content {
-            font-size: 15px;
-            line-height: 1.5;
-        }
-
-        .message .timestamp {
-            font-size: 11px;
-            opacity: 0.5;
-            margin-top: 8px;
-        }
-
-        .input-section {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 25px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .input-container {
-            display: flex;
-            gap: 15px;
-            align-items: flex-end;
-        }
-
-        .input-wrapper {
-            flex: 1;
-            position: relative;
-        }
-
-        .user-input {
-            width: 100%;
-            min-height: 60px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 12px;
+        .message.user .message-bubble {
+            background: #4CAF50;
             color: white;
-            font-size: 16px;
-            font-family: inherit;
-            resize: vertical;
-            transition: all 0.3s ease;
+            border-bottom-right-radius: 2px;
         }
 
-        .user-input:focus {
-            outline: none;
-            border-color: #4A90E2;
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
-        }
-
-        .user-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .input-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .voice-button {
-            padding: 15px;
-            background: linear-gradient(135deg, #28a745, #20a042);
+        .message.ai .message-bubble {
+            background: #212130;
             color: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-            width: 60px;
-            height: 60px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .voice-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
-        }
-
-        .voice-button.recording {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            animation: pulse 1.5s infinite;
-        }
-
-        .voice-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .send-button {
-            padding: 15px 25px;
-            background: linear-gradient(135deg, #4A90E2, #357ABD);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            letter-spacing: 0.5px;
-        }
-
-        .send-button:hover {
-            background: linear-gradient(135deg, #357ABD, #2E6DA4);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(74, 144, 226, 0.3);
-        }
-
-        .send-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .control-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 30px;
-        }
-
-        .control-button {
-            padding: 12px 25px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
-
-        .control-button:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .control-button.end-session {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            border: none;
-        }
-
-        .control-button.end-session:hover {
-            background: linear-gradient(135deg, #c82333, #a71e2a);
+            border-bottom-left-radius: 2px;
         }
 
         .typing-indicator {
-            display: none;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            margin-bottom: 20px;
-            max-width: 80%;
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-style: italic;
+            color: #ccc;
         }
 
-        .typing-indicator .dots {
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: #64FFDA;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+        .dot:nth-child(3) { animation-delay: 0s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .input-area {
             display: flex;
-            gap: 4px;
+            gap: 15px;
+            margin-bottom: 20px;
             align-items: center;
         }
 
-        .typing-indicator .dot {
-            width: 8px;
-            height: 8px;
-            background: #4A90E2;
-            border-radius: 50%;
-            animation: typingDot 1.4s infinite;
+        #userMessageInput {
+            flex-grow: 1;
+            padding: 15px 20px;
+            border-radius: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            font-size: 1.1em;
+            outline: none;
+            transition: border-color 0.3s ease;
         }
 
-        .typing-indicator .dot:nth-child(2) {
-            animation-delay: 0.2s;
+        #userMessageInput:focus {
+            border-color: #64FFDA;
         }
 
-        .typing-indicator .dot:nth-child(3) {
-            animation-delay: 0.4s;
+        .action-buttons {
+            display: flex;
+            gap: 10px;
         }
 
-        .input-guide {
-            background: rgba(74, 144, 226, 0.1);
-            border: 1px solid rgba(74, 144, 226, 0.3);
-            border-radius: 8px;
-            padding: 15px;
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        button:hover {
+            background-color: #5cb85c;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #recordButton {
+            background-color: #F44336; /* Red for record */
+        }
+        #recordButton:hover {
+            background-color: #d32f2f;
+        }
+        #recordButton.recording {
+            background-color: #d32f2f;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
+        }
+
+        .status-message {
+            text-align: center;
             margin-top: 15px;
-            font-size: 14px;
-            line-height: 1.5;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.95em;
+            color: #eee;
+            background-color: rgba(0,0,0,0.3);
+            display: none; /* 初期は非表示 */
         }
 
-        .input-guide strong {
-            color: #4A90E2;
+        .status-message.error {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #F44336;
+            border: 1px solid #F44336;
+        }
+
+        .status-message.success {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
         }
 
         .footer {
             text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 12px;
-        }
-
-        .status-message {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(40, 167, 69, 0.95);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
-            z-index: 10000;
-            display: none;
-        }
-
-        .status-message.error {
-            background: rgba(220, 53, 69, 0.95);
-        }
-
-        .status-message.warning {
-            background: rgba(255, 193, 7, 0.95);
-            color: black;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes messageSlide {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        @keyframes typingDot {
-            0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
-            30% { opacity: 1; transform: scale(1.2); }
-        }
-
-        /* iOS Safari専用スタイル */
-        @supports (-webkit-touch-callout: none) {
-            .voice-button {
-                -webkit-touch-callout: none;
-                -webkit-user-select: none;
-                -webkit-tap-highlight-color: transparent;
-                touch-action: manipulation;
-            }
-            
-            .user-input {
-                -webkit-appearance: none;
-                border-radius: 12px;
-                font-size: 16px; /* iOS Safari のズーム防止 */
-            }
-            
-            .voice-button:active {
-                transform: scale(0.95);
-            }
-        }
-        
-        /* iPhone用のメディアクエリ */
-        @media only screen and (max-device-width: 812px) and (-webkit-device-pixel-ratio: 3) {
-            .voice-button {
-                width: 70px;
-                height: 70px;
-                font-size: 24px;
-            }
-            
-            .status-message {
-                font-size: 16px;
-                padding: 12px 24px;
-            }
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #aaa;
         }
     </style>
 </head>
-
 <body>
-    <div id="statusMessage" class="status-message"></div>
-    
     <div class="container">
-        <div class="header">
-            <h1>英語コソ練アプリ</h1>
-        </div>
+        <header class="header">
+            <h1>🗣️ 英語コソ練アプリ</h1>
+            <p class="scenario-info">
+                シナリオ: <span id="scenarioName">日常会話</span> | 
+                難易度: <span id="difficultyLevel">中級</span>
+            </p>
+        </header>
 
-        <div class="session-info">
-            <div class="session-details">
-                <div class="session-item">
-                    <div class="label">シナリオ</div>
-                    <div class="value" id="scenarioName">読み込み中...</div>
-                </div>
-                <div class="session-item">
-                    <div class="label">難易度</div>
-                    <div class="value" id="difficultyLevel">--</div>
-                </div>
-                <div class="session-item">
-                    <div class="label">経過時間</div>
-                    <div class="value" id="sessionTimer">00:00</div>
-                </div>
-                <div class="session-item">
-                    <div class="label">メッセージ数</div>
-                    <div class="value" id="messageCount">0</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="chat-container" id="chatContainer">
+        <main class="chat-area" id="chatArea">
             <div class="message ai">
-                <div class="role">AI Assistant</div>
-                <div class="content" id="initialMessage">会話を初期化中...</div>
-                <div class="timestamp" id="initialTimestamp"></div>
-            </div>
-            
-            <div class="typing-indicator" id="typingIndicator">
-                <div class="role">AI Assistant</div>
-                <div class="dots">
-                    <div class="dot"></div>
-                    <div class="dot"></div>
-                    <div class="dot"></div>
+                <div class="message-bubble">
+                    Hello! How can I help you practice your English today?
                 </div>
             </div>
-        </div>
-
-        <div class="input-section">
-            <div class="input-container">
-                <div class="input-wrapper">
-                    <textarea 
-                        id="userInput" 
-                        class="user-input" 
-                        placeholder="英語でメッセージを入力してください... (音声入力も可能)"
-                        rows="3"
-                    ></textarea>
-                </div>
-                <div class="input-buttons">
-                    <button id="voiceButton" class="voice-button" title="音声入力">
-                        🎤
-                    </button>
-                    <button id="sendButton" class="send-button">
-                        送信
-                    </button>
-                </div>
+            <div id="typingIndicator" class="typing-indicator" style="display: none;">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                AI is typing...
             </div>
-            
-            <div class="input-guide">
-                <p><strong>💡 練習のコツ:</strong></p>
-                <p>• 自然な英語表現を心がけましょう</p>
-                <p>• 具体的な内容で会話を深めましょう</p>
-                <p>• 🎤ボタンで音声入力も活用できます</p>
+        </main>
+
+        <div class="input-area">
+            <input type="text" id="userMessageInput" placeholder="英語でメッセージを入力するか、マイクで話しかけてください...">
+            <div class="action-buttons">
+                <button id="sendButton">送信</button>
+                <button id="recordButton">🎤 録音</button>
             </div>
         </div>
+        
+        <div id="statusMessage" class="status-message"></div>
 
-        <div class="control-buttons">
-            <button class="control-button" onclick="pauseSession()">
-                一時停止
-            </button>
-            <button class="control-button" onclick="saveProgress()">
-                進捗保存
-            </button>
-            <button class="control-button end-session" onclick="endSession()">
-                セッション終了
-            </button>
-        </div>
-
-        <div class="footer">
-            <p>developed by T.H.</p>
-        </div>
+        <footer class="footer">
+            <p>&copy; 2025 English Practice App. All rights reserved.</p>
+        </footer>
     </div>
 
     <script>
-        console.log('💬 Conversation page loaded');
+        const chatArea = document.getElementById('chatArea');
+        const userMessageInput = document.getElementById('userMessageInput');
+        const sendButton = document.getElementById('sendButton');
+        const recordButton = document.getElementById('recordButton');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const statusMessageDiv = document.getElementById('statusMessage');
 
-        // グローバル変数
-        let conversationHistory = [];
-        let sessionStartTime = Date.now();
-        let sessionTimer = null;
+        let conversationHistory = [{ role: 'ai', content: 'Hello! How can I help you practice your English today?' }];
         let messageCounter = 0;
-        let currentScenario = 'ビジネス英会話練習';
-        let currentDifficulty = 'normal';
-        let recognition = null;
         let isRecording = false;
+        let recognition; // SpeechRecognition API
 
-        // ページ読み込み完了時の処理
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 DOM Content Loaded');
-            
-            try {
-                // 認証チェック
-                if (!checkAuthentication()) {
-                    return;
-                }
-                
-                // セッション情報を読み込み
-                loadSessionInfo();
-                
-                // セッション時間を開始
-                startSessionTimer();
-                
-                // イベントリスナーを設定
-                setupEventListeners();
-                
-                // 初期化完了メッセージ
-                showStatus('アプリが正常に初期化されました', 'success');
-                
-                // 音声認識を初期化（遅延実行）
-                setTimeout(initializeSpeechRecognition, 1000);
-                
-                console.log('✅ Conversation session initialized');
-                
-            } catch (error) {
-                console.error('❌ Initialization error:', error);
-                showStatus('初期化エラー: ' + error.message, 'error');
-            }
-        });
+        // 初期シナリオと難易度（適宜変更可能）
+        const currentScenario = document.getElementById('scenarioName').textContent;
+        const currentDifficulty = document.getElementById('difficultyLevel').textContent;
 
-        // 認証チェック
-        function checkAuthentication() {
-            try {
-                const isAuthenticated = sessionStorage.getItem('isAuthenticated');
-                const authTime = sessionStorage.getItem('authTime');
-                
-                if (!isAuthenticated) {
-                    console.log('❌ No authentication found - redirecting to login');
-                    alert('Please login first.');
-                    window.location.replace('index.html');
-                    return false;
-                }
-                
-                // 認証の有効期限をチェック（24時間）
-                if (authTime) {
-                    const currentTime = new Date().getTime();
-                    const authTimeStamp = parseInt(authTime);
-                    const hoursDiff = (currentTime - authTimeStamp) / (1000 * 60 * 60);
-                    
-                    if (hoursDiff > 24) {
-                        console.log('⏰ Authentication expired - clearing session');
-                        sessionStorage.clear();
-                        alert('Session expired. Please login again.');
-                        window.location.replace('index.html');
-                        return false;
-                    }
-                }
-                
-                return true;
-                
-            } catch (error) {
-                console.error('❌ Authentication check error:', error);
-                alert('Authentication error. Please login again.');
-                window.location.replace('index.html');
-                return false;
-            }
+        // !!! IMPORTANT !!!
+        // RENDERのAPP_PASSWORD環境変数と同じ値をここに設定してください。
+        // セキュリティのため、本番環境ではよりセキュアな認証メカニズムを導入してください。
+        const APP_ACCESS_PASSWORD = "2025_July"; // <-- RENDERのAPP_PASSWORDと一致させる
+
+        // --- UI 操作関数 ---
+        function addMessage(role, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', role);
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.classList.add('message-bubble');
+            bubbleDiv.textContent = text;
+            messageDiv.appendChild(bubbleDiv);
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight; // スクロールを一番下へ
         }
 
-        // ステータスメッセージ表示
-        function showStatus(message, type = 'success') {
-            const statusElement = document.getElementById('statusMessage');
-            if (statusElement) {
-                statusElement.textContent = message;
-                statusElement.className = `status-message ${type}`;
-                statusElement.style.display = 'block';
-                
-                setTimeout(() => {
-                    statusElement.style.display = 'none';
-                }, 3000);
-            }
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'flex';
+            chatArea.scrollTop = chatArea.scrollHeight;
         }
 
-        // セッション情報読み込み
-        function loadSessionInfo() {
-            try {
-                console.log('📋 Loading session info...');
-                
-                // sessionStorageからシナリオと難易度を読み込み
-                const storedScenario = sessionStorage.getItem('selectedScenario');
-                const storedDifficulty = sessionStorage.getItem('selectedDifficulty');
-                
-                console.log('📊 Stored scenario:', storedScenario);
-                console.log('📊 Stored difficulty:', storedDifficulty);
-                
-                // シナリオが存在しない場合はシナリオ選択に戻る
-                if (!storedScenario) {
-                    console.log('❌ No scenario found - redirecting to scenario selection');
-                    alert('シナリオが選択されていません。シナリオ選択画面に戻ります。');
-                    window.location.href = 'scenario.html';
-                    return;
-                }
-                
-                // 難易度が存在しない場合は難易度選択に戻る
-                if (!storedDifficulty) {
-                    console.log('❌ No difficulty found - redirecting to difficulty selection');
-                    alert('難易度が選択されていません。難易度選択画面に戻ります。');
-                    window.location.href = 'difficulty.html';
-                    return;
-                }
-                
-                // グローバル変数に設定
-                currentScenario = storedScenario;
-                currentDifficulty = storedDifficulty;
-                
-                console.log('✅ Session info loaded:', {
-                    scenario: currentScenario,
-                    difficulty: currentDifficulty
-                });
-                
-                // UIに反映
-                document.getElementById('scenarioName').textContent = currentScenario;
-                document.getElementById('difficultyLevel').textContent = getDifficultyLabel(currentDifficulty);
-                
-                // 初期メッセージを生成
-                generateInitialMessage();
-                
-                console.log('✅ Session info loaded successfully');
-                
-            } catch (error) {
-                console.error('❌ Error loading session info:', error);
-                showStatus('セッション情報の読み込みに失敗しました', 'error');
-                
-                // エラー時はシナリオ選択に戻る
-                setTimeout(() => {
-                    window.location.href = 'scenario.html';
-                }, 3000);
-            }
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
         }
 
-        // 難易度ラベル取得
-        function getDifficultyLabel(difficulty) {
-            const labels = {
-                'easy': '初級',
-                'normal': '中級',
-                'hard': '上級'
-            };
-            return labels[difficulty] || '中級';
+        function showStatus(message, type = 'info') {
+            statusMessageDiv.textContent = message;
+            statusMessageDiv.className = 'status-message'; // クラスをリセット
+            statusMessageDiv.classList.add(type);
+            statusMessageDiv.style.display = 'block';
+
+            // 3秒後に自動で消す
+            setTimeout(() => {
+                statusMessageDiv.style.display = 'none';
+            }, 3000);
         }
 
-        // 初期メッセージ生成
-        function generateInitialMessage() {
-            const scenarioLower = currentScenario.toLowerCase();
-            let initialMessage = '';
-            
-            // シナリオに応じた初期メッセージ
-            if (scenarioLower.includes('雑談') || scenarioLower.includes('casual')) {
-                initialMessage = "Hey there! Good to see you. How's your day going? I just grabbed a coffee - the weather's been pretty nice lately, hasn't it?";
-            } else if (scenarioLower.includes('会食') || scenarioLower.includes('dinner')) {
-                initialMessage = "Thank you for joining me for dinner today. This place has excellent reviews. How was your journey here? Have you tried this type of cuisine before?";
-            } else if (scenarioLower.includes('アポ') || scenarioLower.includes('appointment') || scenarioLower.includes('電話')) {
-                initialMessage = "Hello, thank you for calling. I understand you'd like to schedule a meeting with us. I'd be happy to help you find a suitable time. What works best for your schedule?";
-            } else if (scenarioLower.includes('タスク') || scenarioLower.includes('task') || scenarioLower.includes('スケジュール')) {
-                initialMessage = "Good morning! Let's review our project status. I've been looking at our timeline and I think we need to clarify a few things. What's the current status on your deliverables?";
-            } else if (scenarioLower.includes('プレゼン') || scenarioLower.includes('presentation') || scenarioLower.includes('質疑')) {
-                initialMessage = "Thank you for that comprehensive presentation. I have several questions about your proposal. First, could you clarify the expected ROI and timeline for implementation?";
-            } else if (scenarioLower.includes('m&a') || scenarioLower.includes('交渉') || scenarioLower.includes('価格')) {
-                initialMessage = "Good afternoon. I appreciate you taking the time to meet with us today to discuss this acquisition opportunity. We've reviewed your proposal, and I'd like to discuss our valuation concerns.";
-            } else if (scenarioLower.includes('会議') || scenarioLower.includes('meeting')) {
-                initialMessage = "Good morning! Thanks for joining today's meeting. I'm excited to discuss our project progress with you. How has your week been going so far?";
-            } else {
-                // デフォルトメッセージ（より具体的な業務シナリオに対応）
-                initialMessage = "Hello! I'm ready to engage in our business scenario. Let's make this conversation productive and realistic. How would you like to begin?";
-            }
-            
-            // 難易度に応じてメッセージを調整
-            if (currentDifficulty === 'hard') {
-                initialMessage += " I expect detailed responses and professional business language.";
-            }
-            
-            // 初期メッセージを表示
-            document.getElementById('initialMessage').textContent = initialMessage;
-            document.getElementById('initialTimestamp').textContent = new Date().toLocaleTimeString('ja-JP');
-            
-            // 会話履歴に追加
-            conversationHistory.push({
-                role: 'ai',
-                content: initialMessage,
-                timestamp: new Date().toISOString()
-            });
-            
-            console.log('💬 Initial message generated for scenario:', currentScenario);
+        // --- メッセージ送信ロジック ---
+        async function sendMessage() {
+            const userMessage = userMessageInput.value.trim();
+            if (userMessage === '') return;
+
+            addMessage('user', userMessage);
+            conversationHistory.push({ role: 'user', content: userMessage });
+            userMessageInput.value = '';
+            messageCounter++;
+
+            const aiResponse = await generateAIResponse(userMessage);
+            addMessage('ai', aiResponse);
+            conversationHistory.push({ role: 'ai', content: aiResponse });
         }
 
-        // セッションタイマー開始
-        function startSessionTimer() {
-            sessionTimer = setInterval(() => {
-                const elapsed = Date.now() - sessionStartTime;
-                const minutes = Math.floor(elapsed / 60000);
-                const seconds = Math.floor((elapsed % 60000) / 1000);
-                
-                document.getElementById('sessionTimer').textContent = 
-                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            }, 1000);
-        }
-
-        // イベントリスナー設定
-        function setupEventListeners() {
-            const sendButton = document.getElementById('sendButton');
-            const userInput = document.getElementById('userInput');
-            const voiceButton = document.getElementById('voiceButton');
-            
-            if (sendButton) {
-                sendButton.addEventListener('click', sendMessage);
-            }
-            
-            if (userInput) {
-                userInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                });
-            }
-            
-            if (voiceButton) {
-                voiceButton.addEventListener('click', toggleVoiceInput);
-            }
-            
-            console.log('🎧 Event listeners set up');
-        }
-
-        // メッセージ送信
-        function sendMessage() {
-            const userInput = document.getElementById('userInput');
-            const message = userInput.value.trim();
-            
-            if (!message) {
-                showStatus('メッセージを入力してください', 'warning');
-                return;
-            }
-            
-            console.log('📤 Sending message:', message);
-            
-            // ユーザーメッセージを追加
-            addMessage('user', message);
-            
-            // 入力をクリア
-            userInput.value = '';
-            
-            // 送信ボタンを無効化
-            const sendButton = document.getElementById('sendButton');
-            if (sendButton) {
-                sendButton.disabled = true;
-            }
-            
-            // タイピングインジケーターを表示
+        // --- Gemini APIを呼び出す関数（バックエンド経由） ---
+        async function generateAIResponse(userMessage) {
             showTypingIndicator();
             
-            // AIの応答を生成（遅延付き）
-            setTimeout(() => {
-                const aiResponse = generateAIResponse(message);
+            try {
+                // バックエンドAPIへのリクエスト
+                const response = await fetch('/api/chat', { // エンドポイントは /api/chat
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        userMessage: userMessage,
+                        conversationHistory: conversationHistory, // 会話履歴全体を送信
+                        scenarioName: currentScenario, // 現在のシナリオを送信
+                        difficultyLevel: currentDifficulty, // 現在の難易度を送信
+                        password: APP_ACCESS_PASSWORD // ★ここが変更点: APP_ACCESS_PASSWORD を送信
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API error! status: ${response.status}, message: ${errorData.message || errorData.error || 'Unknown error'}`);
+                }
+
+                const data = await response.json();
+                const aiResponse = data.generatedText.trim(); 
                 hideTypingIndicator();
-                addMessage('ai', aiResponse);
-                
-                if (sendButton) {
-                    sendButton.disabled = false;
-                }
-                userInput.focus();
-            }, 1500 + Math.random() * 1000);
-        }
+                return aiResponse;
 
-        // メッセージ追加
-        function addMessage(role, content) {
-            const chatContainer = document.getElementById('chatContainer');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${role}`;
-            
-            const roleSpan = document.createElement('div');
-            roleSpan.className = 'role';
-            roleSpan.textContent = role === 'user' ? 'You' : 'AI Assistant';
-            
-            const contentSpan = document.createElement('div');
-            contentSpan.className = 'content';
-            contentSpan.textContent = content;
-            
-            const timestampSpan = document.createElement('div');
-            timestampSpan.className = 'timestamp';
-            timestampSpan.textContent = new Date().toLocaleTimeString('ja-JP');
-            
-            messageDiv.appendChild(roleSpan);
-            messageDiv.appendChild(contentSpan);
-            messageDiv.appendChild(timestampSpan);
-            
-            // 初期メッセージを削除（最初のメッセージの場合）
-            if (messageCounter === 0) {
-                const initialMessage = chatContainer.querySelector('.message.ai');
-                if (initialMessage && initialMessage.querySelector('#initialMessage')) {
-                    chatContainer.removeChild(initialMessage);
-                }
-            }
-            
-            chatContainer.appendChild(messageDiv);
-            
-            // スクロールを最下部に
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-            
-            // メッセージカウンターを更新
-            messageCounter++;
-            document.getElementById('messageCount').textContent = messageCounter;
-            
-            // 会話履歴に追加
-            conversationHistory.push({
-                role: role,
-                content: content,
-                timestamp: new Date().toISOString()
-            });
-            
-            console.log(`✅ Message added: ${role} - ${content.substring(0, 50)}...`);
-        }
-
-        // タイピングインジケーター表示
-        function showTypingIndicator() {
-            const typingIndicator = document.getElementById('typingIndicator');
-            if (typingIndicator) {
-                typingIndicator.style.display = 'block';
-                
-                const chatContainer = document.getElementById('chatContainer');
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+            } catch (error) {
+                console.error('Error calling Gemini API:', error);
+                showStatus(`AI応答の生成中にエラーが発生しました: ${error.message}`, 'error');
+                hideTypingIndicator();
+                return "I'm sorry, I'm having trouble responding right now. Could you please try again?";
             }
         }
 
-        // タイピングインジケーター非表示
-        function hideTypingIndicator() {
-            const typingIndicator = document.getElementById('typingIndicator');
-            if (typingIndicator) {
-                typingIndicator.style.display = 'none';
-            }
-        }
+        // --- 音声認識（Web Speech API） ---
+        function initSpeechRecognition() {
+            if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.lang = 'en-US'; // 英語を設定
+                recognition.interimResults = false; // 中間結果は不要
+                recognition.maxAlternatives = 1; // 候補は1つで十分
 
-        // AI応答生成（ユーザー入力解析版）
-        function generateAIResponse(userMessage) {
-            const scenarioLower = currentScenario.toLowerCase();
-            const difficultyLevel = currentDifficulty;
-            const messageLower = userMessage.toLowerCase();
-            
-            console.log('🤖 Generating AI response for scenario:', currentScenario);
-            console.log('🎯 Difficulty level:', difficultyLevel);
-            console.log('💬 User message:', userMessage);
-            
-            // ユーザーの発言内容を分析
-            const userIntent = analyzeUserMessage(messageLower);
-            console.log('🔍 Analyzed user intent:', userIntent);
-            
-            let response = '';
-            
-            // シナリオ別の応答生成
-            if (scenarioLower.includes('雑談') || scenarioLower.includes('casual')) {
-                response = generateCasualResponse(userMessage, userIntent);
-            } else if (scenarioLower.includes('会食') || scenarioLower.includes('dinner')) {
-                response = generateDinnerResponse(userMessage, userIntent);
-            } else if (scenarioLower.includes('アポ') || scenarioLower.includes('appointment') || scenarioLower.includes('電話')) {
-                response = generateAppointmentResponse(userMessage, userIntent);
-            } else if (scenarioLower.includes('タスク') || scenarioLower.includes('task') || scenarioLower.includes('スケジュール')) {
-                response = generateTaskResponse(userMessage, userIntent);
-            } else if (scenarioLower.includes('プレゼン') || scenarioLower.includes('presentation') || scenarioLower.includes('質疑')) {
-                response = generatePresentationResponse(userMessage, userIntent);
-            } else if (scenarioLower.includes('m&a') || scenarioLower.includes('交渉') || scenarioLower.includes('価格')) {
-                response = generateNegotiationResponse(userMessage, userIntent);
-            } else {
-                response = generateBusinessResponse(userMessage, userIntent);
-            }
-            
-            // 難易度に応じて応答を調整
-            if (difficultyLevel === 'hard') {
-                response = enhanceResponseForHardMode(response, userIntent);
-            }
-            
-            console.log('✅ AI response generated:', response.substring(0, 50) + '...');
-            return response;
-        }
-
-        // ユーザーメッセージの意図分析
-        function analyzeUserMessage(messageLower) {
-            const intent = {
-                type: 'statement',
-                topics: [],
-                sentiment: 'neutral',
-                hasQuestion: false,
-                timeReference: null,
-                numbers: [],
-                keywords: []
-            };
-            
-            // 質問の検出
-            if (messageLower.includes('?') || messageLower.startsWith('how') || messageLower.startsWith('what') || 
-                messageLower.startsWith('when') || messageLower.startsWith('where') || messageLower.startsWith('why') ||
-                messageLower.startsWith('do you') || messageLower.startsWith('can you') || messageLower.startsWith('would you')) {
-                intent.type = 'question';
-                intent.hasQuestion = true;
-            }
-            
-            // 感情の検出
-            if (messageLower.includes('good') || messageLower.includes('great') || messageLower.includes('excellent') || 
-                messageLower.includes('happy') || messageLower.includes('pleased')) {
-                intent.sentiment = 'positive';
-            } else if (messageLower.includes('bad') || messageLower.includes('problem') || messageLower.includes('issue') || 
-                       messageLower.includes('difficult') || messageLower.includes('concern')) {
-                intent.sentiment = 'negative';
-            }
-            
-            // トピックの検出
-            const topicKeywords = {
-                'time': ['time', 'schedule', 'deadline', 'meeting', 'appointment', 'clock', 'hour', 'minute', 'today', 'tomorrow', 'week', 'month'],
-                'money': ['price', 'cost', 'budget', 'expensive', 'cheap', 'dollar', 'yen', 'revenue', 'profit', 'investment'],
-                'family': ['family', 'wife', 'husband', 'children', 'kids', 'mother', 'father', 'parents', 'home'],
-                'work': ['work', 'job', 'project', 'team', 'colleague', 'boss', 'client', 'customer', 'business'],
-                'weather': ['weather', 'rain', 'sunny', 'cold', 'hot', 'temperature', 'storm', 'snow'],
-                'food': ['food', 'restaurant', 'eat', 'lunch', 'dinner', 'coffee', 'drink', 'taste', 'delicious'],
-                'travel': ['travel', 'trip', 'vacation', 'flight', 'hotel', 'country', 'city', 'visit'],
-                'technology': ['technology', 'computer', 'software', 'app', 'digital', 'online', 'internet', 'system']
-            };
-            
-            for (const [topic, keywords] of Object.entries(topicKeywords)) {
-                if (keywords.some(keyword => messageLower.includes(keyword))) {
-                    intent.topics.push(topic);
-                }
-            }
-            
-            // 時間参照の検出
-            if (messageLower.includes('yesterday') || messageLower.includes('last')) {
-                intent.timeReference = 'past';
-            } else if (messageLower.includes('tomorrow') || messageLower.includes('next') || messageLower.includes('will')) {
-                intent.timeReference = 'future';
-            } else if (messageLower.includes('today') || messageLower.includes('now') || messageLower.includes('currently')) {
-                intent.timeReference = 'present';
-            }
-            
-            // 数字の検出
-            const numberMatches = messageLower.match(/\d+/g);
-            if (numberMatches) {
-                intent.numbers = numberMatches;
-            }
-            
-            return intent;
-        }
-
-        // 雑談シナリオの応答生成
-        function generateCasualResponse(userMessage, intent) {
-            if (intent.hasQuestion) {
-                if (intent.topics.includes('weather')) {
-                    return "Yeah, the weather has been quite unpredictable lately! I actually had to change my weekend plans because of the rain. Do you have any outdoor activities planned?";
-                } else if (intent.topics.includes('family')) {
-                    return "That sounds wonderful! Family time is so important. I try to balance work and family life too. How do you usually spend time with them?";
-                } else if (intent.topics.includes('work')) {
-                    return "I know what you mean about work! It's been pretty busy here too. Are you working on any interesting projects lately?";
-                } else {
-                    return "That's a great question! I'd love to hear more about your thoughts on that. What's your experience been like?";
-                }
-            } else {
-                if (intent.sentiment === 'positive') {
-                    if (intent.topics.includes('food')) {
-                        return "That sounds delicious! I'm always looking for new restaurant recommendations. What type of cuisine do they specialize in?";
-                    } else if (intent.topics.includes('travel')) {
-                        return "That sounds like an amazing trip! I love hearing about travel experiences. What was the highlight of your journey?";
-                    } else {
-                        return "That's fantastic to hear! It's always great when things go well. You seem to have a positive outlook on things.";
-                    }
-                } else if (intent.sentiment === 'negative') {
-                    return "I'm sorry to hear that. These things can definitely be challenging sometimes. Is there anything that might help improve the situation?";
-                } else {
-                    return "That's interesting! I hadn't thought about it from that perspective. It's always good to get different viewpoints on things.";
-                }
-            }
-        }
-
-        // 会食シナリオの応答生成
-        function generateDinnerResponse(userMessage, intent) {
-            if (intent.topics.includes('food')) {
-                return "I completely agree! The flavors here are exceptional. Have you tried their wine pairing recommendations? I find they really complement the dishes well.";
-            } else if (intent.topics.includes('travel')) {
-                return "That sounds like a fascinating cultural experience! Business travel can be exhausting, but it's wonderful when you get to experience local traditions. How do you find the work-life balance during international trips?";
-            } else if (intent.topics.includes('family')) {
-                return "Family traditions are so important for building relationships. In my family, we have similar gatherings during holidays. Do you find that business relationships benefit from these more personal interactions?";
-            } else if (intent.hasQuestion) {
-                return "That's an excellent question! In my experience, building trust through these informal settings really does translate to better business partnerships. What's been your observation?";
-            } else {
-                return "I appreciate you sharing that perspective! These dinner conversations often lead to the most valuable insights. It's amazing how much you can learn about someone over a good meal.";
-            }
-        }
-
-        // アポイントメントシナリオの応答生成
-        function generateAppointmentResponse(userMessage, intent) {
-            if (intent.topics.includes('time')) {
-                if (intent.numbers.length > 0) {
-                    const time = intent.numbers[0];
-                    return `${time} o'clock could work for me. Let me just double-check my calendar to make sure there are no conflicts. Would you prefer morning or afternoon for our discussion?`;
-                } else if (intent.timeReference === 'future') {
-                    return "I appreciate your flexibility with the timing. Let me check my availability for next week. Would Tuesday or Wednesday work better for your schedule?";
-                } else {
-                    return "I understand you're looking at different time options. My calendar is quite busy this week, but I can make some adjustments. What's the urgency level for this meeting?";
-                }
-            } else if (intent.topics.includes('work')) {
-                return "That sounds like an important project discussion. To prepare properly for our meeting, could you give me a brief overview of the main topics you'd like to cover?";
-            } else if (intent.hasQuestion) {
-                return "Good question! For this type of discussion, I'd suggest we block out at least an hour to ensure we can cover everything thoroughly. Does that timeframe work for you?";
-            } else {
-                return "I understand your requirements for the meeting. Let me send you a calendar invitation with the proposed agenda. Should I include anyone else from my team in this discussion?";
-            }
-        }
-
-        // タスク管理シナリオの応答生成
-        function generateTaskResponse(userMessage, intent) {
-            if (intent.topics.includes('time')) {
-                if (intent.timeReference === 'past') {
-                    return "I see there were some delays in the previous phase. Can you help me understand what caused the bottleneck? We need to make sure we don't face similar issues moving forward.";
-                } else if (intent.timeReference === 'future') {
-                    return "Good forward planning! What dependencies do we need to consider for the upcoming milestones? I want to make sure we have all resources allocated properly.";
-                } else {
-                    return "Let's review the current timeline status. Are we still on track to meet our deliverable deadlines, or do we need to adjust expectations with stakeholders?";
-                }
-            } else if (intent.sentiment === 'negative') {
-                return "I understand there are some challenges. Let's identify what support you need to get back on track. Should we escalate any blockers to senior management?";
-            } else if (intent.sentiment === 'positive') {
-                return "Excellent progress! That's exactly the kind of momentum we need. What factors contributed to this success that we can replicate in other areas?";
-            } else if (intent.hasQuestion) {
-                return "That's a valid concern to raise. Let me check with the stakeholders on their priorities. In the meantime, what alternative approaches are you considering?";
-            } else {
-                return "Thanks for the update. Based on what you've shared, I think we should schedule a checkpoint with the entire team. Can you prepare a brief status summary for tomorrow's standup?";
-            }
-        }
-
-        // プレゼンテーション質疑の応答生成
-        function generatePresentationResponse(userMessage, intent) {
-            if (intent.topics.includes('money')) {
-                return "The financial projections are certainly ambitious. Can you walk me through the assumptions behind your revenue growth model? I'm particularly interested in your customer acquisition cost calculations.";
-            } else if (intent.topics.includes('time')) {
-                return "The timeline you've outlined is aggressive but achievable. What's your contingency plan if we encounter unexpected delays in the implementation phase? How would that impact your milestones?";
-            } else if (intent.topics.includes('technology')) {
-                return "The technology stack looks robust. However, I'm concerned about scalability. Have you stress-tested the system under peak load conditions? What's your disaster recovery plan?";
-            } else if (intent.sentiment === 'positive') {
-                return "I appreciate the thorough research you've presented. However, I need to challenge some of your market assumptions. How did you validate these with actual customer feedback?";
-            } else if (intent.hasQuestion) {
-                return "That's a crucial question that addresses one of my main concerns. The risk mitigation strategies need to be more detailed. Can you elaborate on your Plan B scenarios?";
-            } else {
-                return "Interesting approach, but I'm not entirely convinced about the competitive analysis. How do you plan to differentiate from the three major players already dominating this space?";
-            }
-        }
-
-        // M&A交渉シナリオの応答生成
-        function generateNegotiationResponse(userMessage, intent) {
-            if (intent.topics.includes('money')) {
-                if (intent.numbers.length > 0) {
-                    return `The ${intent.numbers[0]} million valuation is significantly higher than our internal assessment. Our due diligence suggests a fair value closer to industry benchmarks. Can you justify this premium based on synergies?`;
-                } else {
-                    return "I understand your position on the financial terms, but we need to bridge a significant gap. What specific value drivers justify your valuation methodology?";
-                }
-            } else if (intent.sentiment === 'negative') {
-                return "I hear your concerns, and we want to address them constructively. However, we need to be realistic about market conditions. What concessions would make this deal viable for both parties?";
-            } else if (intent.sentiment === 'positive') {
-                return "I'm glad we're finding common ground on some aspects. Now let's tackle the more challenging terms. The indemnification clauses still need significant work from our legal team's perspective.";
-            } else if (intent.hasQuestion) {
-                return "That's a fair question that gets to the heart of the strategic rationale. Our board needs to see clear synergies that justify any premium. Can you quantify the expected cost savings?";
-            } else {
-                return "I appreciate your flexibility on this point. However, we still have concerns about the working capital adjustments and the earnout structure. Can we revisit those terms?";
-            }
-        }
-
-        // 一般ビジネス応答生成
-        function generateBusinessResponse(userMessage, intent) {
-            if (intent.hasQuestion) {
-                return "That's an excellent question that really gets to the core of what we're trying to achieve. Let me share my perspective and I'd love to hear your thoughts on potential solutions.";
-            } else if (intent.sentiment === 'positive') {
-                return "I'm glad you see the potential there! Your enthusiasm is contagious. How do you envision us moving forward with implementation?";
-            } else if (intent.sentiment === 'negative') {
-                return "I understand your concerns and they're completely valid. Let's work together to find a solution that addresses these challenges while still achieving our objectives.";
-            } else {
-                return "That's a valuable insight you've shared. It aligns well with what I've been observing in the market. What do you think the implications are for our strategy?";
-            }
-        }
-
-        // ハードモード用の応答強化
-        function enhanceResponseForHardMode(response, intent) {
-            const hardAdditions = [
-                " Additionally, I'd like to understand the long-term strategic implications and potential risks we haven't discussed.",
-                " From a governance perspective, how does this align with our compliance requirements and regulatory framework?",
-                " I'm also interested in the stakeholder impact analysis and change management considerations.",
-                " What are the key performance indicators we should be tracking, and how will we measure success?",
-                " Have you considered the competitive response and how this positions us in the market landscape?"
-            ];
-            
-            const randomAddition = hardAdditions[Math.floor(Math.random() * hardAdditions.length)];
-            return response + randomAddition;
-        }
-
-        // 音声認識初期化
-        function initializeSpeechRecognition() {
-            console.log('🎤 Initializing speech recognition...');
-            
-            try {
-                // ブラウザサポート確認
-                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                    throw new Error('音声認識がサポートされていません');
-                }
-                
-                // 音声認識オブジェクト作成
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                recognition = new SpeechRecognition();
-                
-                // iOS/モバイル対応の設定
-                recognition.continuous = false;  // iOSでは false が推奨
-                recognition.interimResults = false;  // iOSでは false が推奨
-                recognition.lang = 'en-US';
-                recognition.maxAlternatives = 1;
-                
-                // iOS Safari特有の設定
-                if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
-                    console.log('📱 iOS device detected - applying iOS-specific settings');
-                    recognition.continuous = false;
-                    recognition.interimResults = false;
-                    recognition.maxAlternatives = 3;  // iOSでは複数候補を取得
-                }
-                
-                // イベントリスナー
-                recognition.onstart = function() {
-                    console.log('🎤 Speech recognition started');
+                recognition.onstart = () => {
                     isRecording = true;
-                    updateVoiceButton();
-                    showStatus('🎤 音声認識開始 - 英語で話してください', 'success');
-                    
-                    // iOS用：録音開始のバイブレーション
-                    if (navigator.vibrate) {
-                        navigator.vibrate(100);
-                    }
+                    recordButton.classList.add('recording');
+                    recordButton.textContent = '🔴 録音中...';
+                    userMessageInput.placeholder = '話しています...';
+                    userMessageInput.disabled = true;
+                    sendButton.disabled = true;
+                    showStatus('録音を開始しました。話してください...', 'info');
                 };
-                
-                recognition.onresult = function(event) {
-                    console.log('🎤 Speech recognition result received');
-                    console.log('📊 Recognition event:', event);
-                    
-                    if (event.results && event.results.length > 0) {
-                        // iOS対応：複数の候補から最適なものを選択
-                        let bestTranscript = '';
-                        let highestConfidence = 0;
-                        
-                        for (let i = 0; i < event.results.length; i++) {
-                            const result = event.results[i];
-                            if (result.isFinal) {
-                                for (let j = 0; j < result.length; j++) {
-                                    const alternative = result[j];
-                                    if (alternative.confidence > highestConfidence) {
-                                        highestConfidence = alternative.confidence;
-                                        bestTranscript = alternative.transcript;
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // フォールバック：最初の結果を使用
-                        if (!bestTranscript && event.results[0] && event.results[0][0]) {
-                            bestTranscript = event.results[0][0].transcript;
-                        }
-                        
-                        console.log('🎤 Best transcript:', bestTranscript);
-                        console.log('🎯 Confidence:', highestConfidence);
-                        
-                        if (bestTranscript && bestTranscript.trim().length > 0) {
-                            const transcript = bestTranscript.trim();
-                            const userInput = document.getElementById('userInput');
-                            if (userInput) {
-                                const currentText = userInput.value.trim();
-                                userInput.value = currentText ? currentText + ' ' + transcript : transcript;
-                                userInput.focus();
-                                
-                                // iOS用：成功のバイブレーション
-                                if (navigator.vibrate) {
-                                    navigator.vibrate([50, 100, 50]);
-                                }
-                                
-                                showStatus('✅ 音声認識成功: ' + transcript, 'success');
-                            }
-                        } else {
-                            console.log('⚠️ Empty transcript received');
-                            showStatus('⚠️ 音声が認識されませんでした。もう一度お試しください', 'warning');
-                        }
-                    } else {
-                        console.log('❌ No results in recognition event');
-                        showStatus('❌ 音声認識結果がありません', 'error');
-                    }
-                };
-                
-                recognition.onerror = function(event) {
-                    console.error('🎤 Speech recognition error:', event.error);
-                    console.error('🔍 Error details:', event);
-                    isRecording = false;
-                    updateVoiceButton();
-                    
-                    let errorMessage = '音声認識エラー';
-                    switch(event.error) {
-                        case 'no-speech':
-                            errorMessage = '音声が検出されませんでした。もう一度お試しください';
-                            break;
-                        case 'audio-capture':
-                            errorMessage = 'マイクにアクセスできません。設定を確認してください';
-                            break;
-                        case 'not-allowed':
-                            errorMessage = 'マイクの使用許可が必要です。ブラウザ設定を確認してください';
-                            break;
-                        case 'network':
-                            errorMessage = 'ネットワークエラーが発生しました。接続を確認してください';
-                            break;
-                        case 'aborted':
-                            errorMessage = '音声認識が中断されました';
-                            break;
-                        case 'bad-grammar':
-                            errorMessage = '音声認識の設定エラーです';
-                            break;
-                        default:
-                            errorMessage = `音声認識エラー: ${event.error}`;
-                    }
-                    
-                    showStatus(errorMessage, 'error');
-                    
-                    // iOS用：エラーのバイブレーション
-                    if (navigator.vibrate) {
-                        navigator.vibrate([200, 100, 200]);
-                    }
-                };
-                
-                recognition.onend = function() {
-                    console.log('🎤 Speech recognition ended');
-                    isRecording = false;
-                    updateVoiceButton();
-                    
-                    // iOS用：短いバイブレーション
-                    if (navigator.vibrate) {
-                        navigator.vibrate(50);
-                    }
-                };
-                
-                // iOS Safari用の追加設定
-                recognition.onnomatch = function() {
-                    console.log('🎤 No match found');
-                    showStatus('⚠️ 音声を認識できませんでした。もう一度お試しください', 'warning');
-                };
-                
-                recognition.onsoundstart = function() {
-                    console.log('🎤 Sound detected');
-                };
-                
-                recognition.onsoundend = function() {
-                    console.log('🎤 Sound ended');
-                };
-                
-                recognition.onspeechstart = function() {
-                    console.log('🎤 Speech detected');
-                };
-                
-                recognition.onspeechend = function() {
-                    console.log('🎤 Speech ended');
-                };
-                
-                console.log('✅ Speech recognition initialized successfully');
-                showStatus('🎤 音声認識が利用可能です（英語モード）', 'success');
-                
-                // iOS用の初期化完了メッセージ
-                if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
-                    setTimeout(() => {
-                        showStatus('📱 iOS用音声認識：マイクボタンを押して話してください', 'success');
-                    }, 2000);
-                }
-                
-            } catch (error) {
-                console.error('❌ Failed to initialize speech recognition:', error);
-                
-                const voiceButton = document.getElementById('voiceButton');
-                if (voiceButton) {
-                    voiceButton.disabled = true;
-                    voiceButton.textContent = '🚫';
-                    voiceButton.title = '音声認識利用不可';
-                }
-                
-                showStatus('音声認識を初期化できませんでした。このデバイスでは利用できません', 'error');
-            }
-        }
 
-        // 音声入力トグル（iOS対応版）
-        function toggleVoiceInput() {
-            console.log('🎤 Toggle voice input, isRecording:', isRecording);
-            
-            if (!recognition) {
-                showStatus('音声認識が初期化されていません', 'error');
-                return;
-            }
-            
-            // ユーザージェスチャーが必要なブラウザ対応
-            const userInput = document.getElementById('userInput');
-            if (userInput) {
-                userInput.focus(); // iOS Safari用
-            }
-            
-            if (isRecording) {
-                try {
-                    recognition.stop();
-                    isRecording = false;
-                    updateVoiceButton();
-                    showStatus('🛑 音声認識を停止しました', 'success');
-                } catch (error) {
-                    console.error('🎤 Error stopping recognition:', error);
-                    isRecording = false;
-                    updateVoiceButton();
-                }
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    userMessageInput.value = transcript;
+                    sendMessage(); // 認識結果を送信
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    showStatus(`音声認識エラー: ${event.error}`, 'error');
+                    resetRecordingState();
+                };
+
+                recognition.onend = () => {
+                    // 録音終了時、自動的にメッセージを送信しない（ユーザーが確認・編集できるように）
+                    // ここで `sendMessage()` を呼び出すと、ユーザーが認識結果を確認する前に送信されてしまう
+                    resetRecordingState();
+                };
+
             } else {
-                try {
-                    // iOS用：明示的にマイク許可をリクエスト
-                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                        navigator.mediaDevices.getUserMedia({ audio: true })
-                            .then(function(stream) {
-                                console.log('🎤 Microphone access granted');
-                                stream.getTracks().forEach(track => track.stop()); // すぐにストリームを停止
-                                
-                                // 少し遅延してから音声認識を開始
-                                setTimeout(() => {
-                                    try {
-                                        recognition.start();
-                                    } catch (startError) {
-                                        console.error('🎤 Error starting recognition after permission:', startError);
-                                        showStatus('音声認識の開始に失敗しました', 'error');
-                                    }
-                                }, 100);
-                            })
-                            .catch(function(error) {
-                                console.error('🎤 Microphone access denied:', error);
-                                showStatus('マイクへのアクセスが拒否されました。設定を確認してください', 'error');
-                            });
-                    } else {
-                        // getUserMediaが利用できない場合は直接開始
-                        recognition.start();
-                    }
-                } catch (error) {
-                    console.error('🎤 Error starting recognition:', error);
-                    showStatus('音声認識の開始に失敗しました: ' + error.message, 'error');
-                }
+                recordButton.disabled = true;
+                recordButton.textContent = '🎤 不可';
+                showStatus('お使いのブラウザは音声認識に対応していません。', 'error');
+                console.warn('Web Speech API not supported in this browser.');
             }
         }
 
-        // 音声ボタン更新
-        function updateVoiceButton() {
-            const voiceButton = document.getElementById('voiceButton');
-            if (!voiceButton) return;
-            
+        function toggleRecording() {
             if (isRecording) {
-                voiceButton.classList.add('recording');
-                voiceButton.textContent = '🔴';
-                voiceButton.title = '録音中 - クリックで停止';
+                recognition.stop();
             } else {
-                voiceButton.classList.remove('recording');
-                voiceButton.textContent = '🎤';
-                voiceButton.title = 'クリックで音声入力開始';
+                recognition.start();
             }
         }
 
-        // セッション一時停止
-        function pauseSession() {
-            if (sessionTimer) {
-                clearInterval(sessionTimer);
-                sessionTimer = null;
-                showStatus('セッションを一時停止しました', 'success');
-                
-                // 再開ボタンに変更
-                const pauseButton = event.target;
-                pauseButton.textContent = '再開';
-                pauseButton.onclick = resumeSession;
-            }
+        function resetRecordingState() {
+            isRecording = false;
+            recordButton.classList.remove('recording');
+            recordButton.textContent = '🎤 録音';
+            userMessageInput.placeholder = '英語でメッセージを入力するか、マイクで話しかけてください...';
+            userMessageInput.disabled = false;
+            sendButton.disabled = false;
         }
 
-        // セッション再開
-        function resumeSession() {
-            startSessionTimer();
-            showStatus('セッションを再開しました', 'success');
-            
-            // 一時停止ボタンに戻す
-            const resumeButton = event.target;
-            resumeButton.textContent = '一時停止';
-            resumeButton.onclick = pauseSession;
-        }
-
-        // 進捗保存
-        function saveProgress() {
-            try {
-                const progressData = {
-                    conversationHistory: conversationHistory,
-                    messageCount: messageCounter,
-                    sessionTime: Date.now() - sessionStartTime,
-                    scenario: currentScenario,
-                    difficulty: currentDifficulty,
-                    timestamp: new Date().toISOString()
-                };
-                
-                // メモリ内保存（実際のアプリでは localStorage や サーバーに保存）
-                console.log('💾 Progress saved:', progressData);
-                showStatus('進捗を保存しました', 'success');
-                
-            } catch (error) {
-                console.error('❌ Error saving progress:', error);
-                showStatus('進捗の保存に失敗しました', 'error');
+        // --- イベントリスナー ---
+        sendButton.addEventListener('click', sendMessage);
+        userMessageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
             }
-        }
+        });
+        recordButton.addEventListener('click', toggleRecording);
 
-        // セッション終了
-        function endSession() {
-            if (confirm('セッションを終了しますか？\n終了後にFinal Reportが生成されます。')) {
-                // タイマー停止
-                if (sessionTimer) {
-                    clearInterval(sessionTimer);
-                    sessionTimer = null;
-                }
-                
-                // 音声認識停止
-                if (recognition && isRecording) {
-                    try {
-                        recognition.stop();
-                        isRecording = false;
-                        updateVoiceButton();
-                    } catch (error) {
-                        console.error('Error stopping recognition:', error);
-                    }
-                }
-                
-                // セッションデータを保存
-                const sessionEndTime = Date.now();
-                const totalSessionTime = sessionEndTime - sessionStartTime;
-                const sessionMinutes = Math.floor(totalSessionTime / 60000);
-                const sessionSeconds = Math.floor((totalSessionTime % 60000) / 1000);
-                
-                // final-report.html用のデータを準備
-                sessionStorage.setItem('messageCount', messageCounter.toString());
-                sessionStorage.setItem('sessionDuration', `${sessionMinutes}分${sessionSeconds}秒`);
-                sessionStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
-                sessionStorage.setItem('sessionStartTime', sessionStartTime.toString());
-                sessionStorage.setItem('sessionEndTime', sessionEndTime.toString());
-                
-                // スコア計算（簡易版）
-                const userMessages = conversationHistory.filter(msg => msg.role === 'user');
-                const totalWords = userMessages.reduce((total, msg) => {
-                    return total + msg.content.split(' ').filter(word => word.length > 0).length;
-                }, 0);
-                const avgWordsPerMessage = userMessages.length > 0 ? Math.round(totalWords / userMessages.length) : 0;
-                
-                const overallScore = Math.min(100, Math.max(60, 
-                    (messageCounter * 5) + (avgWordsPerMessage * 2) + 40));
-                const fluencyScore = Math.min(100, Math.max(50, overallScore + Math.random() * 20 - 10));
-                const accuracyScore = Math.min(100, Math.max(50, overallScore + Math.random() * 20 - 10));
-                
-                sessionStorage.setItem('overallScore', overallScore.toString());
-                sessionStorage.setItem('fluencyScore', fluencyScore.toString());
-                sessionStorage.setItem('accuracyScore', accuracyScore.toString());
-                sessionStorage.setItem('averageMessageLength', avgWordsPerMessage.toString());
-                sessionStorage.setItem('voiceUsageCount', '0'); // 音声使用回数（実装必要）
-                
-                showStatus('セッションを終了しました。Final Reportページに移動中...', 'success');
-                
-                // Final Reportページに遷移
-                setTimeout(() => {
-                    window.location.href = 'final-report.html';
-                }, 2000);
-            }
-        }
-
-        // Final Report生成
-        function generateFinalReport() {
-            const sessionEndTime = Date.now();
-            const totalSessionTime = sessionEndTime - sessionStartTime;
-            const sessionMinutes = Math.floor(totalSessionTime / 60000);
-            const sessionSeconds = Math.floor((totalSessionTime % 60000) / 1000);
-            
-            // 会話分析
-            const userMessages = conversationHistory.filter(msg => msg.role === 'user');
-            const aiMessages = conversationHistory.filter(msg => msg.role === 'ai');
-            
-            // 単語数計算
-            const totalUserWords = userMessages.reduce((total, msg) => {
-                return total + msg.content.split(' ').filter(word => word.length > 0).length;
-            }, 0);
-            
-            // 平均応答時間（推定）
-            const avgResponseTime = userMessages.length > 0 ? Math.round(totalSessionTime / userMessages.length / 1000) : 0;
-            
-            // 学習レベル評価
-            const vocabularyLevel = evaluateVocabularyLevel(userMessages);
-            const fluencyScore = evaluateFluency(userMessages, totalSessionTime);
-            const engagementScore = evaluateEngagement(userMessages, aiMessages);
-            
-            // Final Reportデータ
-            const finalReport = {
-                sessionInfo: {
-                    scenario: currentScenario,
-                    difficulty: currentDifficulty,
-                    startTime: new Date(sessionStartTime).toLocaleString('ja-JP'),
-                    endTime: new Date(sessionEndTime).toLocaleString('ja-JP'),
-                    duration: `${sessionMinutes}分${sessionSeconds}秒`
-                },
-                statistics: {
-                    totalMessages: messageCounter,
-                    userMessages: userMessages.length,
-                    aiMessages: aiMessages.length,
-                    totalWords: totalUserWords,
-                    averageWordsPerMessage: userMessages.length > 0 ? Math.round(totalUserWords / userMessages.length) : 0,
-                    averageResponseTime: `${avgResponseTime}秒`
-                },
-                performance: {
-                    vocabularyLevel: vocabularyLevel,
-                    fluencyScore: fluencyScore,
-                    engagementScore: engagementScore,
-                    overallScore: Math.round((vocabularyLevel + fluencyScore + engagementScore) / 3)
-                },
-                recommendations: generateRecommendations(vocabularyLevel, fluencyScore, engagementScore),
-                conversationSample: getConversationSample(userMessages)
-            };
-            
-            // レポートを表示
-            displayFinalReport(finalReport);
-            
-            // ダウンロード可能な形式で保存
-            saveFinalReportAsFile(finalReport);
-            
-            console.log('📊 Final Report generated:', finalReport);
-            return finalReport;
-        }
-        
-        // 語彙レベル評価
-        function evaluateVocabularyLevel(userMessages) {
-            if (userMessages.length === 0) return 0;
-            
-            const allWords = userMessages.join(' ').toLowerCase().split(/\s+/);
-            const uniqueWords = new Set(allWords.filter(word => word.length > 3));
-            const vocabularyDiversity = uniqueWords.size / allWords.length;
-            
-            // 複雑な単語の使用頻度をチェック
-            const complexWords = allWords.filter(word => word.length > 6).length;
-            const complexityRatio = complexWords / allWords.length;
-            
-            const score = Math.min(100, Math.round((vocabularyDiversity * 50) + (complexityRatio * 50)));
-            return Math.max(10, score); // 最低10点
-        }
-        
-        // 流暢性評価
-        function evaluateFluency(userMessages, totalTime) {
-            if (userMessages.length === 0) return 0;
-            
-            const totalWords = userMessages.reduce((total, msg) => {
-                return total + msg.content.split(' ').length;
-            }, 0);
-            
-            const wordsPerMinute = (totalWords / (totalTime / 60000));
-            const messageFrequency = userMessages.length / (totalTime / 60000);
-            
-            // 適度なペースを評価（早すぎず遅すぎず）
-            const paceScore = Math.min(100, Math.max(0, (wordsPerMinute / 50) * 100));
-            const frequencyScore = Math.min(100, messageFrequency * 20);
-            
-            return Math.round((paceScore + frequencyScore) / 2);
-        }
-        
-        // エンゲージメント評価
-        function evaluateEngagement(userMessages, aiMessages) {
-            if (userMessages.length === 0) return 0;
-            
-            // 質問の使用頻度
-            const questionsCount = userMessages.filter(msg => msg.content.includes('?')).length;
-            const questionRatio = questionsCount / userMessages.length;
-            
-            // メッセージの長さの多様性
-            const messageLengths = userMessages.map(msg => msg.content.length);
-            const avgLength = messageLengths.reduce((a, b) => a + b, 0) / messageLengths.length;
-            const lengthVariance = messageLengths.reduce((acc, len) => acc + Math.pow(len - avgLength, 2), 0) / messageLengths.length;
-            
-            const engagementScore = Math.min(100, (questionRatio * 40) + (Math.sqrt(lengthVariance) / 10) + 20);
-            return Math.round(engagementScore);
-        }
-        
-        // 推奨事項生成
-        function generateRecommendations(vocab, fluency, engagement) {
-            const recommendations = [];
-            
-            if (vocab < 50) {
-                recommendations.push("📚 語彙力向上: より多様な単語を使って表現してみましょう");
-            }
-            if (fluency < 50) {
-                recommendations.push("⚡ 流暢性向上: もう少し早いペースで会話してみましょう");
-            }
-            if (engagement < 50) {
-                recommendations.push("🤝 積極性向上: より多くの質問をして会話を深めましょう");
-            }
-            
-            // ポジティブなフィードバックも追加
-            if (vocab >= 70) {
-                recommendations.push("✨ 素晴らしい語彙力です！この調子で続けましょう");
-            }
-            if (fluency >= 70) {
-                recommendations.push("🎯 流暢な会話ができています！");
-            }
-            if (engagement >= 70) {
-                recommendations.push("🌟 積極的な参加、素晴らしいです！");
-            }
-            
-            return recommendations;
-        }
-        
-        // 会話サンプル取得
-        function getConversationSample(userMessages) {
-            if (userMessages.length === 0) return "No conversation recorded.";
-            
-            // 最も長いメッセージを取得
-            const longestMessage = userMessages.reduce((longest, current) => {
-                return current.content.length > longest.content.length ? current : longest;
-            });
-            
-            return longestMessage.content;
-        }
-        
-        // Final Report表示
-        function displayFinalReport(report) {
-            const chatContainer = document.getElementById('chatContainer');
-            if (!chatContainer) return;
-            
-            const reportDiv = document.createElement('div');
-            reportDiv.className = 'message ai final-report';
-            reportDiv.style.maxWidth = '95%';
-            reportDiv.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-            
-            reportDiv.innerHTML = `
-                <div class="role">📊 FINAL REPORT</div>
-                <div class="content">
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="color: #fff; margin-bottom: 10px;">🎯 セッション概要</h3>
-                        <p><strong>シナリオ:</strong> ${report.sessionInfo.scenario}</p>
-                        <p><strong>難易度:</strong> ${getDifficultyLabel(report.sessionInfo.difficulty)}</p>
-                        <p><strong>実施時間:</strong> ${report.sessionInfo.duration}</p>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="color: #fff; margin-bottom: 10px;">📈 統計データ</h3>
-                        <p><strong>総メッセージ数:</strong> ${report.statistics.totalMessages}</p>
-                        <p><strong>あなたのメッセージ:</strong> ${report.statistics.userMessages}</p>
-                        <p><strong>総単語数:</strong> ${report.statistics.totalWords}</p>
-                        <p><strong>1メッセージ平均単語数:</strong> ${report.statistics.averageWordsPerMessage}</p>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="color: #fff; margin-bottom: 10px;">⭐ パフォーマンス評価</h3>
-                        <p><strong>語彙力スコア:</strong> ${report.performance.vocabularyLevel}/100</p>
-                        <p><strong>流暢性スコア:</strong> ${report.performance.fluencyScore}/100</p>
-                        <p><strong>積極性スコア:</strong> ${report.performance.engagementScore}/100</p>
-                        <p style="font-size: 18px; color: #ffeb3b;"><strong>総合スコア: ${report.performance.overallScore}/100</strong></p>
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="color: #fff; margin-bottom: 10px;">💡 改善提案</h3>
-                        ${report.recommendations.map(rec => `<p>• ${rec}</p>`).join('')}
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <h3 style="color: #fff; margin-bottom: 10px;">📝 ベストメッセージ</h3>
-                        <p style="font-style: italic; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px;">
-                            "${report.conversationSample}"
-                        </p>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 20px;">
-                        <button onclick="downloadReport()" style="background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                            📄 レポートをダウンロード
-                        </button>
-                    </div>
-                </div>
-                <div class="timestamp">${new Date().toLocaleTimeString('ja-JP')}</div>
-            `;
-            
-            chatContainer.appendChild(reportDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-        
-        // レポートファイル保存
-        function saveFinalReportAsFile(report) {
-            window.finalReportData = report; // グローバルに保存してダウンロード用に
-            
-            const reportText = `
-ENGLISH CONVERSATION PRACTICE - FINAL REPORT
-=============================================
-
-Session Information:
-- Scenario: ${report.sessionInfo.scenario}
-- Difficulty: ${getDifficultyLabel(report.sessionInfo.difficulty)}
-- Start Time: ${report.sessionInfo.startTime}
-- End Time: ${report.sessionInfo.endTime}
-- Duration: ${report.sessionInfo.duration}
-
-Statistics:
-- Total Messages: ${report.statistics.totalMessages}
-- Your Messages: ${report.statistics.userMessages}
-- Total Words: ${report.statistics.totalWords}
-- Average Words per Message: ${report.statistics.averageWordsPerMessage}
-- Average Response Time: ${report.statistics.averageResponseTime}
-
-Performance Evaluation:
-- Vocabulary Level: ${report.performance.vocabularyLevel}/100
-- Fluency Score: ${report.performance.fluencyScore}/100
-- Engagement Score: ${report.performance.engagementScore}/100
-- Overall Score: ${report.performance.overallScore}/100
-
-Recommendations:
-${report.recommendations.map(rec => `- ${rec}`).join('\n')}
-
-Best Message Sample:
-"${report.conversationSample}"
-
-Generated on: ${new Date().toLocaleString('ja-JP')}
-            `;
-            
-            console.log('📄 Final report prepared for download');
-            window.finalReportText = reportText;
-        }
-        
-        // レポートダウンロード機能
-        function downloadReport() {
-            if (!window.finalReportText) {
-                showStatus('レポートデータが見つかりません', 'error');
-                return;
-            }
-            
-            const blob = new Blob([window.finalReportText], { type: 'text/plain;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `English_Practice_Report_${new Date().toISOString().split('T')[0]}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            showStatus('レポートをダウンロードしました', 'success');
-        }
-        
-        // グローバル関数として登録
-        window.downloadReport = downloadReport;
+        // --- 初期化 ---
+        window.addEventListener('load', () => {
+            initSpeechRecognition();
+            showStatus('準備完了！英語の練習を始めましょう！', 'success');
+            console.log('✅ Application fully loaded and ready');
+            console.log('💡 Type showDebugInfo() in console for debug information');
+        });
 
         // エラーハンドリング
         window.addEventListener('error', function(event) {
@@ -1781,12 +495,7 @@ Generated on: ${new Date().toLocaleString('ja-JP')}
                 userAgent: navigator.userAgent
             });
         }
-
-        // コンソールでデバッグ情報を確認できるように
-        window.showDebugInfo = showDebugInfo;
-        
-        console.log('✅ Application fully loaded and ready');
-        console.log('💡 Type showDebugInfo() in console for debug information');
+        window.showDebugInfo = showDebugInfo; // コンソールでデバッグ情報を確認できるように
     </script>
 </body>
 </html>
