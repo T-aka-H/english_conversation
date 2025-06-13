@@ -742,6 +742,11 @@
                     }
                 };
             }
+
+            // 会話開始時
+            if (!sessionStorage.getItem('startTime')) {
+                sessionStorage.setItem('startTime', new Date().toLocaleString());
+            }
         });
 
         // --- Navigation Buttons ---
