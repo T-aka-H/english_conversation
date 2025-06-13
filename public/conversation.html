@@ -20,11 +20,12 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.08); /* ★変更 */
             padding: 40px;
             border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.15); /* ★変更 */
             animation: fadeIn 0.8s ease-out;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5); /* ★追加 */
         }
 
         @keyframes fadeIn {
@@ -39,8 +40,8 @@
 
         h1 {
             font-size: 2.8em;
-            color: #4CAF50;
-            text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            color: #64FFDA; /* ★変更 */
+            text-shadow: 0 0 15px rgba(100, 255, 218, 0.6); /* ★変更 */
             margin-bottom: 10px;
         }
 
@@ -52,19 +53,19 @@
 
         .scenario-info span {
             font-weight: bold;
-            color: #64FFDA;
+            color: #FFEB3B; /* ★変更 */
         }
 
         .chat-area {
-            background: rgba(0,0,0,0.2);
+            background: rgba(0,0,0,0.3); /* ★変更 */
             border-radius: 15px;
             padding: 20px;
             min-height: 400px;
             max-height: 600px;
             overflow-y: auto;
             margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1); /* ★変更 */
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.4); /* ★変更 */
         }
 
         .message {
@@ -102,7 +103,7 @@
         }
 
         .message.ai .message-bubble {
-            background: #212130;
+            background: #2b2b3f; /* ★変更 */
             color: white;
             border-bottom-left-radius: 2px;
         }
@@ -144,16 +145,17 @@
             flex-grow: 1;
             padding: 15px 20px;
             border-radius: 25px;
-            border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2); /* ★変更 */
+            background: rgba(0,0,0,0.4); /* ★変更 */
             color: white;
             font-size: 1.1em;
             outline: none;
-            transition: border-color 0.3s ease;
+            transition: border-color 0.3s ease, background-color 0.3s ease; /* ★変更 */
         }
 
         #userMessageInput:focus {
             border-color: #64FFDA;
+            background-color: rgba(0,0,0,0.5); /* ★変更 */
         }
 
         .action-buttons {
@@ -164,19 +166,20 @@
         button {
             background: #4CAF50;
             color: white;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.2); /* ★追加 */
             padding: 15px 25px;
             border-radius: 25px;
             cursor: pointer;
             font-size: 1.1em;
             font-weight: bold;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: background-color 0.3s ease, transform 0.2s ease, border-color 0.3s ease; /* ★変更 */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4); /* ★変更 */
         }
 
         button:hover {
             background-color: #5cb85c;
             transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.4); /* ★追加 */
         }
 
         button:active {
@@ -187,36 +190,35 @@
             background-color: #666;
             cursor: not-allowed;
             box-shadow: none;
+            border-color: rgba(255, 255, 255, 0.1); /* ★追加 */
         }
 
         #recordButton {
             background-color: #F44336; /* Red for record */
+            border: 1px solid rgba(255, 255, 255, 0.2); /* ★追加 */
         }
         #recordButton:hover {
             background-color: #d32f2f;
+            border-color: rgba(255, 255, 255, 0.4); /* ★追加 */
         }
         #recordButton.recording {
             background-color: #d32f2f;
             animation: pulse 1.5s infinite;
         }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(244, 67, 54, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
-        }
-
-        .end-training-area { /* ★追加 */
+        .end-training-area {
             text-align: center;
             margin-top: 20px;
         }
 
-        #endTrainingButton { /* ★追加 */
+        #endTrainingButton {
             background-color: #007bff; /* 青系の色 */
+            border: 1px solid rgba(255, 255, 255, 0.2); /* ★追加 */
         }
 
-        #endTrainingButton:hover { /* ★追加 */
+        #endTrainingButton:hover {
             background-color: #0056b3;
+            border-color: rgba(255, 255, 255, 0.4); /* ★追加 */
         }
 
         .status-message {
@@ -252,58 +254,58 @@
         /* Mobile adjustments */
         @media (max-width: 768px) {
             body {
-                padding: 10px; /* 全体のパディングを減らす */
+                padding: 10px;
             }
 
             .container {
-                padding: 20px; /* コンテナのパディングを減らす */
-                border-radius: 10px; /* 角丸を小さく */
+                padding: 20px;
+                border-radius: 10px;
             }
 
             h1 {
-                font-size: 2em; /* タイトルを小さく */
+                font-size: 2em;
             }
 
             .scenario-info {
-                font-size: 0.9em; /* シナリオ情報を小さく */
+                font-size: 0.9em;
             }
 
             .chat-area {
-                min-height: 300px; /* チャットエリアの高さを調整 */
+                min-height: 300px;
                 max-height: 450px;
                 padding: 15px;
             }
 
             .message-bubble {
-                max-width: 85%; /* 吹き出しの幅を広げる */
+                max-width: 85%;
                 padding: 10px 15px;
             }
 
             .input-area {
-                flex-direction: column; /* 入力エリアを縦積みに */
-                gap: 10px; /* ギャップを調整 */
+                flex-direction: column;
+                gap: 10px;
             }
 
             #userMessageInput {
-                width: 100%; /* 入力フィールドを幅100%に */
+                width: 100%;
                 font-size: 1em;
                 padding: 12px 15px;
             }
 
             .action-buttons {
-                width: 100%; /* ボタンコンテナを幅100%に */
-                justify-content: stretch; /* ボタンを横いっぱいに広げる */
-                gap: 10px; /* ボタン間のギャップを調整 */
+                width: 100%;
+                justify-content: stretch;
+                gap: 10px;
             }
 
             button {
-                flex-grow: 1; /* ボタンを均等に広げる */
+                flex-grow: 1;
                 font-size: 1em;
                 padding: 12px 20px;
                 border-radius: 20px;
             }
 
-            .end-training-area button { /* ★追加 */
+            .end-training-area button {
                 width: 100%;
                 padding: 12px 20px;
             }
@@ -342,7 +344,8 @@
             </div>
         </div>
         
-        <div class="end-training-area"> <button id="endTrainingButton">トレーニングを終える</button>
+        <div class="end-training-area">
+            <button id="endTrainingButton">トレーニングを終える</button>
         </div>
         
         <div id="statusMessage" class="status-message"></div>
@@ -359,7 +362,7 @@
         const recordButton = document.getElementById('recordButton');
         const typingIndicator = document.getElementById('typingIndicator');
         const statusMessageDiv = document.getElementById('statusMessage');
-        const endTrainingButton = document.getElementById('endTrainingButton'); // ★追加
+        const endTrainingButton = document.getElementById('endTrainingButton');
 
         let conversationHistory = [{ role: 'ai', content: 'Hello! How can I help you practice your English today?' }];
         let messageCounter = 0;
@@ -416,7 +419,10 @@
         // --- メッセージ送信ロジック ---
         async function sendMessage() {
             const userMessage = userMessageInput.value.trim();
-            if (userMessage === '') return;
+            if (userMessage === '') {
+                showStatus('メッセージが入力されていません。', 'error');
+                return;
+            }
 
             addMessage('user', userMessage);
             conversationHistory.push({ role: 'user', content: userMessage });
@@ -444,7 +450,7 @@
                         conversationHistory: conversationHistory, 
                         scenarioName: currentScenario, 
                         difficultyLevel: currentDifficulty, 
-                        password: APP_ACCESS_PASSWORD // ★ここをRENDERのAPP_PASSWORDと一致させる
+                        password: APP_ACCESS_PASSWORD 
                     }),
                 });
 
@@ -466,8 +472,12 @@
             }
         }
 
-        // --- ユーザーの会話全体を評価する関数 --- ★追加
+        // --- ユーザーの会話全体を評価する関数 ---
         async function evaluateUserConversation() {
+            if (messageCounter === 0) {
+                showStatus('まだ会話がありません。会話を始めてから評価してください。', 'info');
+                return;
+            }
             showStatus('会話履歴を評価しています...', 'info');
             showTypingIndicator(); // AIが評価中であることを示すために表示
 
@@ -525,33 +535,62 @@
             if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
                 recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
                 recognition.lang = 'en-US'; 
-                recognition.interimResults = false; 
+                recognition.interimResults = true; // 暫定結果を受け取る
+                recognition.continuous = true;    // 連続認識を有効にする
                 recognition.maxAlternatives = 1; 
 
                 recognition.onstart = () => {
                     isRecording = true;
                     recordButton.classList.add('recording');
-                    recordButton.textContent = '🔴 録音中...';
+                    recordButton.textContent = '🔴 録音中 (タップで停止)'; // ★変更
                     userMessageInput.placeholder = '話しています...';
                     userMessageInput.disabled = true;
                     sendButton.disabled = true;
-                    showStatus('録音を開始しました。話してください...', 'info');
+                    endTrainingButton.disabled = true;
+                    showStatus('録音を開始しました。話し終わったら「録音中」ボタンをもう一度タップしてください。', 'info'); // ★変更
                 };
 
                 recognition.onresult = (event) => {
-                    const transcript = event.results[0][0].transcript;
-                    userMessageInput.value = transcript;
-                    sendMessage(); 
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript;
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    userMessageInput.value = finalTranscript || interimTranscript;
+                    // 最終結果が確定したら、送信ボタンを有効化してユーザーに促す
+                    if (finalTranscript !== '') {
+                        sendButton.disabled = false;
+                        showStatus('音声入力が完了しました。送信ボタンを押してください。', 'success');
+                    } else {
+                        sendButton.disabled = true; // 暫定結果の表示中は送信できないように
+                    }
                 };
 
                 recognition.onerror = (event) => {
                     console.error('Speech recognition error:', event.error);
-                    showStatus(`音声認識エラー: ${event.error}`, 'error');
-                    resetRecordingState();
+                    showStatus(`音声認識エラー: ${event.error}. マイクへのアクセスを許可しているか確認してください。`, 'error'); // ★変更
+                    resetRecordingState(); 
                 };
 
                 recognition.onend = () => {
-                    resetRecordingState();
+                    // recognition.stop() が明示的に呼ばれた後、またはエラーで終了した場合
+                    if (isRecording) { // isRecording が true のままなら、予期せぬ終了
+                        showStatus('録音が予期せず停止しました。もう一度マイクボタンを押してください。', 'error'); // ★変更
+                    } else {
+                        // ユーザーが明示的に停止した場合のメッセージ
+                        if (userMessageInput.value.trim() !== '') {
+                            showStatus('録音を停止しました。送信ボタンを押してメッセージを送信してください。', 'success');
+                            sendButton.disabled = false;
+                        } else {
+                            showStatus('録音は停止されましたが、入力された音声はありませんでした。', 'info');
+                        }
+                    }
+                    resetRecordingState(); // 録音状態をリセット
                 };
 
             } else {
@@ -564,9 +603,11 @@
 
         function toggleRecording() {
             if (isRecording) {
-                recognition.stop();
+                recognition.stop(); // 録音を停止
             } else {
-                recognition.start();
+                userMessageInput.value = ''; // 新しい録音開始前にテキストをクリア
+                sendButton.disabled = true; // 録音開始時は送信ボタンを無効化
+                recognition.start(); // 録音を開始
             }
         }
 
@@ -576,7 +617,9 @@
             recordButton.textContent = '🎤 録音';
             userMessageInput.placeholder = '英語でメッセージを入力するか、マイクで話しかけてください...';
             userMessageInput.disabled = false;
-            sendButton.disabled = false;
+            // 録音終了時に、入力フィールドにテキストがあれば送信ボタンを有効にする
+            sendButton.disabled = (userMessageInput.value.trim() === ''); 
+            endTrainingButton.disabled = false;
         }
 
         // --- イベントリスナー ---
@@ -587,7 +630,7 @@
             }
         });
         recordButton.addEventListener('click', toggleRecording);
-        endTrainingButton.addEventListener('click', evaluateUserConversation); // ★追加: トレーニング終了ボタンのイベント
+        endTrainingButton.addEventListener('click', evaluateUserConversation);
 
         // --- 初期化 ---
         window.addEventListener('load', () => {
