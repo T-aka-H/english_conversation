@@ -16,6 +16,9 @@
             min-height: 100vh;
         }
         
+        // グローバルスコープに公開（HTMLから呼び出し可能にする）
+        window.toggleVoiceInput = toggleVoiceInput;
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -1538,92 +1541,153 @@
         function initializeSpeechRecognition() {
             console.log('🎤 Initializing speech recognition...');
             
-            // ブラウザサポートチェック
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                console.log('❌ Speech recognition not supported');
-                document.getElementById('voiceButton').disabled = true;
-                document.getElementById('voiceButton').textContent = '🚫 音声非対応';
+            // HTTPSチェック
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                console.log('⚠️ HTTPS required for speech recognition');
+                const voiceButton = document.getElementById('voiceButton');
+                if (voiceButton) {
+                    voiceButton.disabled = true;
+                    voiceButton.textContent = '🔒 HTTPS必須';
+                    voiceButton.style.opacity = '0.5';
+                    voiceButton.title = '音声認識にはHTTPS接続が必要です';
+                }
                 return;
             }
             
-            // 音声認識オブジェクトを作成
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            
-            // 設定
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
-            recognition.maxAlternatives = 1;
-            
-            // イベントリスナー
-            recognition.onstart = function() {
-                console.log('🎤 Speech recognition started');
-                isRecording = true;
-                updateVoiceButton();
-            };
-            
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                console.log('🎤 Speech recognized:', transcript);
-                
-                // 結果をテキストエリアに挿入
-                const userInput = document.getElementById('userInput');
-                userInput.value = transcript;
-                userInput.focus();
-            };
-            
-            recognition.onerror = function(event) {
-                console.error('🎤 Speech recognition error:', event.error);
-                isRecording = false;
-                updateVoiceButton();
-                
-                let errorMessage;
-                switch(event.error) {
-                    case 'no-speech':
-                        errorMessage = '音声が検出されませんでした。もう一度お試しください。';
-                        break;
-                    case 'audio-capture':
-                        errorMessage = 'マイクにアクセスできません。権限を確認してください。';
-                        break;
-                    case 'not-allowed':
-                        errorMessage = 'マイクの使用が許可されていません。ブラウザ設定を確認してください。';
-                        break;
-                    case 'network':
-                        errorMessage = 'ネットワークエラーが発生しました。';
-                        break;
-                    default:
-                        errorMessage = '音声認識エラーが発生しました: ' + event.error;
+            // ブラウザサポートチェック
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                console.log('❌ Speech recognition not supported in this browser');
+                const voiceButton = document.getElementById('voiceButton');
+                if (voiceButton) {
+                    voiceButton.disabled = true;
+                    voiceButton.textContent = '🚫 音声非対応';
+                    voiceButton.style.opacity = '0.5';
+                    voiceButton.title = 'このブラウザは音声認識をサポートしていません';
                 }
-                alert('🎤 ' + errorMessage);
-            };
+                return;
+            }
             
-            recognition.onend = function() {
-                console.log('🎤 Speech recognition ended');
-                isRecording = false;
-                updateVoiceButton();
-            };
-            
-            console.log('✅ Speech recognition initialized successfully');
+            try {
+                // 音声認識オブジェクトを作成
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                
+                // 設定
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+                recognition.maxAlternatives = 1;
+                
+                // イベントリスナー
+                recognition.onstart = function() {
+                    console.log('🎤 Speech recognition started');
+                    isRecording = true;
+                    updateVoiceButton();
+                };
+                
+                recognition.onresult = function(event) {
+                    console.log('🎤 Recognition result event:', event);
+                    
+                    if (event.results && event.results.length > 0) {
+                        const transcript = event.results[0][0].transcript;
+                        console.log('🎤 Speech recognized:', transcript);
+                        
+                        // 結果をテキストエリアに挿入
+                        const userInput = document.getElementById('userInput');
+                        if (userInput) {
+                            userInput.value = transcript;
+                            userInput.focus();
+                        }
+                    }
+                };
+                
+                recognition.onerror = function(event) {
+                    console.error('🎤 Speech recognition error:', event.error);
+                    isRecording = false;
+                    updateVoiceButton();
+                    
+                    let errorMessage;
+                    switch(event.error) {
+                        case 'no-speech':
+                            errorMessage = '音声が検出されませんでした。もう一度お試しください。';
+                            break;
+                        case 'audio-capture':
+                            errorMessage = 'マイクにアクセスできません。権限を確認してください。';
+                            break;
+                        case 'not-allowed':
+                            errorMessage = 'マイクの使用が許可されていません。ブラウザ設定を確認してください。';
+                            break;
+                        case 'network':
+                            errorMessage = 'ネットワークエラーが発生しました。';
+                            break;
+                        case 'service-not-allowed':
+                            errorMessage = 'HTTPSが必要です。セキュアな接続でお試しください。';
+                            break;
+                        default:
+                            errorMessage = '音声認識エラーが発生しました: ' + event.error;
+                    }
+                    alert('🎤 ' + errorMessage);
+                };
+                
+                recognition.onend = function() {
+                    console.log('🎤 Speech recognition ended');
+                    isRecording = false;
+                    updateVoiceButton();
+                };
+                
+                console.log('✅ Speech recognition initialized successfully');
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize speech recognition:', error);
+                const voiceButton = document.getElementById('voiceButton');
+                if (voiceButton) {
+                    voiceButton.disabled = true;
+                    voiceButton.textContent = '🚫 初期化エラー';
+                    voiceButton.style.opacity = '0.5';
+                }
+            }
         }
         
         // 音声入力のトグル
         function toggleVoiceInput() {
+            console.log('🎤 toggleVoiceInput called, isRecording:', isRecording);
+            
             if (!recognition) {
-                alert('音声認識がサポートされていません。');
+                alert('音声認識が初期化されていません。ページを再読み込みしてください。');
                 return;
             }
             
             if (isRecording) {
                 console.log('🎤 Stopping speech recognition');
-                recognition.stop();
+                try {
+                    recognition.stop();
+                } catch (error) {
+                    console.error('🎤 Error stopping recognition:', error);
+                    isRecording = false;
+                    updateVoiceButton();
+                }
             } else {
                 console.log('🎤 Starting speech recognition');
                 try {
-                    recognition.start();
+                    // マイク権限の確認
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        navigator.mediaDevices.getUserMedia({ audio: true })
+                            .then(function(stream) {
+                                // 権限が取得できた場合
+                                stream.getTracks().forEach(track => track.stop()); // ストリームを停止
+                                recognition.start();
+                            })
+                            .catch(function(err) {
+                                console.error('🎤 Microphone access denied:', err);
+                                alert('マイクへのアクセスが拒否されました。ブラウザの設定でマイクの使用を許可してください。');
+                            });
+                    } else {
+                        // getUserMediaが利用できない場合は直接開始を試行
+                        recognition.start();
+                    }
                 } catch (error) {
                     console.error('🎤 Failed to start recognition:', error);
-                    alert('音声認識を開始できませんでした。マイクの権限を確認してください。');
+                    alert('音声認識を開始できませんでした: ' + error.message);
                 }
             }
         }
@@ -1631,6 +1695,8 @@
         // 音声ボタンの表示更新
         function updateVoiceButton() {
             const voiceButton = document.getElementById('voiceButton');
+            if (!voiceButton) return;
+            
             if (isRecording) {
                 voiceButton.textContent = '⏹️ 停止';
                 voiceButton.classList.add('voice-recording');
