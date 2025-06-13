@@ -176,7 +176,7 @@
 
         .voice-button {
             padding: 15px;
-            background: linear-gradient(135deg, #dc3545, #c82333);
+            background: linear-gradient(135deg, #28a745, #20a042);
             color: white;
             border: none;
             border-radius: 50%;
@@ -192,12 +192,18 @@
 
         .voice-button:hover {
             transform: scale(1.1);
-            box-shadow: 0 5px 20px rgba(220, 53, 69, 0.4);
+            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
         }
 
         .voice-button.recording {
-            background: linear-gradient(135deg, #28a745, #20a042);
+            background: linear-gradient(135deg, #dc3545, #c82333);
             animation: pulse 1.5s infinite;
+        }
+
+        .voice-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .send-button {
@@ -311,6 +317,29 @@
             font-size: 12px;
         }
 
+        .status-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(40, 167, 69, 0.95);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 10000;
+            display: none;
+        }
+
+        .status-message.error {
+            background: rgba(220, 53, 69, 0.95);
+        }
+
+        .status-message.warning {
+            background: rgba(255, 193, 7, 0.95);
+            color: black;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
@@ -365,6 +394,8 @@
 </head>
 
 <body>
+    <div id="statusMessage" class="status-message"></div>
+    
     <div class="container">
         <div class="header">
             <h1>英語コソ練アプリ</h1>
@@ -461,112 +492,57 @@
         let sessionStartTime = Date.now();
         let sessionTimer = null;
         let messageCounter = 0;
-        let currentScenario = '';
-        let currentDifficulty = '';
+        let currentScenario = 'ビジネス英会話練習';
+        let currentDifficulty = 'normal';
         let recognition = null;
         let isRecording = false;
 
+        // ページ読み込み完了時の処理
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 DOM Content Loaded');
             
-            // セッション情報を読み込み
-            loadSessionInfo();
-            
-            // セッション時間を開始
-            startSessionTimer();
-            
-            // イベントリスナーを設定
-            setupEventListeners();
-            
-            // 音声認識を初期化（iOS Safari向けに遅延）
-            setTimeout(() => {
-                initializeSpeechRecognition();
-                
-                // iOS Safari向けの追加チェック
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-                const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS/.test(navigator.userAgent);
-                
-                if (isIOS && isSafari) {
-                    checkIOSMicrophonePermission();
-                }
-            }, 1500); // iOS Safari向けに長めの遅延
-            
-            console.log('✅ Conversation session initialized');
-        });
-        
-        // iOS Safari向けマイク権限チェック
-        async function checkIOSMicrophonePermission() {
-            console.log('🔍 Checking iOS Safari microphone permission...');
-            
             try {
-                // iOS Safariでの権限チェック
-                if (navigator.permissions && navigator.permissions.query) {
-                    const permission = await navigator.permissions.query({ name: 'microphone' });
-                    console.log('🎤 Microphone permission status:', permission.state);
-                    
-                    const voiceButton = document.getElementById('voiceButton');
-                    if (!voiceButton) return;
-                    
-                    switch (permission.state) {
-                        case 'granted':
-                            console.log('✅ Microphone permission granted');
-                            voiceButton.style.backgroundColor = '#28a745';
-                            voiceButton.title = 'マイク権限OK - タップして音声入力開始';
-                            break;
-                        case 'denied':
-                            console.log('❌ Microphone permission denied');
-                            voiceButton.style.backgroundColor = '#dc3545';
-                            voiceButton.title = 'マイク権限が拒否されています - 設定で許可してください';
-                            break;
-                        case 'prompt':
-                            console.log('❓ Microphone permission will be prompted');
-                            voiceButton.style.backgroundColor = '#ffc107';
-                            voiceButton.title = 'タップしてマイク権限を許可してください';
-                            break;
-                    }
-                    
-                    // 権限状態の変更を監視
-                    permission.addEventListener('change', function() {
-                        console.log('🔄 Microphone permission changed to:', permission.state);
-                        checkIOSMicrophonePermission(); // 再チェック
-                    });
-                }
-            } catch (error) {
-                console.log('ℹ️ Permission API not available on this iOS version:', error.message);
+                // セッション情報を読み込み
+                loadSessionInfo();
                 
-                // Permission API が使えない場合は getUserMedia で間接的にチェック
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    stream.getTracks().forEach(track => track.stop());
-                    console.log('✅ Microphone access appears to be available');
-                    
-                    const voiceButton = document.getElementById('voiceButton');
-                    if (voiceButton) {
-                        voiceButton.style.backgroundColor = '#28a745';
-                        voiceButton.title = 'マイクアクセスOK - タップして音声入力開始';
-                    }
-                } catch (permError) {
-                    console.log('❌ Microphone access denied or unavailable:', permError.message);
-                    
-                    const voiceButton = document.getElementById('voiceButton');
-                    if (voiceButton) {
-                        voiceButton.style.backgroundColor = '#dc3545';
-                        voiceButton.title = 'マイクアクセスが必要です - 設定で許可してください';
-                    }
-                }
+                // セッション時間を開始
+                startSessionTimer();
+                
+                // イベントリスナーを設定
+                setupEventListeners();
+                
+                // 初期化完了メッセージ
+                showStatus('アプリが正常に初期化されました', 'success');
+                
+                // 音声認識を初期化（遅延実行）
+                setTimeout(initializeSpeechRecognition, 1000);
+                
+                console.log('✅ Conversation session initialized');
+                
+            } catch (error) {
+                console.error('❌ Initialization error:', error);
+                showStatus('初期化エラー: ' + error.message, 'error');
+            }
+        });
+
+        // ステータスメッセージ表示
+        function showStatus(message, type = 'success') {
+            const statusElement = document.getElementById('statusMessage');
+            if (statusElement) {
+                statusElement.textContent = message;
+                statusElement.className = `status-message ${type}`;
+                statusElement.style.display = 'block';
+                
+                setTimeout(() => {
+                    statusElement.style.display = 'none';
+                }, 3000);
             }
         }
 
+        // セッション情報読み込み
         function loadSessionInfo() {
             try {
-                // セッション情報を読み込み
-                currentScenario = 'ビジネス英会話練習';
-                currentDifficulty = 'normal';
-                
-                console.log('📋 Session info loaded:', {
-                    scenario: currentScenario,
-                    difficulty: currentDifficulty
-                });
+                console.log('📋 Loading session info...');
                 
                 // UIに反映
                 document.getElementById('scenarioName').textContent = currentScenario;
@@ -575,19 +551,20 @@
                 // 初期メッセージを生成
                 generateInitialMessage();
                 
+                console.log('✅ Session info loaded successfully');
+                
             } catch (error) {
                 console.error('❌ Error loading session info:', error);
+                showStatus('セッション情報の読み込みに失敗しました', 'error');
                 
-                // フォールバック
-                currentScenario = 'ビジネス英会話練習';
-                currentDifficulty = 'normal';
+                // フォールバック処理
                 document.getElementById('scenarioName').textContent = currentScenario;
-                document.getElementById('difficultyLevel').textContent = '標準';
-                
+                document.getElementById('difficultyLevel').textContent = '中級';
                 generateInitialMessage();
             }
         }
 
+        // 難易度ラベル取得
         function getDifficultyLabel(difficulty) {
             const labels = {
                 'easy': '初級',
@@ -597,27 +574,9 @@
             return labels[difficulty] || '中級';
         }
 
+        // 初期メッセージ生成
         function generateInitialMessage() {
-            const scenarioLower = currentScenario.toLowerCase();
-            let initialMessage = '';
-            
-            // シナリオに応じた初期メッセージ
-            if (scenarioLower.includes('会議') || scenarioLower.includes('meeting')) {
-                initialMessage = "Good morning! Thanks for joining today's meeting. I'm excited to discuss our project progress with you. How has your week been going so far?";
-            } else if (scenarioLower.includes('プレゼン') || scenarioLower.includes('presentation')) {
-                initialMessage = "Thank you for taking the time to see our presentation today. I'm looking forward to sharing our proposal with you. Shall we get started, or do you have any questions before we begin?";
-            } else if (scenarioLower.includes('電話') || scenarioLower.includes('phone') || scenarioLower.includes('アポ')) {
-                initialMessage = "Hello, thank you for calling. I understand you'd like to schedule a meeting with us. I'd be happy to help you find a suitable time. What works best for your schedule?";
-            } else if (scenarioLower.includes('雑談') || scenarioLower.includes('casual')) {
-                initialMessage = "Hey there! Good to see you. How's your day going? I just grabbed a coffee - the weather's been pretty nice lately, hasn't it?";
-            } else if (scenarioLower.includes('顧客') || scenarioLower.includes('customer') || scenarioLower.includes('client')) {
-                initialMessage = "Good afternoon! Thank you for contacting our support team. I'm here to help you with any questions or concerns you might have. How can I assist you today?";
-            } else if (scenarioLower.includes('交渉') || scenarioLower.includes('negotiation')) {
-                initialMessage = "Good afternoon. I appreciate you taking the time to meet with us today to discuss our proposal. I believe we can find a mutually beneficial arrangement. What are your main priorities for this partnership?";
-            } else {
-                // デフォルトメッセージ
-                initialMessage = "Hello! I'm excited to practice English conversation with you today. Let's have a great discussion about our business scenario. How would you like to begin?";
-            }
+            const initialMessage = "Hello! I'm excited to practice English conversation with you today. Let's have a great discussion about our business scenario. How would you like to begin?";
             
             // 初期メッセージを表示
             document.getElementById('initialMessage').textContent = initialMessage;
@@ -630,9 +589,10 @@
                 timestamp: new Date().toISOString()
             });
             
-            console.log('💬 Initial message generated:', initialMessage.substring(0, 50) + '...');
+            console.log('💬 Initial message generated');
         }
 
+        // セッションタイマー開始
         function startSessionTimer() {
             sessionTimer = setInterval(() => {
                 const elapsed = Date.now() - sessionStartTime;
@@ -644,192 +604,39 @@
             }, 1000);
         }
 
+        // イベントリスナー設定
         function setupEventListeners() {
             const sendButton = document.getElementById('sendButton');
             const userInput = document.getElementById('userInput');
             const voiceButton = document.getElementById('voiceButton');
             
-            // 送信ボタン
-            sendButton.addEventListener('click', sendMessage);
+            if (sendButton) {
+                sendButton.addEventListener('click', sendMessage);
+            }
             
-            // Enterキーで送信 (Shift+Enterで改行)
-            userInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                }
-            });
+            if (userInput) {
+                userInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+            }
             
-            // 音声入力ボタン
-            voiceButton.addEventListener('click', toggleVoiceInput);
+            if (voiceButton) {
+                voiceButton.addEventListener('click', toggleVoiceInput);
+            }
             
             console.log('🎧 Event listeners set up');
         }
 
-        // 音声認識の初期化（安定性重視版）
-        function initializeSpeechRecognition() {
-            console.log('🎤 Initializing speech recognition...');
-            
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS/.test(navigator.userAgent);
-            const isAndroid = /Android/.test(navigator.userAgent);
-            const isChrome = /Chrome/.test(navigator.userAgent);
-            const isMobile = isIOS || isAndroid;
-            
-            console.log('📱 Device Detection:', {
-                isIOS,
-                isSafari,
-                isAndroid,
-                isChrome,
-                isMobile
-            });
-            
-            // モバイル環境の厳密チェック
-            if (isMobile) {
-                if (isIOS && !isSafari) {
-                    showVoiceError('iOSではSafariブラウザが必要です', 'safari-required');
-                    return;
-                }
-                if (isAndroid && !isChrome) {
-                    showVoiceError('AndroidではChromeブラウザが必要です', 'chrome-required');
-                    return;
-                }
-            }
-            
-            // HTTPS必須チェック
-            const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-            console.log('🔒 Is Secure:', isSecure);
-            
-            if (!isSecure) {
-                showVoiceError('音声認識にはHTTPS接続が必要です', 'https-required');
-                return;
-            }
-            
-            // ブラウザAPI対応チェック
-            const hasWebKitSpeech = 'webkitSpeechRecognition' in window;
-            const hasSpeech = 'SpeechRecognition' in window;
-            
-            console.log('🎤 Speech API Support:', {
-                webkitSpeechRecognition: hasWebKitSpeech,
-                SpeechRecognition: hasSpeech
-            });
-            
-            if (!hasWebKitSpeech && !hasSpeech) {
-                showVoiceError('このブラウザは音声認識をサポートしていません', 'not-supported');
-                return;
-            }
-            
-            try {
-                // 音声認識オブジェクトを作成
-                console.log('🎤 Creating speech recognition instance...');
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                recognition = new SpeechRecognition();
-                
-                // 設定
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                recognition.lang = 'en-US';
-                recognition.maxAlternatives = 1;
-                
-                console.log('✅ Speech recognition initialized successfully');
-                
-            } catch (error) {
-                console.error('❌ Failed to initialize speech recognition:', error);
-                showVoiceError('音声認識の初期化に失敗しました: ' + error.message, 'init-failed');
-            }
-        }
-        
-        // 音声ボタンエラー表示
-        function showVoiceError(message, type) {
-            const voiceButton = document.getElementById('voiceButton');
-            if (voiceButton) {
-                voiceButton.disabled = true;
-                voiceButton.style.opacity = '0.5';
-                
-                switch(type) {
-                    case 'safari-required':
-                        voiceButton.textContent = '📱S';
-                        voiceButton.title = 'iOSではSafariが必要';
-                        break;
-                    case 'chrome-required':
-                        voiceButton.textContent = '📱C';
-                        voiceButton.title = 'AndroidではChromeが必要';
-                        break;
-                    case 'https-required':
-                        voiceButton.textContent = '🔒';
-                        voiceButton.title = 'HTTPS接続が必要';
-                        break;
-                    case 'not-supported':
-                        voiceButton.textContent = '🚫';
-                        voiceButton.title = '音声認識非対応';
-                        break;
-                    default:
-                        voiceButton.textContent = '❌';
-                        voiceButton.title = message;
-                }
-            }
-        }
-
-        // 音声入力のトグル
-        function toggleVoiceInput() {
-            console.log('🎤 toggleVoiceInput called, isRecording:', isRecording);
-            
-            if (!recognition) {
-                console.error('❌ Recognition not initialized');
-                alert('音声認識が初期化されていません。ページを再読み込みしてください。');
-                return;
-            }
-            
-            if (isRecording) {
-                console.log('🎤 Stopping speech recognition');
-                try {
-                    recognition.stop();
-                    isRecording = false;
-                    updateVoiceButton();
-                } catch (error) {
-                    console.error('🎤 Error stopping recognition:', error);
-                    isRecording = false;
-                    updateVoiceButton();
-                }
-            } else {
-                console.log('🎤 Starting speech recognition');
-                try {
-                    recognition.start();
-                    isRecording = true;
-                    updateVoiceButton();
-                } catch (error) {
-                    console.error('🎤 Error starting recognition:', error);
-                    isRecording = false;
-                    updateVoiceButton();
-                    alert('音声認識の開始に失敗しました: ' + error.message);
-                }
-            }
-        }
-
-        // 音声ボタンの表示更新
-        function updateVoiceButton() {
-            const voiceButton = document.getElementById('voiceButton');
-            if (!voiceButton) return;
-            
-            if (isRecording) {
-                voiceButton.classList.add('recording');
-                voiceButton.textContent = '🔴';
-                voiceButton.title = '録音中 - クリックで停止';
-                voiceButton.style.backgroundColor = '#dc3545';
-            } else {
-                voiceButton.classList.remove('recording');
-                voiceButton.textContent = '🎤';
-                voiceButton.title = 'クリックで音声入力開始';
-                voiceButton.style.backgroundColor = '';
-            }
-        }
-
+        // メッセージ送信
         function sendMessage() {
             const userInput = document.getElementById('userInput');
             const message = userInput.value.trim();
             
             if (!message) {
-                alert('メッセージを入力してください。');
+                showStatus('メッセージを入力してください', 'warning');
                 return;
             }
             
@@ -843,21 +650,27 @@
             
             // 送信ボタンを無効化
             const sendButton = document.getElementById('sendButton');
-            sendButton.disabled = true;
+            if (sendButton) {
+                sendButton.disabled = true;
+            }
             
             // タイピングインジケーターを表示
             showTypingIndicator();
             
             // AIの応答を生成（遅延付き）
             setTimeout(() => {
-                const aiResponse = generateContextualResponse(message, currentScenario, currentDifficulty);
+                const aiResponse = generateAIResponse(message);
                 hideTypingIndicator();
                 addMessage('ai', aiResponse);
-                sendButton.disabled = false;
+                
+                if (sendButton) {
+                    sendButton.disabled = false;
+                }
                 userInput.focus();
-            }, 1500 + Math.random() * 1000); // 1.5-2.5秒のランダム遅延
+            }, 1500 + Math.random() * 1000);
         }
 
+        // メッセージ追加
         function addMessage(role, content) {
             const chatContainer = document.getElementById('chatContainer');
             const messageDiv = document.createElement('div');
@@ -880,9 +693,11 @@
             messageDiv.appendChild(timestampSpan);
             
             // 初期メッセージを削除（最初のメッセージの場合）
-            const initialMessage = chatContainer.querySelector('.message.ai');
-            if (initialMessage && initialMessage.querySelector('#initialMessage')) {
-                chatContainer.removeChild(initialMessage);
+            if (messageCounter === 0) {
+                const initialMessage = chatContainer.querySelector('.message.ai');
+                if (initialMessage && initialMessage.querySelector('#initialMessage')) {
+                    chatContainer.removeChild(initialMessage);
+                }
             }
             
             chatContainer.appendChild(messageDiv);
@@ -904,17 +719,18 @@
             console.log(`✅ Message added: ${role} - ${content.substring(0, 50)}...`);
         }
 
+        // タイピングインジケーター表示
         function showTypingIndicator() {
             const typingIndicator = document.getElementById('typingIndicator');
             if (typingIndicator) {
                 typingIndicator.style.display = 'block';
                 
-                // スクロールを最下部に
                 const chatContainer = document.getElementById('chatContainer');
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
         }
 
+        // タイピングインジケーター非表示
         function hideTypingIndicator() {
             const typingIndicator = document.getElementById('typingIndicator');
             if (typingIndicator) {
@@ -922,86 +738,192 @@
             }
         }
 
-        // 文脈に応じた応答を生成
-        function generateContextualResponse(userMessage, scenario, difficulty) {
-            const message = userMessage.toLowerCase().trim();
-            const scenarioLower = scenario.toLowerCase();
-            
-            console.log('🤖 Generating contextual response for:', userMessage);
-            console.log('📋 Scenario context:', scenario);
-            
-            // 会議シナリオの応答
-            if (scenarioLower.includes('meeting') || scenarioLower.includes('team') || scenarioLower.includes('会議')) {
-                return generateMeetingResponse(message);
-            }
-            
-            // プレゼンテーションシナリオの応答
-            if (scenarioLower.includes('presentation') || scenarioLower.includes('proposal') || scenarioLower.includes('プレゼン')) {
-                return generatePresentationResponse(message);
-            }
-            
-            // 顧客対応シナリオの応答
-            if (scenarioLower.includes('client') || scenarioLower.includes('customer') || scenarioLower.includes('phone') || scenarioLower.includes('クライアント')) {
-                return generateCustomerServiceResponse(message);
-            }
-            
-            // 一般的なビジネス応答
-            return generateGeneralBusinessResponse(message, scenario);
-        }
-
-        function generateMeetingResponse(message) {
+        // AI応答生成
+        function generateAIResponse(userMessage) {
             const responses = [
                 "That's a great point! I think we should definitely consider that approach. What do you think the timeline would look like for implementation?",
                 "I appreciate you bringing that up. How do you think this aligns with our current objectives?",
                 "Excellent! That could really help us move forward. Should we assign someone to look into this further?",
                 "That's interesting. Could you elaborate on how you see this working in practice?",
-                "I agree with your assessment. What would be the next steps to make this happen?"
-            ];
-            return responses[Math.floor(Math.random() * responses.length)];
-        }
-
-        function generatePresentationResponse(message) {
-            const responses = [
-                "Thank you for that question. Let me address that point specifically. I believe our data shows...",
+                "I agree with your assessment. What would be the next steps to make this happen?",
+                "Thank you for that question. Let me address that point specifically.",
                 "That's an excellent observation. You're absolutely right to focus on that aspect.",
-                "I'm glad you brought that up. This is actually one of our key differentiators.",
-                "Great question! Let me show you how we've addressed that in our proposal.",
-                "That's a very valid concern. Here's how we recommend handling that situation..."
-            ];
-            return responses[Math.floor(Math.random() * responses.length)];
-        }
-
-        function generateCustomerServiceResponse(message) {
-            const responses = [
-                "I understand your concern, and I'm here to help resolve this for you. Let me look into that right away.",
-                "Thank you for bringing this to our attention. I can definitely assist you with that.",
-                "I apologize for any inconvenience this may have caused. Let me find the best solution for you.",
-                "That's a great question. I'd be happy to explain how that works.",
-                "I see what you mean. Let me check our system and get back to you with the details."
-            ];
-            return responses[Math.floor(Math.random() * responses.length)];
-        }
-
-        function generateGeneralBusinessResponse(message, scenario) {
-            const responses = [
-                "I see what you're getting at. That's definitely worth exploring further.",
+                "I understand your concern, and I'm here to help resolve this for you.",
                 "That makes a lot of sense. How do you think we should proceed with this?",
-                "You raise a good point. I hadn't considered that angle before.",
-                "Absolutely! I think that could work really well for our situation.",
-                "That's an interesting perspective. Could you tell me more about your thinking on this?"
+                "You raise a good point. I hadn't considered that angle before."
             ];
+            
             return responses[Math.floor(Math.random() * responses.length)];
         }
 
-        // コントロール関数
+        // 音声認識初期化
+        function initializeSpeechRecognition() {
+            console.log('🎤 Initializing speech recognition...');
+            
+            try {
+                // ブラウザサポート確認
+                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                    throw new Error('音声認識がサポートされていません');
+                }
+                
+                // 音声認識オブジェクト作成
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                
+                // 設定
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+                recognition.maxAlternatives = 1;
+                
+                // イベントリスナー
+                recognition.onstart = function() {
+                    console.log('🎤 Speech recognition started');
+                    isRecording = true;
+                    updateVoiceButton();
+                    showStatus('音声認識開始 - 話してください', 'success');
+                };
+                
+                recognition.onresult = function(event) {
+                    console.log('🎤 Speech recognition result received');
+                    
+                    if (event.results && event.results.length > 0) {
+                        const transcript = event.results[0][0].transcript.trim();
+                        console.log('🎤 Transcript:', transcript);
+                        
+                        if (transcript) {
+                            const userInput = document.getElementById('userInput');
+                            if (userInput) {
+                                const currentText = userInput.value.trim();
+                                userInput.value = currentText ? currentText + ' ' + transcript : transcript;
+                                userInput.focus();
+                                showStatus('音声認識成功: ' + transcript, 'success');
+                            }
+                        }
+                    }
+                };
+                
+                recognition.onerror = function(event) {
+                    console.error('🎤 Speech recognition error:', event.error);
+                    isRecording = false;
+                    updateVoiceButton();
+                    
+                    let errorMessage = '音声認識エラー';
+                    switch(event.error) {
+                        case 'no-speech':
+                            errorMessage = '音声が検出されませんでした';
+                            break;
+                        case 'audio-capture':
+                            errorMessage = 'マイクにアクセスできません';
+                            break;
+                        case 'not-allowed':
+                            errorMessage = 'マイクの使用が許可されていません';
+                            break;
+                        case 'network':
+                            errorMessage = 'ネットワークエラーが発生しました';
+                            break;
+                        default:
+                            errorMessage = `音声認識エラー: ${event.error}`;
+                    }
+                    
+                    showStatus(errorMessage, 'error');
+                };
+                
+                recognition.onend = function() {
+                    console.log('🎤 Speech recognition ended');
+                    isRecording = false;
+                    updateVoiceButton();
+                };
+                
+                console.log('✅ Speech recognition initialized successfully');
+                showStatus('音声認識が利用可能です', 'success');
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize speech recognition:', error);
+                
+                const voiceButton = document.getElementById('voiceButton');
+                if (voiceButton) {
+                    voiceButton.disabled = true;
+                    voiceButton.textContent = '🚫';
+                    voiceButton.title = '音声認識利用不可';
+                }
+                
+                showStatus('音声認識を初期化できませんでした', 'error');
+            }
+        }
+
+        // 音声入力トグル
+        function toggleVoiceInput() {
+            console.log('🎤 Toggle voice input, isRecording:', isRecording);
+            
+            if (!recognition) {
+                showStatus('音声認識が初期化されていません', 'error');
+                return;
+            }
+            
+            if (isRecording) {
+                try {
+                    recognition.stop();
+                    isRecording = false;
+                    updateVoiceButton();
+                    showStatus('音声認識を停止しました', 'success');
+                } catch (error) {
+                    console.error('🎤 Error stopping recognition:', error);
+                    isRecording = false;
+                    updateVoiceButton();
+                }
+            } else {
+                try {
+                    recognition.start();
+                } catch (error) {
+                    console.error('🎤 Error starting recognition:', error);
+                    showStatus('音声認識の開始に失敗しました', 'error');
+                }
+            }
+        }
+
+        // 音声ボタン更新
+        function updateVoiceButton() {
+            const voiceButton = document.getElementById('voiceButton');
+            if (!voiceButton) return;
+            
+            if (isRecording) {
+                voiceButton.classList.add('recording');
+                voiceButton.textContent = '🔴';
+                voiceButton.title = '録音中 - クリックで停止';
+            } else {
+                voiceButton.classList.remove('recording');
+                voiceButton.textContent = '🎤';
+                voiceButton.title = 'クリックで音声入力開始';
+            }
+        }
+
+        // セッション一時停止
         function pauseSession() {
             if (sessionTimer) {
                 clearInterval(sessionTimer);
                 sessionTimer = null;
-                alert('セッションを一時停止しました。');
+                showStatus('セッションを一時停止しました', 'success');
+                
+                // 再開ボタンに変更
+                const pauseButton = event.target;
+                pauseButton.textContent = '再開';
+                pauseButton.onclick = resumeSession;
             }
         }
 
+        // セッション再開
+        function resumeSession() {
+            startSessionTimer();
+            showStatus('セッションを再開しました', 'success');
+            
+            // 一時停止ボタンに戻す
+            const resumeButton = event.target;
+            resumeButton.textContent = '一時停止';
+            resumeButton.onclick = pauseSession;
+        }
+
+        // 進捗保存
         function saveProgress() {
             try {
                 const progressData = {
@@ -1009,35 +931,117 @@
                     messageCount: messageCounter,
                     sessionTime: Date.now() - sessionStartTime,
                     scenario: currentScenario,
-                    difficulty: currentDifficulty
+                    difficulty: currentDifficulty,
+                    timestamp: new Date().toISOString()
                 };
                 
+                // メモリ内保存（実際のアプリでは localStorage や サーバーに保存）
                 console.log('💾 Progress saved:', progressData);
-                alert('進捗を保存しました。');
+                showStatus('進捗を保存しました', 'success');
+                
             } catch (error) {
                 console.error('❌ Error saving progress:', error);
-                alert('進捗の保存に失敗しました。');
+                showStatus('進捗の保存に失敗しました', 'error');
             }
         }
 
+        // セッション終了
         function endSession() {
             if (confirm('セッションを終了しますか？')) {
+                // タイマー停止
                 if (sessionTimer) {
                     clearInterval(sessionTimer);
+                    sessionTimer = null;
                 }
                 
-                // 音声認識を停止
+                // 音声認識停止
                 if (recognition && isRecording) {
                     try {
                         recognition.stop();
+                        isRecording = false;
+                        updateVoiceButton();
                     } catch (error) {
                         console.error('Error stopping recognition:', error);
                     }
                 }
                 
-                alert('セッションを終了しました。お疲れ様でした！');
+                // 最終データ保存
+                saveProgress();
                 
-                // セッション終了後の処理（例：メイン画面に戻る）
-                // window.location.href = 'index.html';
+                showStatus('セッションを終了しました。お疲れ様でした！', 'success');
+                
+                // セッション終了後の処理
+                setTimeout(() => {
+                    // ここで通常はメイン画面に戻るか、結果画面を表示
+                    console.log('Session ended successfully');
+                    showSessionSummary();
+                }, 2000);
             }
         }
+
+        // セッション概要表示
+        function showSessionSummary() {
+            const chatContainer = document.getElementById('chatContainer');
+            if (chatContainer) {
+                const summaryDiv = document.createElement('div');
+                summaryDiv.className = 'message ai';
+                summaryDiv.innerHTML = `
+                    <div class="role">Session Summary</div>
+                    <div class="content">
+                        <strong>🎉 セッション完了！</strong><br>
+                        📝 メッセージ数: ${messageCounter}<br>
+                        ⏱️ 経過時間: ${document.getElementById('sessionTimer').textContent}<br>
+                        📋 シナリオ: ${currentScenario}<br>
+                        💪 難易度: ${getDifficultyLabel(currentDifficulty)}<br><br>
+                        お疲れ様でした！また練習しましょう。
+                    </div>
+                    <div class="timestamp">${new Date().toLocaleTimeString('ja-JP')}</div>
+                `;
+                
+                chatContainer.appendChild(summaryDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        }
+
+        // エラーハンドリング
+        window.addEventListener('error', function(event) {
+            console.error('❌ Global error:', event.error);
+            showStatus('エラーが発生しました: ' + event.error.message, 'error');
+        });
+
+        // 未処理の Promise エラー
+        window.addEventListener('unhandledrejection', function(event) {
+            console.error('❌ Unhandled promise rejection:', event.reason);
+            showStatus('システムエラーが発生しました', 'error');
+        });
+
+        // ページが閉じられる前の確認
+        window.addEventListener('beforeunload', function(event) {
+            if (messageCounter > 0) {
+                event.preventDefault();
+                event.returnValue = '会話データが失われます。本当に終了しますか？';
+                return event.returnValue;
+            }
+        });
+
+        // デバッグ情報表示（開発時のみ）
+        function showDebugInfo() {
+            console.log('🔍 Debug Info:', {
+                messageCounter,
+                conversationHistory: conversationHistory.length,
+                isRecording,
+                currentScenario,
+                currentDifficulty,
+                speechRecognitionAvailable: !!recognition,
+                userAgent: navigator.userAgent
+            });
+        }
+
+        // コンソールでデバッグ情報を確認できるように
+        window.showDebugInfo = showDebugInfo;
+        
+        console.log('✅ Application fully loaded and ready');
+        console.log('💡 Type showDebugInfo() in console for debug information');
+    </script>
+</body>
+</html>
