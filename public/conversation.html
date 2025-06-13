@@ -1,4 +1,97 @@
-<!DOCTYPE html>
+// 音声入力のトグル（iOS Safari専用最適化版）
+        function toggleVoiceInput() {
+            console.log('🎤 toggleVoiceInput called, isRecording:', isRecording);
+            
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS/.test(navigator.userAgent);
+            
+            console.log('📱 iOS Safari Check:', { isIOS, isSafari });
+            
+            if (!recognition) {
+                console.error('❌ Recognition not initialized');
+                alert('🎤 音声認識が初期化されていません。\n\n対処法:\n• ページを再読み込み\n• Safariを再起動\n• iOS設定でマイク権限を確認');
+                return;
+            }
+            
+            if (isRecording) {
+                console.log('🎤 Stopping speech recognition (iOS Safari)');
+                try {
+                    recognition.stop();
+                    if (isIOS) {
+                        showIOSRecordingIndicator('⏹️ 音声認識を停止中...', 'stopping');
+                    }
+                } catch (error) {
+                    console.error('🎤 Error stopping recognition on iOS:', error);
+                    isRecording = false;
+                    updateVoiceButton();
+                    if (isIOS) {
+                        hideIOSRecordingIndicator();
+                    }
+                }
+            } else {
+                console.log('🎤 Starting speech recognition (iOS Safari)');
+                
+                if (isIOS && isSafari) {
+                    // iOS Safari専用の開始処理
+                    console.log('📱 iOS Safari speech recognition starting...');
+                    
+                    try {
+                        // iOS Safariでは直接開始（ユーザーアクションが必要）
+                        recognition.start();
+                        console.log('📱 iOS Safari recognition.start() called');
+                        
+                        // 開始中の表示
+                        showIOSRecordingIndicator('🎤 マイクを準備中...', 'preparing');
+                        
+                    } catch (error) {
+                        console.error('📱 iOS Safari recognition failed:', error);
+                        
+                        // iOS Safari特有のエラー対応
+                        let errorTitle = 'iOS Safari音声入力エラー';
+                        let errorMessage = '';
+                        
+                        if (error.name === 'NotAllowedError') {
+                            errorMessage = 'マイクへのアクセスが拒否されました。\n\n🔧 解決手順:\n\n1. アドレスバー左の「aA」をタップ\n2. 「サイト設定」を選択\n3. マイクを「許可」に変更\n4. ページを再読み込み\n\n または:\n\n設定 > Safari > このサイト設定 > マイク「許可」';
+                        } else if (error.name === 'NotSupportedError') {
+                            errorMessage = 'この機能はサポートされていません。\n\n📱 確認事項:\n• iOS 12以降を使用\n• Safari最新版を使用\n• プライベートモードを無効化';
+                        } else if (error.name === 'AbortError') {
+                            errorMessage = '音声認識が中断されました。\n\n📱 対処法:\n• しばらく待ってから再試行\n• Safariを再起動\n• 他のアプリを終了してメモリを解放';
+                        } else if (error.message.includes('already started')) {
+                            errorMessage = '音声認識は既に実行中です。\n\n📱 対処法:\n• しばらく待つ\n• ページを再読み込み';
+                        } else {
+                            errorMessage = `予期しないエラーが発生しました。\n\nエラー: ${error.message}\n\n📱 推奨対処法:\n• Safariを完全に終了して再起動\n• iOSを最新版に更新\n• デバイスを再起動\n• 機内モードON/OFF`;
+                        }
+                        
+                        alert(`🎤 ${errorTitle}\n\n${errorMessage}`);
+                    }
+                    
+                } else if (isIOS && !isSafari) {
+                    // iOS だが Safari以外の場合
+                    alert('🎤 iOS音声入力\n\niOSでは**Safari**ブラウザが必要です。\n\n📱 手順:\n1. Safariアプリでこのサイトを開く\n2. 音声入力ボタンをタップ\n3. マイク権限を許可\n\nChrome、Firefox等では動作しません。');
+                    
+                } else {
+                    // Android等その他のデバイス
+                    try {
+                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                            navigator.mediaDevices.getUserMedia({ audio: true })
+                                .then(function(stream) {
+                                    stream.getTracks().forEach(track => track.stop());
+                                    recognition.start();
+                                })
+                                .catch(function(err) {
+                                    console.error('🎤 Microphone access denied:', err);
+                                    alert('マイクへのアクセスが拒否されました。ブラウザの設定でマイクの使用を許可してください。');
+                                });
+                        } else {
+                            recognition.start();
+                        }
+                    } catch (error) {
+                        console.error('🎤 Failed to start recognition:', error);
+                        alert('音声認識を開始できませんでした: ' + error.message);
+                    }
+                }
+            }
+        }<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -1537,26 +1630,42 @@
             return `Good morning! I'm ready to engage in our business scenario: "${scenario}". Let me set the context and begin our professional interaction. How would you like to approach this situation, and what are your initial thoughts on how we should proceed?`;
         }
         
-        // 音声認識の初期化
+        // 音声認識の初期化（iOS Safari特化版）
         function initializeSpeechRecognition() {
             console.log('🎤 Initializing speech recognition...');
             console.log('📱 User Agent:', navigator.userAgent);
             console.log('🌐 Location:', location.href);
             
-            // モバイルデバイスの詳細検出
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            // デバイス・ブラウザの詳細検出
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome|CriOS|FxiOS/.test(navigator.userAgent);
             const isAndroid = /Android/.test(navigator.userAgent);
-            const isChrome = /Chrome/.test(navigator.userAgent);
-            const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+            const isMobile = isIOS || isAndroid || /webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
             
-            console.log('📱 Device Info:', {
-                isMobile, isIOS, isAndroid, isChrome, isSafari
+            console.log('📱 Device Detection:', {
+                isIOS,
+                isSafari,
+                isAndroid,
+                isMobile,
+                userAgent: navigator.userAgent
             });
             
-            // HTTPSチェック
+            // iOS Safari専用チェック
+            if (isIOS && !isSafari) {
+                console.log('⚠️ iOS detected but not Safari');
+                const voiceButton = document.getElementById('voiceButton');
+                if (voiceButton) {
+                    voiceButton.disabled = true;
+                    voiceButton.textContent = '📱 Safari必須';
+                    voiceButton.style.opacity = '0.5';
+                    voiceButton.title = 'iOSではSafariブラウザが必要です';
+                }
+                return;
+            }
+            
+            // HTTPS必須チェック
             const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-            console.log('🔒 Is Secure:', isSecure);
+            console.log('🔒 Is Secure:', isSecure, 'Protocol:', location.protocol);
             
             if (!isSecure) {
                 console.log('⚠️ HTTPS required for speech recognition');
@@ -1570,143 +1679,160 @@
                 return;
             }
             
-            // ブラウザサポートチェック
-            const hasWebkitSpeech = 'webkitSpeechRecognition' in window;
+            // ブラウザAPI対応チェック
+            const hasWebKitSpeech = 'webkitSpeechRecognition' in window;
             const hasSpeech = 'SpeechRecognition' in window;
-            console.log('🎤 Speech Support:', { hasWebkitSpeech, hasSpeech });
+            console.log('🎤 Speech API Support:', {
+                webkitSpeechRecognition: hasWebKitSpeech,
+                SpeechRecognition: hasSpeech,
+                window_keys: Object.keys(window).filter(k => k.includes('Speech'))
+            });
             
-            if (!hasWebkitSpeech && !hasSpeech) {
+            if (!hasWebKitSpeech && !hasSpeech) {
                 console.log('❌ Speech recognition not supported');
                 const voiceButton = document.getElementById('voiceButton');
                 if (voiceButton) {
                     voiceButton.disabled = true;
-                    if (isMobile) {
-                        if (isIOS && !isSafari) {
-                            voiceButton.textContent = '📱 Safari推奨';
-                            voiceButton.title = 'iOSではSafariブラウザをお使いください';
-                        } else if (isAndroid && !isChrome) {
-                            voiceButton.textContent = '📱 Chrome推奨';
-                            voiceButton.title = 'AndroidではChromeブラウザをお使いください';
-                        } else {
-                            voiceButton.textContent = '📱 音声非対応';
-                            voiceButton.title = 'このモバイルブラウザは音声認識をサポートしていません';
-                        }
-                    } else {
-                        voiceButton.textContent = '🚫 音声非対応';
-                        voiceButton.title = 'このブラウザは音声認識をサポートしていません';
-                    }
+                    voiceButton.textContent = isIOS ? '📱 Safari音声非対応' : '🚫 音声非対応';
                     voiceButton.style.opacity = '0.5';
+                    voiceButton.title = 'このブラウザは音声認識をサポートしていません';
                 }
                 return;
             }
             
             try {
-                // 音声認識オブジェクトを作成
+                // iOS Safari向けの音声認識設定
+                console.log('🎤 Creating speech recognition instance...');
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
                 
-                // モバイル向けの設定
+                // iOS Safari特有の設定
                 recognition.continuous = false;
                 recognition.interimResults = false;
                 recognition.lang = 'en-US';
                 recognition.maxAlternatives = 1;
                 
-                // モバイル特有の設定
-                if (isMobile) {
-                    // モバイルでは短めのタイムアウト
-                    recognition.continuous = false;
-                    recognition.interimResults = false;
+                // iOS向けの追加設定
+                if (isIOS) {
+                    // iOSでは短めの設定で安定性を向上
+                    recognition.grammars = null;
+                    recognition.serviceURI = null;
                 }
                 
-                // イベントリスナー
+                console.log('🎤 Speech recognition configuration:', {
+                    continuous: recognition.continuous,
+                    interimResults: recognition.interimResults,
+                    lang: recognition.lang,
+                    maxAlternatives: recognition.maxAlternatives
+                });
+                
+                // イベントリスナーの設定（iOS最適化）
                 recognition.onstart = function() {
-                    console.log('🎤 Speech recognition started');
+                    console.log('🎤 Speech recognition started (iOS Safari)');
                     isRecording = true;
                     updateVoiceButton();
                     
-                    // モバイルでの視覚的フィードバック
-                    if (isMobile) {
-                        // 画面の背景色を変更
-                        document.body.style.transition = 'background-color 0.3s';
-                        document.body.style.backgroundColor = 'rgba(74, 144, 226, 0.1)';
+                    if (isIOS) {
+                        // iOS専用の視覚フィードバック
+                        document.body.style.background = 'linear-gradient(135deg, #0f0f23, #1a1a2e, #4A90E2)';
+                        showIOSRecordingIndicator('🎤 音声認識中... お話しください');
                         
-                        // バイブレーション（対応端末のみ）
+                        // iOS向けバイブレーション
                         if (navigator.vibrate) {
                             navigator.vibrate(50);
                         }
-                        
-                        // ステータス表示
-                        showMobileRecordingStatus('🎤 録音中... 話してください');
                     }
                 };
                 
                 recognition.onresult = function(event) {
-                    console.log('🎤 Recognition result event:', event);
+                    console.log('🎤 Speech recognition result received');
+                    console.log('Event results:', event.results);
                     
                     if (event.results && event.results.length > 0) {
-                        const transcript = event.results[0][0].transcript;
-                        const confidence = event.results[0][0].confidence;
-                        console.log('🎤 Speech recognized:', transcript, 'Confidence:', confidence);
+                        const result = event.results[0][0];
+                        const transcript = result.transcript;
+                        const confidence = result.confidence;
                         
-                        // 結果をテキストエリアに挿入
+                        console.log('🎤 Transcript:', transcript);
+                        console.log('🎤 Confidence:', confidence);
+                        
+                        // テキストエリアに結果をセット
                         const userInput = document.getElementById('userInput');
                         if (userInput) {
                             userInput.value = transcript;
                             userInput.focus();
                             
-                            // モバイルでの成功フィードバック
-                            if (isMobile) {
+                            // iOS成功フィードバック
+                            if (isIOS) {
                                 navigator.vibrate && navigator.vibrate([50, 50, 50]);
-                                showMobileRecordingStatus('✅ 音声認識完了！', 'success');
+                                showIOSRecordingIndicator('✅ 音声認識成功！', 'success');
                                 
                                 setTimeout(() => {
-                                    hideMobileRecordingStatus();
+                                    hideIOSRecordingIndicator();
                                 }, 2000);
                             }
+                        }
+                    } else {
+                        console.warn('🎤 No speech results received');
+                        if (isIOS) {
+                            showIOSRecordingIndicator('⚠️ 音声が認識されませんでした', 'warning');
+                            setTimeout(() => {
+                                hideIOSRecordingIndicator();
+                            }, 2000);
                         }
                     }
                 };
                 
                 recognition.onerror = function(event) {
                     console.error('🎤 Speech recognition error:', event.error);
-                    console.error('🎤 Error event:', event);
+                    console.error('🎤 Error event details:', event);
+                    
                     isRecording = false;
                     updateVoiceButton();
                     
                     // 背景色を元に戻す
-                    if (isMobile) {
-                        document.body.style.backgroundColor = '';
-                        hideMobileRecordingStatus();
+                    if (isIOS) {
+                        document.body.style.background = '';
+                        hideIOSRecordingIndicator();
                     }
                     
-                    let errorMessage;
+                    // iOS Safari特有のエラーハンドリング
+                    let errorMessage = '';
+                    let showAlert = true;
+                    
                     switch(event.error) {
                         case 'no-speech':
-                            errorMessage = '音声が検出されませんでした。\n\n📱 モバイルのコツ:\n• マイクに近づいて話す\n• 静かな環境で試す\n• ゆっくり明確に話す';
+                            errorMessage = '音声が検出されませんでした。\n\n📱 iOS Safari使用時のコツ:\n• マイクに5cm以内で話す\n• 静かな環境で使用\n• はっきりとゆっくり話す\n• 3秒以内に話し始める';
                             break;
                         case 'audio-capture':
-                            errorMessage = 'マイクにアクセスできません。\n\n📱 モバイル設定:\n• ブラウザの設定でマイクを許可\n• 端末の設定でマイクアクセスを確認';
+                            errorMessage = 'マイクにアクセスできません。\n\n📱 iOS設定確認:\n1. 設定 > Safari > カメラとマイク\n2. このサイトを「許可」に設定\n3. Safariを完全に終了して再起動\n4. ページを再読み込み';
                             break;
                         case 'not-allowed':
-                            errorMessage = 'マイクの使用が許可されていません。\n\n📱 許可方法:\n• アドレスバーの🔒をタップ\n• マイクを「許可」に変更\n• ページを再読み込み';
+                            errorMessage = 'マイクの使用が許可されていません。\n\n📱 許可手順:\n1. アドレスバー左の「aA」をタップ\n2. 「サイト設定」を選択\n3. マイクを「許可」に変更\n4. ページを再読み込み\n\nまたは:\n設定 > Safari > このサイトのマイク設定を確認';
                             break;
                         case 'network':
-                            errorMessage = 'ネットワークエラーが発生しました。\n\n📱 確認事項:\n• インターネット接続を確認\n• Wi-Fiまたは4G/5G接続';
+                            errorMessage = 'ネットワークエラーが発生しました。\n\n📱 確認事項:\n• Wi-Fiまたは4G/5G接続を確認\n• 接続が安定していることを確認\n• しばらく待ってから再試行';
                             break;
                         case 'service-not-allowed':
-                            errorMessage = 'このサイトでは音声認識が許可されていません。\n\n📱 解決方法:\n• HTTPSサイトでアクセス\n• 公式ブラウザを使用';
+                            errorMessage = '音声認識サービスが利用できません。\n\n📱 解決方法:\n• HTTPSサイトでアクセス\n• 最新のiOS Safariを使用\n• プライベートブラウズモードを無効化';
                             break;
                         case 'aborted':
-                            // 単純な中断は無視（ユーザーが停止ボタンを押したなど）
-                            return;
+                            // ユーザーが意図的に停止した場合は無視
+                            showAlert = false;
+                            break;
+                        case 'language-not-supported':
+                            errorMessage = '言語がサポートされていません。\n\n📱 設定確認:\n• iOSの言語設定を確認\n• Siriの言語設定を英語に設定';
+                            break;
                         default:
-                            errorMessage = `音声認識エラー: ${event.error}\n\n📱 推奨:\n• ページを再読み込み\n• 別のブラウザで試す`;
+                            errorMessage = `音声認識エラー: ${event.error}\n\n📱 iOS Safari対処法:\n• Safariを完全に終了して再起動\n• iOSを最新バージョンに更新\n• 機内モードON/OFFを試す\n• デバイスを再起動`;
                     }
                     
-                    // モバイルでは遅延してアラート表示
-                    setTimeout(() => {
-                        alert('🎤 ' + errorMessage);
-                    }, 100);
+                    if (showAlert && errorMessage) {
+                        // iOS向けに少し遅延してアラート表示
+                        setTimeout(() => {
+                            alert('🎤 iOS Safari音声入力\n\n' + errorMessage);
+                        }, 300);
+                    }
                 };
                 
                 recognition.onend = function() {
@@ -1715,106 +1841,128 @@
                     updateVoiceButton();
                     
                     // 背景色を元に戻す
-                    if (isMobile) {
-                        document.body.style.backgroundColor = '';
+                    if (isIOS) {
+                        document.body.style.background = '';
                         
-                        // 録音状態表示を隠す（成功メッセージがない場合）
+                        // 成功表示がない場合のみインジケーターを隠す
                         setTimeout(() => {
-                            const statusElement = document.getElementById('mobileRecordingStatus');
-                            if (statusElement && !statusElement.classList.contains('success')) {
-                                hideMobileRecordingStatus();
+                            const indicator = document.getElementById('iosRecordingIndicator');
+                            if (indicator && !indicator.classList.contains('success')) {
+                                hideIOSRecordingIndicator();
                             }
                         }, 500);
                     }
                 };
                 
-                console.log('✅ Speech recognition initialized successfully');
+                console.log('✅ iOS Safari speech recognition initialized successfully');
                 
-                // モバイルでの初期化テスト（より安全な方法）
-                if (isMobile) {
-                    console.log('📱 Mobile speech recognition ready');
+                // iOS向けの初期化完了メッセージ
+                if (isIOS) {
                     const voiceButton = document.getElementById('voiceButton');
                     if (voiceButton) {
-                        voiceButton.title = 'タップして音声入力を開始';
+                        voiceButton.title = 'タップして英語音声入力開始 (iOS Safari)';
+                        // iOS向けのボタンスタイル調整
+                        voiceButton.style.minHeight = '44px'; // iOS推奨タッチターゲットサイズ
                     }
                 }
                 
             } catch (error) {
-                console.error('❌ Failed to initialize speech recognition:', error);
+                console.error('❌ Failed to initialize speech recognition on iOS Safari:', error);
                 const voiceButton = document.getElementById('voiceButton');
                 if (voiceButton) {
                     voiceButton.disabled = true;
-                    voiceButton.textContent = isMobile ? '📱 初期化エラー' : '🚫 初期化エラー';
+                    voiceButton.textContent = '📱 初期化失敗';
                     voiceButton.style.opacity = '0.5';
                     voiceButton.title = 'Speech recognition initialization failed: ' + error.message;
                 }
+                
+                // 初期化エラーの詳細をユーザーに表示
+                setTimeout(() => {
+                    alert('🎤 iOS Safari音声認識の初期化に失敗しました。\n\n原因:\n' + error.message + '\n\n対処法:\n• Safariを再起動\n• iOSを最新版に更新\n• 設定でマイク権限を確認');
+                }, 1000);
             }
         }
         
-        // モバイル用録音状態表示
-        function showMobileRecordingStatus(message, type = 'recording') {
-            let statusElement = document.getElementById('mobileRecordingStatus');
+        // iOS専用録音インジケーター表示
+        function showIOSRecordingIndicator(message, type = 'recording') {
+            let indicator = document.getElementById('iosRecordingIndicator');
             
-            if (!statusElement) {
-                statusElement = document.createElement('div');
-                statusElement.id = 'mobileRecordingStatus';
-                statusElement.style.cssText = `
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'iosRecordingIndicator';
+                indicator.style.cssText = `
                     position: fixed;
-                    top: 20px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: rgba(0, 0, 0, 0.8);
+                    top: 60px;
+                    left: 20px;
+                    right: 20px;
+                    background: rgba(0, 0, 0, 0.85);
                     color: white;
-                    padding: 12px 20px;
-                    border-radius: 25px;
-                    font-size: 14px;
-                    z-index: 9999;
-                    animation: slideDown 0.3s ease-out;
+                    padding: 16px 20px;
+                    border-radius: 12px;
+                    font-size: 16px;
+                    text-align: center;
+                    z-index: 10000;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                    animation: iosSlideDown 0.3s ease-out;
+                    backdrop-filter: blur(10px);
+                    -webkit-backdrop-filter: blur(10px);
                 `;
-                document.body.appendChild(statusElement);
+                document.body.appendChild(indicator);
                 
-                // アニメーション用のCSS
+                // iOS向けアニメーション
                 const style = document.createElement('style');
                 style.textContent = `
-                    @keyframes slideDown {
-                        from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-                        to { opacity: 1; transform: translateX(-50%) translateY(0); }
+                    @keyframes iosSlideDown {
+                        from { 
+                            opacity: 0; 
+                            transform: translateY(-30px) scale(0.9); 
+                        }
+                        to { 
+                            opacity: 1; 
+                            transform: translateY(0) scale(1); 
+                        }
+                    }
+                    @keyframes iosSlideUp {
+                        from { 
+                            opacity: 1; 
+                            transform: translateY(0) scale(1); 
+                        }
+                        to { 
+                            opacity: 0; 
+                            transform: translateY(-30px) scale(0.9); 
+                        }
                     }
                 `;
                 document.head.appendChild(style);
             }
             
-            statusElement.textContent = message;
-            statusElement.className = type;
+            indicator.textContent = message;
+            indicator.className = type;
             
-            if (type === 'success') {
-                statusElement.style.background = 'rgba(40, 167, 69, 0.9)';
-            } else {
-                statusElement.style.background = 'rgba(220, 53, 69, 0.9)';
+            // タイプ別のスタイル設定
+            switch(type) {
+                case 'success':
+                    indicator.style.background = 'rgba(40, 167, 69, 0.9)';
+                    break;
+                case 'warning':
+                    indicator.style.background = 'rgba(255, 193, 7, 0.9)';
+                    indicator.style.color = 'black';
+                    break;
+                default:
+                    indicator.style.background = 'rgba(220, 53, 69, 0.9)';
             }
         }
         
-        // モバイル用録音状態表示を隠す
-        function hideMobileRecordingStatus() {
-            const statusElement = document.getElementById('mobileRecordingStatus');
-            if (statusElement) {
-                statusElement.style.animation = 'slideUp 0.3s ease-out forwards';
+        // iOS専用録音インジケーター非表示
+        function hideIOSRecordingIndicator() {
+            const indicator = document.getElementById('iosRecordingIndicator');
+            if (indicator) {
+                indicator.style.animation = 'iosSlideUp 0.3s ease-out forwards';
                 setTimeout(() => {
-                    if (statusElement.parentNode) {
-                        statusElement.parentNode.removeChild(statusElement);
+                    if (indicator.parentNode) {
+                        indicator.parentNode.removeChild(indicator);
                     }
                 }, 300);
-            }
-            
-            // slideUpアニメーションを追加
-            const existingStyle = document.querySelector('style');
-            if (existingStyle && !existingStyle.textContent.includes('slideUp')) {
-                existingStyle.textContent += `
-                    @keyframes slideUp {
-                        from { opacity: 1; transform: translateX(-50%) translateY(0); }
-                        to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
-                    }
-                `;
             }
         }
         

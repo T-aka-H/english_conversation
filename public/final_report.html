@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英語コソ練アプリ - 最終レポート</title>
+    <link rel="icon" href="data:,">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
+            color: white; 
+            padding: 20px; 
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.05);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #4A90E2;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .header p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .completion-banner {
+            background: linear-gradient(135deg, #28a745, #20a042);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+        }
+
+        .completion-banner h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
+
+        .completion-banner p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .report-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .report-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-5px);
+        }
+
+        .report-card h3 {
+            color: #4A90E2;
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .report-card .icon {
+            font-size: 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #4A90E2;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.1);
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4A90E2, #28a745);
+            border-radius: 10px;
+            transition: width 1s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .feedback-section {
+            background: rgba(74, 144, 226, 0.1);
+            border: 1px solid rgba(74, 144, 226, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .feedback-section h3 {
+            color: #4A90E2;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .feedback-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .feedback-positive {
+            border-left: 4px solid #28a745;
+        }
+
+        .feedback-improvement {
+            border-left: 4px solid #ffc107;
+        }
+
+        .conversation-summary {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .conversation-summary h3 {
+            color: #4A90E2;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .message-sample {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 3px solid #4A90E2;
+        }
+
+        .message-sample .role {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .button {
+            padding: 18px 30px;
+            background: linear-gradient(135deg, #4A90E2, #357ABD);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            min-width: 180px;
+        }
+
+        .button:hover {
+            background: linear-gradient(135deg, #357ABD, #2E6DA4);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        .button.primary {
+            background: linear-gradient(135deg, #28A745, #20A042);
+        }
+
+        .button.primary:hover {
+            background: linear-gradient(135deg, #20A042, #1E7E3A);
+        }
+
+        .button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .button.secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .achievements {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .achievement {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .achievement.unlocked {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: rgba(255, 215, 0, 0.5);
+        }
+
+        .achievement .emoji {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .achievement .title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .achievement .description {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .tips-section {
+            background: rgba(40, 167, 69, 0.1);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .tips-section h3 {
+            color: #28a745;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .tip-item {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .tip-item::before {
+            content: "💡";
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes progressAnimation {
+            from { width: 0%; }
+            to { width: var(--target-width); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .report-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .button {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .achievements {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* プリント用スタイル */
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            
+            .container {
+                background: white;
+                border: 1px solid #ccc;
+            }
+            
+            .action-buttons {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>英語コソ練アプリ</h1>
+            <p>英会話練習セッション完了レポート</p>
+        </div>
+
+        <div class="completion-banner">
+            <h2>🎉 お疲れ様でした！</h2>
+            <p>英会話セッションが完了しました。素晴らしい練習でした！</p>
+        </div>
+
+        <div class="report-grid">
+            <!-- セッション統計 -->
+            <div class="report-card">
+                <h3><span class="icon">📊</span>セッション統計</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalMessages">--</div>
+                        <div class="stat-label">総メッセージ数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="sessionDuration">--</div>
+                        <div class="stat-label">練習時間</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="averageLength">--</div>
+                        <div class="stat-label">平均文字数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="voiceUsage">--</div>
+                        <div class="stat-label">音声入力使用</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 英語スキル評価 -->
+            <div class="report-card">
+                <h3><span class="icon">🎯</span>英語スキル評価</h3>
+                <div style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>総合スコア</span>
+                        <span id="overallScore">--</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="overallProgress">--</div>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>流暢性</span>
+                        <span id="fluencyScore">--</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="fluencyProgress">--</div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>正確性</span>
+                        <span id="accuracyScore">--</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="accuracyProgress">--</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- フィードバック要約 -->
+        <div class="feedback-section">
+            <h3>📝 学習フィードバック要約</h3>
+            <div id="feedbackSummary">
+                <div class="feedback-item feedback-positive">
+                    <strong>✅ 良かった点:</strong>
+                    <div id="positiveFeedback">分析中...</div>
+                </div>
+                <div class="feedback-item feedback-improvement">
+                    <strong>💡 改善できる点:</strong>
+                    <div id="improvementFeedback">分析中...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 達成状況 -->
+        <div class="report-card">
+            <h3><span class="icon">🏆</span>今回の達成状況</h3>
+            <div class="achievements" id="achievementsList">
+                <div class="achievement" id="conversationMaster">
+                    <div class="emoji">💬</div>
+                    <div class="title">会話マスター</div>
+                    <div class="description">10回以上のやり取り</div>
+                </div>
+                <div class="achievement" id="voiceExpert">
+                    <div class="emoji">🎤</div>
+                    <div class="title">音声入力達人</div>
+                    <div class="description">音声入力を活用</div>
+                </div>
+                <div class="achievement" id="businessPro">
+                    <div class="emoji">💼</div>
+                    <div class="title">ビジネス英語プロ</div>
+                    <div class="description">ビジネス表現を使用</div>
+                </div>
+                <div class="achievement" id="timeKeeper">
+                    <div class="emoji">⏰</div>
+                    <div class="title">集中力キング</div>
+                    <div class="description">15分以上の練習</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 会話サンプル -->
+        <div class="conversation-summary">
+            <h3>💭 会話ハイライト</h3>
+            <div id="conversationSamples">
+                <!-- JavaScriptで動的に生成 -->
+            </div>
+        </div>
+
+        <!-- 次回へのアドバイス -->
+        <div class="tips-section">
+            <h3>🌟 次回の練習に向けて</h3>
+            <div id="nextTips">
+                <div class="tip-item">定期的な練習が上達への近道です</div>
+                <div class="tip-item">今回できなかった表現を復習してみましょう</div>
+                <div class="tip-item">異なるシナリオにもチャレンジしてみてください</div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="button primary" onclick="startNewSession()">
+                新しいセッションを開始
+            </button>
+            <button class="button secondary" onclick="saveReport()">
+                レポートを保存
+            </button>
+            <button class="button secondary" onclick="printReport()">
+                レポートを印刷
+            </button>
+            <button class="button secondary" onclick="goHome()">
+                ホームに戻る
+            </button>
+        </div>
+
+        <div class="footer">
+            <p>developed by T.H. | 英語コソ練アプリ</p>
+        </div>
+    </div>
+
+    <script>
+        console.log('📊 Final report page loaded');
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📈 Initializing final report...');
+            
+            // セッションデータを読み込み
+            loadSessionData();
+            
+            // レポートを生成
+            generateReport();
+            
+            // プログレスバーのアニメーション
+            setTimeout(() => {
+                animateProgressBars();
+            }, 500);
+            
+            console.log('✅ Final report initialized');
+        });
+
+        function loadSessionData() {
+            try {
+                // セッション統計の読み込み
+                const sessionStats = {
+                    messageCount: parseInt(sessionStorage.getItem('messageCount')) || 0,
+                    sessionDuration: sessionStorage.getItem('sessionDuration') || '0分',
+                    averageLength: sessionStorage.getItem('averageMessageLength') || '0',
+                    voiceUsage: sessionStorage.getItem('voiceUsageCount') || '0',
+                    overallScore: parseInt(sessionStorage.getItem('overallScore')) || 75,
+                    fluencyScore: parseInt(sessionStorage.getItem('fluencyScore')) || 80,
+                    accuracyScore: parseInt(sessionStorage.getItem('accuracyScore')) || 70,
+                    conversationHistory: JSON.parse(sessionStorage.getItem('conversationHistory') || '[]'),
+                    selectedScenario: sessionStorage.getItem('selectedScenario') || 'ビジネス会話',
+                    selectedDifficulty: sessionStorage.getItem('selectedDifficulty') || 'normal'
+                };
+
+                console.log('📊 Session data loaded:', sessionStats);
+                window.sessionStats = sessionStats;
+
+            } catch (error) {
+                console.error('❌ Error loading session data:', error);
+                
+                // フォールバックデータ
+                window.sessionStats = {
+                    messageCount: 8,
+                    sessionDuration: '12分',
+                    averageLength: '25',
+                    voiceUsage: '3',
+                    overallScore: 82,
+                    fluencyScore: 85,
+                    accuracyScore: 79,
+                    conversationHistory: [],
+                    selectedScenario: 'ビジネス会話練習',
+                    selectedDifficulty: 'normal'
+                };
+            }
+        }
+
+        function generateReport() {
+            const stats = window.sessionStats;
+            
+            // 基本統計の表示
+            document.getElementById('totalMessages').textContent = stats.messageCount;
+            document.getElementById('sessionDuration').textContent = stats.sessionDuration;
+            document.getElementById('averageLength').textContent = stats.averageLength + '語';
+            document.getElementById('voiceUsage').textContent = stats.voiceUsage + '回';
+            
+            // スコアの表示
+            document.getElementById('overallScore').textContent = stats.overallScore + '%';
+            document.getElementById('fluencyScore').textContent = stats.fluencyScore + '%';
+            document.getElementById('accuracyScore').textContent = stats.accuracyScore + '%';
+            
+            // フィードバック分析
+            generateFeedbackSummary();
+            
+            // 達成状況の更新
+            updateAchievements();
+            
+            // 会話サンプルの生成
+            generateConversationSamples();
+            
+            // 次回へのアドバイス
+            generatePersonalizedTips();
+        }
+
+        function generateFeedbackSummary() {
+            const stats = window.sessionStats;
+            
+            let positivePoints = [];
+            let improvements = [];
+            
+            // スコアベースの分析
+            if (stats.fluencyScore >= 80) {
+                positivePoints.push('流暢な会話ができています');
+            }
+            if (stats.accuracyScore >= 75) {
+                positivePoints.push('文法の正確性が高いです');
+            }
+            if (stats.messageCount >= 10) {
+                positivePoints.push('積極的に会話に参加されました');
+            }
+            if (parseInt(stats.voiceUsage) > 0) {
+                positivePoints.push('音声入力を効果的に活用されました');
+            }
+            
+            // 改善点の分析
+            if (stats.fluencyScore < 70) {
+                improvements.push('より自然な表現を心がけましょう');
+            }
+            if (stats.accuracyScore < 70) {
+                improvements.push('基本的な文法を復習しましょう');
+            }
+            if (parseInt(stats.averageLength) < 15) {
+                improvements.push('もう少し詳細な回答を心がけましょう');
+            }
+            
+            // デフォルトメッセージ
+            if (positivePoints.length === 0) {
+                positivePoints.push('会話練習に取り組まれました');
+            }
+            if (improvements.length === 0) {
+                improvements.push('継続的な練習で更なる向上が期待できます');
+            }
+            
+            document.getElementById('positiveFeedback').innerHTML = positivePoints.join('<br>• ');
+            document.getElementById('improvementFeedback').innerHTML = improvements.join('<br>• ');
+        }
+
+        function updateAchievements() {
+            const stats = window.sessionStats;
+            
+            // 会話マスター (10回以上のやり取り)
+            if (stats.messageCount >= 10) {
+                document.getElementById('conversationMaster').classList.add('unlocked');
+            }
+            
+            // 音声入力達人
+            if (parseInt(stats.voiceUsage) > 0) {
+                document.getElementById('voiceExpert').classList.add('unlocked');
+            }
+            
+            // ビジネス英語プロ (スコア80以上)
+            if (stats.overallScore >= 80) {
+                document.getElementById('businessPro').classList.add('unlocked');
+            }
+            
+            // 集中力キング (15分以上)
+            const duration = parseInt(stats.sessionDuration);
+            if (duration >= 15) {
+                document.getElementById('timeKeeper').classList.add('unlocked');
+            }
+        }
+
+        function generateConversationSamples() {
+            const samples = document.getElementById('conversationSamples');
+            const history = window.sessionStats.conversationHistory;
+            
+            if (history.length > 0) {
+                // 最初と最後の会話を表示
+                const firstExchange = history[0];
+                const lastExchange = history[history.length - 1];
+                
+                samples.innerHTML = `
+                    <div class="message-sample">
+                        <div class="role">会話開始時</div>
+                        <div>${firstExchange.content || '会話を開始しました'}</div>
+                    </div>
+                    <div class="message-sample">
+                        <div class="role">最近の発言</div>
+                        <div>${lastExchange.content || '積極的に会話に参加されました'}</div>
+                    </div>
+                `;
+            } else {
+                samples.innerHTML = `
+                    <div class="message-sample">
+                        <div class="role">セッション</div>
+                        <div>「${window.sessionStats.selectedScenario}」のシナリオで練習を行いました</div>
+                    </div>
+                `;
+            }
+        }
+
+        function generatePersonalizedTips() {
+            const stats = window.sessionStats;
+            const tipsContainer = document.getElementById('nextTips');
+            let tips = [];
+            
+            // スコアベースのアドバイス
+            if (stats.fluencyScore < 75) {
+                tips.push('日常的な英語表現を増やすことで流暢性が向上します');
+            }
+            if (stats.accuracyScore < 75) {
+                tips.push('基本的な文法パターンの復習をお勧めします');
+            }
+            if (parseInt(stats.voiceUsage) === 0) {
+                tips.push('音声入力を使って発音練習も取り入れてみましょう');
+            }
+            if (stats.messageCount < 8) {
+                tips.push('もう少し長めの会話セッションにチャレンジしてみてください');
+            }
+            
+            // 難易度別のアドバイス
+            if (stats.selectedDifficulty === 'normal' && stats.overallScore >= 85) {
+                tips.push('ハード難易度にもチャレンジしてみてください');
+            }
+            
+            // デフォルトのtips
+            tips.push('異なるビジネスシナリオで練習の幅を広げましょう');
+            tips.push('定期的な練習が上達への最短ルートです');
+            
+            // 最大5つまでに制限
+            tips = tips.slice(0, 5);
+            
+            tipsContainer.innerHTML = tips.map(tip => `<div class="tip-item">${tip}</div>`).join('');
+        }
+
+        function animateProgressBars() {
+            const stats = window.sessionStats;
+            
+            // プログレスバーにアニメーション
+            setTimeout(() => {
+                document.getElementById('overallProgress').style.width = stats.overallScore + '%';
+                document.getElementById('overallProgress').textContent = stats.overallScore + '%';
+            }, 200);
+            
+            setTimeout(() => {
+                document.getElementById('fluencyProgress').style.width = stats.fluencyScore + '%';
+                document.getElementById('fluencyProgress').textContent = stats.fluencyScore + '%';
+            }, 400);
+            
+            setTimeout(() => {
+                document.getElementById('accuracyProgress').style.width = stats.accuracyScore + '%';
+                document.getElementById('accuracyProgress').textContent = stats.accuracyScore + '%';
+            }, 600);
+        }
+
+        function startNewSession() {
+            if (confirm('新しいセッションを開始しますか？現在のデータは保存されます。')) {
+                // 現在のセッションデータをアーカイブ
+                archiveSession();
+                
+                // 新しいセッション用にデータをクリア
+                clearSessionData();
+                
+                // シナリオ選択画面に戻る
+                window.location.href = 'scenario.html';
+            }
+        }
+
+        function saveReport() {
+            try {
+                // レポートデータをJSON形式で保存
+                const reportData = {
+                    timestamp: new Date().toISOString(),
+                    scenario: window.sessionStats.selectedScenario,
+                    difficulty: window.sessionStats.selectedDifficulty,
+                    stats: window.sessionStats,
+                    generatedAt: new Date().toLocaleString('ja-JP')
+                };
+                
+                const dataStr = JSON.stringify(reportData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = `英語コソ練レポート_${new Date().toISOString().slice(0, 10)}.json`;
+                link.click();
+                
+                alert('📊 レポートが保存されました！');
+                
+            } catch (error) {
+                console.error('❌ Error saving report:', error);
+                alert('レポートの保存中にエラーが発生しました。');
+            }
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function goHome() {
+            if (confirm('ホーム画面に戻りますか？')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function archiveSession() {
+            try {
+                // セッション履歴を保存
+                const archives = JSON.parse(localStorage.getItem('sessionArchives') || '[]');
+                archives.push({
+                    timestamp: new Date().toISOString(),
+                    stats: window.sessionStats
+                });
+                
+                // 最新10件まで保持
+                if (archives.length > 10) {
+                    archives.splice(0, archives.length - 10);
+                }
+                
+                localStorage.setItem('sessionArchives', JSON.stringify(archives));
+                console.log('📦 Session archived successfully');
+                
+            } catch (error) {
+                console.error('❌ Error archiving session:', error);
+            }
+        }
+
+        function clearSessionData() {
+            try {
+                // セッション関連データをクリア（認証情報は保持）
+                const keysToKeep = ['isAuthenticated', 'authTime', 'userName', 'sessionArchives'];
+                const keysToRemove = [];
+                
+                for (let i = 0; i < sessionStorage.length; i++) {
+                    const key = sessionStorage.key(i);
+                    if (!keysToKeep.includes(key)) {
+                        keysToRemove.push(key);
+                    }
+                }
+                
+                keysToRemove.forEach(key => {
+                    sessionStorage.removeItem(key);
+                });
+                
+                console.log('🧹 Session data cleared for new session');
+                
+            } catch (error) {
+                console.error('❌ Error clearing session data:', error);
+            }
+        }
+
+        // エラーハンドリング
+        window.addEventListener('error', function(e) {
+            console.error('❌ Report page error:', e.error);
+        });
+
+        // ページ離脱前の確認
+        window.addEventListener('beforeunload', function(e) {
+            // 重要なデータが失われる可能性がある場合のみ確認
+            const hasUnsavedData = !localStorage.getItem('sessionArchives');
+            if (hasUnsavedData) {
+                e.preventDefault();
+                e.returnValue = 'レポートデータが保存されていません。ページを離れますか？';
+            }
+        });
+
+        console.log('📊 Final report script loaded');
+    </script>
+</body>
+</html>
