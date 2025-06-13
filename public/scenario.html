@@ -411,6 +411,7 @@
                 alert('ビジネスシナリオを入力してください。');
                 return;
             }
+            sessionStorage.setItem('scenario', scenario);
             
             try {
                 // シナリオをsessionStorageに保存
