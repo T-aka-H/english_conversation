@@ -201,7 +201,7 @@
             right: 0;
             bottom: 0;
             background: rgba(255, 255, 255, 0.8);
-            display: flex;
+            display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -354,22 +354,26 @@
             }
         }
 
-        function showLoading(show) {
-            if (show) {
-                userMessageInput.disabled = true;
-                sendMessageBtn.disabled = true;
-                startRecordingBtn.disabled = true;
-                stopRecordingBtn.disabled = true;
-                userMessageInput.placeholder = 'AIが考え中...';
-                showStatus('AIが応答を生成しています... <span class="loading-spinner"></span>', 'info');
-            } else {
-                userMessageInput.disabled = false;
-                sendMessageBtn.disabled = false;
-                if (recognition) startRecordingBtn.disabled = false; // 音声認識が利用可能な場合のみ有効化
-                // stopRecordingBtn は音声入力中にのみ有効化されるため、ここでは無効のまま
-                userMessageInput.placeholder = 'メッセージを入力してください...';
-                statusMessageDiv.style.opacity = '0';
-                setTimeout(() => statusMessageDiv.style.display = 'none', 500);
+        function showLoading(isLoading) {
+            const loadingDiv = document.getElementById('loadingOverlay');
+            const inputField = document.getElementById('userMessageInput');
+            const sendButton = document.getElementById('sendMessageBtn');
+            const micButton = document.getElementById('startRecordingBtn');
+
+            if (loadingDiv) {
+                loadingDiv.style.display = isLoading ? 'flex' : 'none';
+            }
+
+            if (inputField) {
+                inputField.disabled = isLoading;
+            }
+
+            if (sendButton) {
+                sendButton.disabled = isLoading;
+            }
+
+            if (micButton) {
+                micButton.disabled = isLoading;
             }
         }
 
@@ -478,28 +482,22 @@
         // --- Event Handlers ---
 
         async function sendMessage() {
-            const userMessage = userMessageInput.value.trim();
-            if (userMessage === '') {
-                showStatus('メッセージを入力してください。', 'warning');
-                return;
+            const inputField = document.getElementById('userMessageInput');
+            const message = inputField.value.trim();
+            
+            if (!message) return;
+
+            try {
+                showLoading(true);
+                await generateAIResponse(message);
+                inputField.value = '';
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showError('メッセージの送信に失敗しました。もう一度お試しください。');
+            } finally {
+                showLoading(false);
             }
-
-            // Add user's message to chat history
-            conversationHistory.push({ role: 'user', content: userMessage });
-            addMessageToChat('user', userMessage);
-            userMessageInput.value = ''; // Clear input field
-
-            // Call AI for response
-            await generateAIResponse(userMessage, false); // Not the first message
-            saveConversationState(); // Save state after user message
         }
-
-        sendMessageBtn.addEventListener('click', sendMessage);
-        userMessageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
 
         // --- Speech Recognition ---
         function initializeSpeechRecognition() {
