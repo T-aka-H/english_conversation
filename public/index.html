@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -15,11 +14,9 @@
         
         // Hide all content until authentication
         document.addEventListener('DOMContentLoaded', function() {
-    if (!isAuthenticated) {
             console.log('BLOCKING ACCESS - Authentication required');
             enforceAuthentication();
-        }
-    });
+        });
         
         function enforceAuthentication() {
             // Force hide all screens except auth
@@ -50,18 +47,19 @@
     </script>
     
     <style>
-        /* CRITICAL: Force authentication screen display */
+        /* CRITICAL: Force authentication screen display initially */
         #authScreen {
             display: block !important;
             visibility: visible !important;
         }
         
-        #difficultySelection,
-        #setupSection,
-        #learningSection,
-        #reportSection {
-            display: none !important;
-            visibility: hidden !important;
+        /* Allow other screens to be shown after authentication */
+        #difficultySelection.authenticated,
+        #setupSection.authenticated,
+        #learningSection.authenticated,
+        #reportSection.authenticated {
+            display: block !important;
+            visibility: visible !important;
         }
         
         /* Base styles - Monochrome Cool Design */
@@ -576,7 +574,6 @@
         }
 
         function checkPassword() {
-    
             const enteredPassword = document.getElementById('passwordInput').value.trim();
             const errorDiv = document.getElementById('authError');
             
@@ -658,8 +655,13 @@
         function showScenarioSetup() {
             document.getElementById('difficultySelection').classList.add('hidden');
             document.getElementById('difficultySelection').style.display = 'none';
-            document.getElementById('setupSection').classList.remove('hidden');
-            document.getElementById('setupSection').style.display = 'block';
+            document.getElementById('difficultySelection').classList.remove('authenticated');
+            
+            const setupSection = document.getElementById('setupSection');
+            setupSection.classList.remove('hidden');
+            setupSection.style.display = 'block';
+            setupSection.classList.add('authenticated');
+            
             initSpeechRecognition();
             updateProgress();
         }
@@ -667,8 +669,12 @@
         function backToDifficulty() {
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('setupSection').style.display = 'none';
-            document.getElementById('difficultySelection').classList.remove('hidden');
-            document.getElementById('difficultySelection').style.display = 'block';
+            document.getElementById('setupSection').classList.remove('authenticated');
+            
+            const difficultyScreen = document.getElementById('difficultySelection');
+            difficultyScreen.classList.remove('hidden');
+            difficultyScreen.style.display = 'block';
+            difficultyScreen.classList.add('authenticated');
         }
 
         // Initialize speech recognition
@@ -883,8 +889,12 @@
             
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('setupSection').style.display = 'none';
-            document.getElementById('learningSection').classList.remove('hidden');
-            document.getElementById('learningSection').style.display = 'block';
+            document.getElementById('setupSection').classList.remove('authenticated');
+            
+            const learningSection = document.getElementById('learningSection');
+            learningSection.classList.remove('hidden');
+            learningSection.style.display = 'block';
+            learningSection.classList.add('authenticated');
             
             showLoading(true);
             
@@ -907,10 +917,15 @@
             } catch (error) {
                 showError('Failed to start conversation: ' + error.message);
                 showLoading(false);
-                document.getElementById('learningSection').classList.add('hidden');
-                document.getElementById('learningSection').style.display = 'none';
-                document.getElementById('setupSection').classList.remove('hidden');
-                document.getElementById('setupSection').style.display = 'block';
+                
+                learningSection.classList.add('hidden');
+                learningSection.style.display = 'none';
+                learningSection.classList.remove('authenticated');
+                
+                const setupSection = document.getElementById('setupSection');
+                setupSection.classList.remove('hidden');
+                setupSection.style.display = 'block';
+                setupSection.classList.add('authenticated');
             }
         }
 
@@ -1008,6 +1023,7 @@
             
             document.getElementById('learningSection').classList.add('hidden');
             document.getElementById('learningSection').style.display = 'none';
+            document.getElementById('learningSection').classList.remove('authenticated');
             showLoading(true);
             
             try {
@@ -1024,8 +1040,11 @@
                 document.getElementById('finalFeedback').textContent = sessionData.finalFeedback;
                 
                 showLoading(false);
-                document.getElementById('reportSection').classList.remove('hidden');
-                document.getElementById('reportSection').style.display = 'block';
+                
+                const reportSection = document.getElementById('reportSection');
+                reportSection.classList.remove('hidden');
+                reportSection.style.display = 'block';
+                reportSection.classList.add('authenticated');
                 
             } catch (error) {
                 showError('Failed to generate report: ' + error.message);
@@ -1035,8 +1054,11 @@
                 
                 document.getElementById('finalScore').textContent = `${sessionData.finalScore}/100`;
                 document.getElementById('finalFeedback').textContent = sessionData.finalFeedback;
-                document.getElementById('reportSection').classList.remove('hidden');
-                document.getElementById('reportSection').style.display = 'block';
+                
+                const reportSection = document.getElementById('reportSection');
+                reportSection.classList.remove('hidden');
+                reportSection.style.display = 'block';
+                reportSection.classList.add('authenticated');
             }
         }
 
@@ -1203,12 +1225,20 @@
             // Reset to difficulty selection
             document.getElementById('reportSection').classList.add('hidden');
             document.getElementById('reportSection').style.display = 'none';
+            document.getElementById('reportSection').classList.remove('authenticated');
+            
             document.getElementById('learningSection').classList.add('hidden');
             document.getElementById('learningSection').style.display = 'none';
+            document.getElementById('learningSection').classList.remove('authenticated');
+            
             document.getElementById('setupSection').classList.add('hidden');
             document.getElementById('setupSection').style.display = 'none';
-            document.getElementById('difficultySelection').classList.remove('hidden');
-            document.getElementById('difficultySelection').style.display = 'block';
+            document.getElementById('setupSection').classList.remove('authenticated');
+            
+            const difficultyScreen = document.getElementById('difficultySelection');
+            difficultyScreen.classList.remove('hidden');
+            difficultyScreen.style.display = 'block';
+            difficultyScreen.classList.add('authenticated');
             
             // Clear difficulty selection
             document.querySelectorAll('.difficulty-card').forEach(card => {
