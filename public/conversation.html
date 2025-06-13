@@ -360,34 +360,37 @@
             30% { opacity: 1; transform: scale(1.2); }
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
+        /* iOS Safari専用スタイル */
+        @supports (-webkit-touch-callout: none) {
+            .voice-button {
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
             }
             
-            .session-details {
-                flex-direction: column;
-                gap: 15px;
+            .user-input {
+                -webkit-appearance: none;
+                border-radius: 12px;
+                font-size: 16px; /* iOS Safari のズーム防止 */
             }
             
-            .input-container {
-                flex-direction: column;
-                align-items: stretch;
+            .voice-button:active {
+                transform: scale(0.95);
+            }
+        }
+        
+        /* iPhone用のメディアクエリ */
+        @media only screen and (max-device-width: 812px) and (-webkit-device-pixel-ratio: 3) {
+            .voice-button {
+                width: 70px;
+                height: 70px;
+                font-size: 24px;
             }
             
-            .input-buttons {
-                flex-direction: row;
-                justify-content: center;
-            }
-            
-            .control-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .control-button {
-                width: 100%;
-                max-width: 300px;
+            .status-message {
+                font-size: 16px;
+                padding: 12px 24px;
             }
         }
     </style>
@@ -839,91 +842,259 @@
             }
         }
 
-        // AI応答生成（シナリオ対応版）
+        // AI応答生成（ユーザー入力解析版）
         function generateAIResponse(userMessage) {
             const scenarioLower = currentScenario.toLowerCase();
             const difficultyLevel = currentDifficulty;
-            const message = userMessage.toLowerCase();
+            const messageLower = userMessage.toLowerCase();
             
             console.log('🤖 Generating AI response for scenario:', currentScenario);
             console.log('🎯 Difficulty level:', difficultyLevel);
             console.log('💬 User message:', userMessage);
             
-            let responses = [];
+            // ユーザーの発言内容を分析
+            const userIntent = analyzeUserMessage(messageLower);
+            console.log('🔍 Analyzed user intent:', userIntent);
+            
+            let response = '';
             
             // シナリオ別の応答生成
             if (scenarioLower.includes('雑談') || scenarioLower.includes('casual')) {
-                responses = [
-                    "That sounds really interesting! I had a pretty good weekend too. Did you catch the news about the new project announcement?",
-                    "Oh, I know what you mean! Speaking of which, have you tried that new restaurant downtown?",
-                    "That's great to hear! By the way, how's your family doing? You mentioned your kids were starting school.",
-                    "I completely agree! You know, it reminds me of something similar that happened last month.",
-                    "That's a good point! Have you been following the latest industry trends? There's been some interesting developments."
-                ];
+                response = generateCasualResponse(userMessage, userIntent);
             } else if (scenarioLower.includes('会食') || scenarioLower.includes('dinner')) {
-                responses = [
-                    "That's fascinating! I've always been curious about that culture. How did you first get interested in it?",
-                    "The food here really is exceptional. I particularly recommend their signature dish. Have you had a chance to travel much for business?",
-                    "That's an interesting perspective! In my experience, building relationships over meals really does make a difference in business.",
-                    "I appreciate you sharing that! Speaking of traditions, how do you usually celebrate holidays in your family?",
-                    "That sounds like a great approach! Food really does bring people together, doesn't it?"
-                ];
+                response = generateDinnerResponse(userMessage, userIntent);
             } else if (scenarioLower.includes('アポ') || scenarioLower.includes('appointment') || scenarioLower.includes('電話')) {
-                responses = [
-                    "Let me check my calendar. I have some availability next week. Would Tuesday or Wednesday afternoon work for you?",
-                    "That sounds good. How about we schedule it for 2 PM? That should give us enough time to cover all the topics you mentioned.",
-                    "I understand you're quite busy. Would a shorter 30-minute meeting be more manageable for your schedule?",
-                    "Perfect! I'll send you a calendar invitation shortly. Should I include anyone else from our team in this meeting?",
-                    "That works for me. Just to confirm, we'll be discussing the quarterly review and budget planning, correct?"
-                ];
+                response = generateAppointmentResponse(userMessage, userIntent);
             } else if (scenarioLower.includes('タスク') || scenarioLower.includes('task') || scenarioLower.includes('スケジュール')) {
-                responses = [
-                    "Good update! Where do we stand on the deliverables for the client presentation? Are we still on track for Friday?",
-                    "I see. That's a bit concerning about the timeline. What resources do you think we need to get back on schedule?",
-                    "Excellent progress! Should we schedule a checkpoint meeting with the stakeholders to update them on our status?",
-                    "That makes sense. Who else needs to be looped in on this decision? I think we should involve the product team.",
-                    "I agree with that approach. Can you send me the updated timeline by end of day so I can review it?"
-                ];
+                response = generateTaskResponse(userMessage, userIntent);
             } else if (scenarioLower.includes('プレゼン') || scenarioLower.includes('presentation') || scenarioLower.includes('質疑')) {
-                responses = [
-                    "Thank you for that explanation. Could you elaborate on the risk mitigation strategies you've outlined?",
-                    "That's a solid proposal. What's your contingency plan if the market conditions change during implementation?",
-                    "I'm impressed with the research depth. How did you validate these assumptions with our target customers?",
-                    "The numbers look promising. What would be the resource requirements from our end to support this initiative?",
-                    "Interesting approach! How does this compare to what our competitors are doing in the same space?"
-                ];
+                response = generatePresentationResponse(userMessage, userIntent);
             } else if (scenarioLower.includes('m&a') || scenarioLower.includes('交渉') || scenarioLower.includes('価格')) {
-                responses = [
-                    "I understand your position, but our analysis shows a different valuation range. Can we discuss the EBITDA multiples you're using?",
-                    "That's a significant gap from our initial offer. What specific assets or synergies justify this premium in your view?",
-                    "We appreciate the comprehensive due diligence materials. However, we need to address the working capital adjustments.",
-                    "From our perspective, the market conditions have changed since we started this process. How do you see that affecting the valuation?",
-                    "We're willing to consider that proposal, but we'd need some additional warranties and indemnifications to move forward."
-                ];
+                response = generateNegotiationResponse(userMessage, userIntent);
             } else {
-                // 一般的なビジネス応答
-                responses = [
-                    "That's a great point! I think we should definitely consider that approach. What do you think the timeline would look like for implementation?",
-                    "I appreciate you bringing that up. How do you think this aligns with our current objectives?",
-                    "Excellent! That could really help us move forward. Should we assign someone to look into this further?",
-                    "That's interesting. Could you elaborate on how you see this working in practice?",
-                    "I agree with your assessment. What would be the next steps to make this happen?"
-                ];
+                response = generateBusinessResponse(userMessage, userIntent);
             }
             
             // 難易度に応じて応答を調整
             if (difficultyLevel === 'hard') {
-                // ハードモードでは、より詳細で挑戦的な応答を追加
-                const hardResponses = responses.map(response => {
-                    return response + " I'd also like to understand the long-term implications and potential challenges we might face.";
-                });
-                responses = responses.concat(hardResponses);
+                response = enhanceResponseForHardMode(response, userIntent);
             }
             
-            const selectedResponse = responses[Math.floor(Math.random() * responses.length)];
-            console.log('✅ AI response generated:', selectedResponse.substring(0, 50) + '...');
+            console.log('✅ AI response generated:', response.substring(0, 50) + '...');
+            return response;
+        }
+
+        // ユーザーメッセージの意図分析
+        function analyzeUserMessage(messageLower) {
+            const intent = {
+                type: 'statement',
+                topics: [],
+                sentiment: 'neutral',
+                hasQuestion: false,
+                timeReference: null,
+                numbers: [],
+                keywords: []
+            };
             
-            return selectedResponse;
+            // 質問の検出
+            if (messageLower.includes('?') || messageLower.startsWith('how') || messageLower.startsWith('what') || 
+                messageLower.startsWith('when') || messageLower.startsWith('where') || messageLower.startsWith('why') ||
+                messageLower.startsWith('do you') || messageLower.startsWith('can you') || messageLower.startsWith('would you')) {
+                intent.type = 'question';
+                intent.hasQuestion = true;
+            }
+            
+            // 感情の検出
+            if (messageLower.includes('good') || messageLower.includes('great') || messageLower.includes('excellent') || 
+                messageLower.includes('happy') || messageLower.includes('pleased')) {
+                intent.sentiment = 'positive';
+            } else if (messageLower.includes('bad') || messageLower.includes('problem') || messageLower.includes('issue') || 
+                       messageLower.includes('difficult') || messageLower.includes('concern')) {
+                intent.sentiment = 'negative';
+            }
+            
+            // トピックの検出
+            const topicKeywords = {
+                'time': ['time', 'schedule', 'deadline', 'meeting', 'appointment', 'clock', 'hour', 'minute', 'today', 'tomorrow', 'week', 'month'],
+                'money': ['price', 'cost', 'budget', 'expensive', 'cheap', 'dollar', 'yen', 'revenue', 'profit', 'investment'],
+                'family': ['family', 'wife', 'husband', 'children', 'kids', 'mother', 'father', 'parents', 'home'],
+                'work': ['work', 'job', 'project', 'team', 'colleague', 'boss', 'client', 'customer', 'business'],
+                'weather': ['weather', 'rain', 'sunny', 'cold', 'hot', 'temperature', 'storm', 'snow'],
+                'food': ['food', 'restaurant', 'eat', 'lunch', 'dinner', 'coffee', 'drink', 'taste', 'delicious'],
+                'travel': ['travel', 'trip', 'vacation', 'flight', 'hotel', 'country', 'city', 'visit'],
+                'technology': ['technology', 'computer', 'software', 'app', 'digital', 'online', 'internet', 'system']
+            };
+            
+            for (const [topic, keywords] of Object.entries(topicKeywords)) {
+                if (keywords.some(keyword => messageLower.includes(keyword))) {
+                    intent.topics.push(topic);
+                }
+            }
+            
+            // 時間参照の検出
+            if (messageLower.includes('yesterday') || messageLower.includes('last')) {
+                intent.timeReference = 'past';
+            } else if (messageLower.includes('tomorrow') || messageLower.includes('next') || messageLower.includes('will')) {
+                intent.timeReference = 'future';
+            } else if (messageLower.includes('today') || messageLower.includes('now') || messageLower.includes('currently')) {
+                intent.timeReference = 'present';
+            }
+            
+            // 数字の検出
+            const numberMatches = messageLower.match(/\d+/g);
+            if (numberMatches) {
+                intent.numbers = numberMatches;
+            }
+            
+            return intent;
+        }
+
+        // 雑談シナリオの応答生成
+        function generateCasualResponse(userMessage, intent) {
+            if (intent.hasQuestion) {
+                if (intent.topics.includes('weather')) {
+                    return "Yeah, the weather has been quite unpredictable lately! I actually had to change my weekend plans because of the rain. Do you have any outdoor activities planned?";
+                } else if (intent.topics.includes('family')) {
+                    return "That sounds wonderful! Family time is so important. I try to balance work and family life too. How do you usually spend time with them?";
+                } else if (intent.topics.includes('work')) {
+                    return "I know what you mean about work! It's been pretty busy here too. Are you working on any interesting projects lately?";
+                } else {
+                    return "That's a great question! I'd love to hear more about your thoughts on that. What's your experience been like?";
+                }
+            } else {
+                if (intent.sentiment === 'positive') {
+                    if (intent.topics.includes('food')) {
+                        return "That sounds delicious! I'm always looking for new restaurant recommendations. What type of cuisine do they specialize in?";
+                    } else if (intent.topics.includes('travel')) {
+                        return "That sounds like an amazing trip! I love hearing about travel experiences. What was the highlight of your journey?";
+                    } else {
+                        return "That's fantastic to hear! It's always great when things go well. You seem to have a positive outlook on things.";
+                    }
+                } else if (intent.sentiment === 'negative') {
+                    return "I'm sorry to hear that. These things can definitely be challenging sometimes. Is there anything that might help improve the situation?";
+                } else {
+                    return "That's interesting! I hadn't thought about it from that perspective. It's always good to get different viewpoints on things.";
+                }
+            }
+        }
+
+        // 会食シナリオの応答生成
+        function generateDinnerResponse(userMessage, intent) {
+            if (intent.topics.includes('food')) {
+                return "I completely agree! The flavors here are exceptional. Have you tried their wine pairing recommendations? I find they really complement the dishes well.";
+            } else if (intent.topics.includes('travel')) {
+                return "That sounds like a fascinating cultural experience! Business travel can be exhausting, but it's wonderful when you get to experience local traditions. How do you find the work-life balance during international trips?";
+            } else if (intent.topics.includes('family')) {
+                return "Family traditions are so important for building relationships. In my family, we have similar gatherings during holidays. Do you find that business relationships benefit from these more personal interactions?";
+            } else if (intent.hasQuestion) {
+                return "That's an excellent question! In my experience, building trust through these informal settings really does translate to better business partnerships. What's been your observation?";
+            } else {
+                return "I appreciate you sharing that perspective! These dinner conversations often lead to the most valuable insights. It's amazing how much you can learn about someone over a good meal.";
+            }
+        }
+
+        // アポイントメントシナリオの応答生成
+        function generateAppointmentResponse(userMessage, intent) {
+            if (intent.topics.includes('time')) {
+                if (intent.numbers.length > 0) {
+                    const time = intent.numbers[0];
+                    return `${time} o'clock could work for me. Let me just double-check my calendar to make sure there are no conflicts. Would you prefer morning or afternoon for our discussion?`;
+                } else if (intent.timeReference === 'future') {
+                    return "I appreciate your flexibility with the timing. Let me check my availability for next week. Would Tuesday or Wednesday work better for your schedule?";
+                } else {
+                    return "I understand you're looking at different time options. My calendar is quite busy this week, but I can make some adjustments. What's the urgency level for this meeting?";
+                }
+            } else if (intent.topics.includes('work')) {
+                return "That sounds like an important project discussion. To prepare properly for our meeting, could you give me a brief overview of the main topics you'd like to cover?";
+            } else if (intent.hasQuestion) {
+                return "Good question! For this type of discussion, I'd suggest we block out at least an hour to ensure we can cover everything thoroughly. Does that timeframe work for you?";
+            } else {
+                return "I understand your requirements for the meeting. Let me send you a calendar invitation with the proposed agenda. Should I include anyone else from my team in this discussion?";
+            }
+        }
+
+        // タスク管理シナリオの応答生成
+        function generateTaskResponse(userMessage, intent) {
+            if (intent.topics.includes('time')) {
+                if (intent.timeReference === 'past') {
+                    return "I see there were some delays in the previous phase. Can you help me understand what caused the bottleneck? We need to make sure we don't face similar issues moving forward.";
+                } else if (intent.timeReference === 'future') {
+                    return "Good forward planning! What dependencies do we need to consider for the upcoming milestones? I want to make sure we have all resources allocated properly.";
+                } else {
+                    return "Let's review the current timeline status. Are we still on track to meet our deliverable deadlines, or do we need to adjust expectations with stakeholders?";
+                }
+            } else if (intent.sentiment === 'negative') {
+                return "I understand there are some challenges. Let's identify what support you need to get back on track. Should we escalate any blockers to senior management?";
+            } else if (intent.sentiment === 'positive') {
+                return "Excellent progress! That's exactly the kind of momentum we need. What factors contributed to this success that we can replicate in other areas?";
+            } else if (intent.hasQuestion) {
+                return "That's a valid concern to raise. Let me check with the stakeholders on their priorities. In the meantime, what alternative approaches are you considering?";
+            } else {
+                return "Thanks for the update. Based on what you've shared, I think we should schedule a checkpoint with the entire team. Can you prepare a brief status summary for tomorrow's standup?";
+            }
+        }
+
+        // プレゼンテーション質疑の応答生成
+        function generatePresentationResponse(userMessage, intent) {
+            if (intent.topics.includes('money')) {
+                return "The financial projections are certainly ambitious. Can you walk me through the assumptions behind your revenue growth model? I'm particularly interested in your customer acquisition cost calculations.";
+            } else if (intent.topics.includes('time')) {
+                return "The timeline you've outlined is aggressive but achievable. What's your contingency plan if we encounter unexpected delays in the implementation phase? How would that impact your milestones?";
+            } else if (intent.topics.includes('technology')) {
+                return "The technology stack looks robust. However, I'm concerned about scalability. Have you stress-tested the system under peak load conditions? What's your disaster recovery plan?";
+            } else if (intent.sentiment === 'positive') {
+                return "I appreciate the thorough research you've presented. However, I need to challenge some of your market assumptions. How did you validate these with actual customer feedback?";
+            } else if (intent.hasQuestion) {
+                return "That's a crucial question that addresses one of my main concerns. The risk mitigation strategies need to be more detailed. Can you elaborate on your Plan B scenarios?";
+            } else {
+                return "Interesting approach, but I'm not entirely convinced about the competitive analysis. How do you plan to differentiate from the three major players already dominating this space?";
+            }
+        }
+
+        // M&A交渉シナリオの応答生成
+        function generateNegotiationResponse(userMessage, intent) {
+            if (intent.topics.includes('money')) {
+                if (intent.numbers.length > 0) {
+                    return `The ${intent.numbers[0]} million valuation is significantly higher than our internal assessment. Our due diligence suggests a fair value closer to industry benchmarks. Can you justify this premium based on synergies?`;
+                } else {
+                    return "I understand your position on the financial terms, but we need to bridge a significant gap. What specific value drivers justify your valuation methodology?";
+                }
+            } else if (intent.sentiment === 'negative') {
+                return "I hear your concerns, and we want to address them constructively. However, we need to be realistic about market conditions. What concessions would make this deal viable for both parties?";
+            } else if (intent.sentiment === 'positive') {
+                return "I'm glad we're finding common ground on some aspects. Now let's tackle the more challenging terms. The indemnification clauses still need significant work from our legal team's perspective.";
+            } else if (intent.hasQuestion) {
+                return "That's a fair question that gets to the heart of the strategic rationale. Our board needs to see clear synergies that justify any premium. Can you quantify the expected cost savings?";
+            } else {
+                return "I appreciate your flexibility on this point. However, we still have concerns about the working capital adjustments and the earnout structure. Can we revisit those terms?";
+            }
+        }
+
+        // 一般ビジネス応答生成
+        function generateBusinessResponse(userMessage, intent) {
+            if (intent.hasQuestion) {
+                return "That's an excellent question that really gets to the core of what we're trying to achieve. Let me share my perspective and I'd love to hear your thoughts on potential solutions.";
+            } else if (intent.sentiment === 'positive') {
+                return "I'm glad you see the potential there! Your enthusiasm is contagious. How do you envision us moving forward with implementation?";
+            } else if (intent.sentiment === 'negative') {
+                return "I understand your concerns and they're completely valid. Let's work together to find a solution that addresses these challenges while still achieving our objectives.";
+            } else {
+                return "That's a valuable insight you've shared. It aligns well with what I've been observing in the market. What do you think the implications are for our strategy?";
+            }
+        }
+
+        // ハードモード用の応答強化
+        function enhanceResponseForHardMode(response, intent) {
+            const hardAdditions = [
+                " Additionally, I'd like to understand the long-term strategic implications and potential risks we haven't discussed.",
+                " From a governance perspective, how does this align with our compliance requirements and regulatory framework?",
+                " I'm also interested in the stakeholder impact analysis and change management considerations.",
+                " What are the key performance indicators we should be tracking, and how will we measure success?",
+                " Have you considered the competitive response and how this positions us in the market landscape?"
+            ];
+            
+            const randomAddition = hardAdditions[Math.floor(Math.random() * hardAdditions.length)];
+            return response + randomAddition;
         }
 
         // 音声認識初期化
@@ -940,73 +1111,168 @@
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
                 
-                // 設定
-                recognition.continuous = false;
-                recognition.interimResults = false;
+                // iOS/モバイル対応の設定
+                recognition.continuous = false;  // iOSでは false が推奨
+                recognition.interimResults = false;  // iOSでは false が推奨
                 recognition.lang = 'en-US';
                 recognition.maxAlternatives = 1;
+                
+                // iOS Safari特有の設定
+                if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
+                    console.log('📱 iOS device detected - applying iOS-specific settings');
+                    recognition.continuous = false;
+                    recognition.interimResults = false;
+                    recognition.maxAlternatives = 3;  // iOSでは複数候補を取得
+                }
                 
                 // イベントリスナー
                 recognition.onstart = function() {
                     console.log('🎤 Speech recognition started');
                     isRecording = true;
                     updateVoiceButton();
-                    showStatus('音声認識開始 - 話してください', 'success');
+                    showStatus('🎤 音声認識開始 - 英語で話してください', 'success');
+                    
+                    // iOS用：録音開始のバイブレーション
+                    if (navigator.vibrate) {
+                        navigator.vibrate(100);
+                    }
                 };
                 
                 recognition.onresult = function(event) {
                     console.log('🎤 Speech recognition result received');
+                    console.log('📊 Recognition event:', event);
                     
                     if (event.results && event.results.length > 0) {
-                        const transcript = event.results[0][0].transcript.trim();
-                        console.log('🎤 Transcript:', transcript);
+                        // iOS対応：複数の候補から最適なものを選択
+                        let bestTranscript = '';
+                        let highestConfidence = 0;
                         
-                        if (transcript) {
+                        for (let i = 0; i < event.results.length; i++) {
+                            const result = event.results[i];
+                            if (result.isFinal) {
+                                for (let j = 0; j < result.length; j++) {
+                                    const alternative = result[j];
+                                    if (alternative.confidence > highestConfidence) {
+                                        highestConfidence = alternative.confidence;
+                                        bestTranscript = alternative.transcript;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // フォールバック：最初の結果を使用
+                        if (!bestTranscript && event.results[0] && event.results[0][0]) {
+                            bestTranscript = event.results[0][0].transcript;
+                        }
+                        
+                        console.log('🎤 Best transcript:', bestTranscript);
+                        console.log('🎯 Confidence:', highestConfidence);
+                        
+                        if (bestTranscript && bestTranscript.trim().length > 0) {
+                            const transcript = bestTranscript.trim();
                             const userInput = document.getElementById('userInput');
                             if (userInput) {
                                 const currentText = userInput.value.trim();
                                 userInput.value = currentText ? currentText + ' ' + transcript : transcript;
                                 userInput.focus();
-                                showStatus('音声認識成功: ' + transcript, 'success');
+                                
+                                // iOS用：成功のバイブレーション
+                                if (navigator.vibrate) {
+                                    navigator.vibrate([50, 100, 50]);
+                                }
+                                
+                                showStatus('✅ 音声認識成功: ' + transcript, 'success');
                             }
+                        } else {
+                            console.log('⚠️ Empty transcript received');
+                            showStatus('⚠️ 音声が認識されませんでした。もう一度お試しください', 'warning');
                         }
+                    } else {
+                        console.log('❌ No results in recognition event');
+                        showStatus('❌ 音声認識結果がありません', 'error');
                     }
                 };
                 
                 recognition.onerror = function(event) {
                     console.error('🎤 Speech recognition error:', event.error);
+                    console.error('🔍 Error details:', event);
                     isRecording = false;
                     updateVoiceButton();
                     
                     let errorMessage = '音声認識エラー';
                     switch(event.error) {
                         case 'no-speech':
-                            errorMessage = '音声が検出されませんでした';
+                            errorMessage = '音声が検出されませんでした。もう一度お試しください';
                             break;
                         case 'audio-capture':
-                            errorMessage = 'マイクにアクセスできません';
+                            errorMessage = 'マイクにアクセスできません。設定を確認してください';
                             break;
                         case 'not-allowed':
-                            errorMessage = 'マイクの使用が許可されていません';
+                            errorMessage = 'マイクの使用許可が必要です。ブラウザ設定を確認してください';
                             break;
                         case 'network':
-                            errorMessage = 'ネットワークエラーが発生しました';
+                            errorMessage = 'ネットワークエラーが発生しました。接続を確認してください';
+                            break;
+                        case 'aborted':
+                            errorMessage = '音声認識が中断されました';
+                            break;
+                        case 'bad-grammar':
+                            errorMessage = '音声認識の設定エラーです';
                             break;
                         default:
                             errorMessage = `音声認識エラー: ${event.error}`;
                     }
                     
                     showStatus(errorMessage, 'error');
+                    
+                    // iOS用：エラーのバイブレーション
+                    if (navigator.vibrate) {
+                        navigator.vibrate([200, 100, 200]);
+                    }
                 };
                 
                 recognition.onend = function() {
                     console.log('🎤 Speech recognition ended');
                     isRecording = false;
                     updateVoiceButton();
+                    
+                    // iOS用：短いバイブレーション
+                    if (navigator.vibrate) {
+                        navigator.vibrate(50);
+                    }
+                };
+                
+                // iOS Safari用の追加設定
+                recognition.onnomatch = function() {
+                    console.log('🎤 No match found');
+                    showStatus('⚠️ 音声を認識できませんでした。もう一度お試しください', 'warning');
+                };
+                
+                recognition.onsoundstart = function() {
+                    console.log('🎤 Sound detected');
+                };
+                
+                recognition.onsoundend = function() {
+                    console.log('🎤 Sound ended');
+                };
+                
+                recognition.onspeechstart = function() {
+                    console.log('🎤 Speech detected');
+                };
+                
+                recognition.onspeechend = function() {
+                    console.log('🎤 Speech ended');
                 };
                 
                 console.log('✅ Speech recognition initialized successfully');
-                showStatus('音声認識が利用可能です', 'success');
+                showStatus('🎤 音声認識が利用可能です（英語モード）', 'success');
+                
+                // iOS用の初期化完了メッセージ
+                if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
+                    setTimeout(() => {
+                        showStatus('📱 iOS用音声認識：マイクボタンを押して話してください', 'success');
+                    }, 2000);
+                }
                 
             } catch (error) {
                 console.error('❌ Failed to initialize speech recognition:', error);
@@ -1018,11 +1284,11 @@
                     voiceButton.title = '音声認識利用不可';
                 }
                 
-                showStatus('音声認識を初期化できませんでした', 'error');
+                showStatus('音声認識を初期化できませんでした。このデバイスでは利用できません', 'error');
             }
         }
 
-        // 音声入力トグル
+        // 音声入力トグル（iOS対応版）
         function toggleVoiceInput() {
             console.log('🎤 Toggle voice input, isRecording:', isRecording);
             
@@ -1031,12 +1297,18 @@
                 return;
             }
             
+            // ユーザージェスチャーが必要なブラウザ対応
+            const userInput = document.getElementById('userInput');
+            if (userInput) {
+                userInput.focus(); // iOS Safari用
+            }
+            
             if (isRecording) {
                 try {
                     recognition.stop();
                     isRecording = false;
                     updateVoiceButton();
-                    showStatus('音声認識を停止しました', 'success');
+                    showStatus('🛑 音声認識を停止しました', 'success');
                 } catch (error) {
                     console.error('🎤 Error stopping recognition:', error);
                     isRecording = false;
@@ -1044,10 +1316,34 @@
                 }
             } else {
                 try {
-                    recognition.start();
+                    // iOS用：明示的にマイク許可をリクエスト
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        navigator.mediaDevices.getUserMedia({ audio: true })
+                            .then(function(stream) {
+                                console.log('🎤 Microphone access granted');
+                                stream.getTracks().forEach(track => track.stop()); // すぐにストリームを停止
+                                
+                                // 少し遅延してから音声認識を開始
+                                setTimeout(() => {
+                                    try {
+                                        recognition.start();
+                                    } catch (startError) {
+                                        console.error('🎤 Error starting recognition after permission:', startError);
+                                        showStatus('音声認識の開始に失敗しました', 'error');
+                                    }
+                                }, 100);
+                            })
+                            .catch(function(error) {
+                                console.error('🎤 Microphone access denied:', error);
+                                showStatus('マイクへのアクセスが拒否されました。設定を確認してください', 'error');
+                            });
+                    } else {
+                        // getUserMediaが利用できない場合は直接開始
+                        recognition.start();
+                    }
                 } catch (error) {
                     console.error('🎤 Error starting recognition:', error);
-                    showStatus('音声認識の開始に失敗しました', 'error');
+                    showStatus('音声認識の開始に失敗しました: ' + error.message, 'error');
                 }
             }
         }
