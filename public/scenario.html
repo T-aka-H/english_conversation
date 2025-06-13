@@ -228,54 +228,54 @@
     <div class="container">
         <div class="header">
             <h1>Situational AI English</h1>
-            <p>Select Your Business English Practice Scenario</p>
+            <p>ビジネス英会話の練習シナリオを選択してください</p>
         </div>
         
         <div class="auth-info">
-            ✅ Authentication successful! Welcome to the scenario selection.
+            ✅ 認証が完了しました！シナリオ選択へようこそ。
         </div>
         
         <form class="scenario-form" id="scenarioForm">
             <div class="form-group">
-                <label for="scenarioInput" class="form-label">Enter business scenario for practice:</label>
+                <label for="scenarioInput" class="form-label">練習したいビジネスシナリオを入力してください:</label>
                 <textarea 
                     id="scenarioInput" 
                     class="scenario-textarea"
-                    placeholder="Example: Meeting discussion, presentation, client phone call, new project proposal, performance review, negotiation, customer service inquiry..."
+                    placeholder="例: 会議での議論、プレゼンテーション、クライアントとの電話、新プロジェクト提案、人事評価、交渉、カスタマーサービス対応..."
                     required
                 ></textarea>
                 
                 <div class="suggested-scenarios">
-                    <h3>💡 Suggested Scenarios (Click to use):</h3>
+                    <h3>💡 おすすめシナリオ (クリックで選択):</h3>
                     <div class="scenario-suggestions">
-                        <div class="suggestion-item" onclick="selectScenario('Leading a team meeting to discuss quarterly results and plan next quarter strategies')">
-                            <h4>📊 Team Meeting</h4>
-                            <p>Lead a quarterly results discussion and strategic planning session</p>
+                        <div class="suggestion-item" onclick="selectScenario('四半期業績について話し合い、次四半期の戦略を計画するチームミーティングの司会')">
+                            <h4>📊 チームミーティング</h4>
+                            <p>四半期業績の討議と戦略計画セッションの司会進行</p>
                         </div>
                         
-                        <div class="suggestion-item" onclick="selectScenario('Presenting a new product proposal to potential investors and answering their questions')">
-                            <h4>🎯 Product Presentation</h4>
-                            <p>Present a new product to investors and handle Q&A session</p>
+                        <div class="suggestion-item" onclick="selectScenario('潜在的投資家に新製品提案をプレゼンテーションし、質疑応答に対応')">
+                            <h4>🎯 製品プレゼンテーション</h4>
+                            <p>投資家への新製品提案とQ&Aセッションの実施</p>
                         </div>
                         
-                        <div class="suggestion-item" onclick="selectScenario('Conducting a phone call with an international client to resolve service issues')">
-                            <h4>☎️ Client Service Call</h4>
-                            <p>Handle international client concerns and provide solutions</p>
+                        <div class="suggestion-item" onclick="selectScenario('国際的なクライアントとサービス問題を解決するための電話対応')">
+                            <h4>☎️ クライアントサービス電話</h4>
+                            <p>国際クライアントの懸念事項への対応とソリューション提供</p>
                         </div>
                         
-                        <div class="suggestion-item" onclick="selectScenario('Job interview for a senior management position with behavioral and technical questions')">
-                            <h4>💼 Job Interview</h4>
-                            <p>Senior management interview with behavioral and technical questions</p>
+                        <div class="suggestion-item" onclick="selectScenario('行動面と技術面の質問を含む、シニアマネジメントポジションの就職面接')">
+                            <h4>💼 就職面接</h4>
+                            <p>行動面と技術面の質問を含むシニア管理職面接</p>
                         </div>
                         
-                        <div class="suggestion-item" onclick="selectScenario('Negotiating contract terms with a vendor including pricing and delivery schedules')">
-                            <h4>🤝 Contract Negotiation</h4>
-                            <p>Negotiate pricing, terms, and delivery schedules with vendors</p>
+                        <div class="suggestion-item" onclick="selectScenario('価格設定と納期スケジュールを含む、ベンダーとの契約条件交渉')">
+                            <h4>🤝 契約交渉</h4>
+                            <p>ベンダーとの価格、条件、納期スケジュールの交渉</p>
                         </div>
                         
-                        <div class="suggestion-item" onclick="selectScenario('Performance review meeting with a team member discussing achievements and areas for improvement')">
-                            <h4>📈 Performance Review</h4>
-                            <p>Conduct employee performance evaluation and development planning</p>
+                        <div class="suggestion-item" onclick="selectScenario('チームメンバーとの成果と改善点について話し合う人事評価面談')">
+                            <h4>📈 人事評価</h4>
+                            <p>従業員の業績評価と能力開発計画の実施</p>
                         </div>
                     </div>
                 </div>
@@ -283,10 +283,10 @@
             
             <div class="action-buttons">
                 <button type="submit" class="button primary">
-                    Continue to Difficulty Selection
+                    難易度選択へ進む
                 </button>
                 <button type="button" class="button secondary" onclick="logout()">
-                    Logout
+                    ログアウト
                 </button>
             </div>
         </form>
@@ -377,7 +377,7 @@
             console.log('🚀 Submitting scenario:', scenario);
             
             if (!scenario) {
-                alert('Please enter a business scenario.');
+                alert('ビジネスシナリオを入力してください。');
                 return;
             }
             
@@ -397,7 +397,7 @@
         }
         
         function logout() {
-            if (confirm('Are you sure you want to logout?')) {
+            if (confirm('ログアウトしてもよろしいですか？')) {
                 console.log('👋 User logging out...');
                 sessionStorage.clear();
                 window.location.replace('index.html');

@@ -187,23 +187,23 @@
 <body>
     <div class="login-container">
         <h1 class="app-title">Situational AI English</h1>
-        <p class="app-subtitle">Business English Conversation Practice</p>
+        <p class="app-subtitle">ビジネス英会話練習アプリ</p>
         
         <form class="login-form" id="loginForm">
             <div class="form-group">
-                <label for="passwordInput" class="form-label">Enter Password:</label>
+                <label for="passwordInput" class="form-label">パスワードを入力:</label>
                 <input 
                     type="password" 
                     id="passwordInput" 
                     class="form-input"
-                    placeholder="Enter your access password"
+                    placeholder="アクセスパスワードを入力してください"
                     required
                     autocomplete="current-password"
                 >
             </div>
             
             <button type="submit" id="loginButton" class="login-button">
-                Login
+                ログイン
             </button>
         </form>
         
@@ -211,8 +211,8 @@
         <div id="successMessage" class="message success-message"></div>
         
         <div class="app-description">
-            <p>This application is password protected</p>
-            <p>After authentication, enjoy business English conversation practice</p>
+            <p>このアプリケーションはパスワード保護されています</p>
+            <p>認証後、ビジネス英会話の練習をお楽しみください</p>
         </div>
     </div>
     
@@ -264,7 +264,7 @@
                     
                     if (hoursDiff < 24) {
                         console.log('✅ Valid authentication found - Auto redirecting...');
-                        showSuccess('Already authenticated. Redirecting to scenario selection...');
+                        showSuccess('既に認証済みです。シナリオ選択画面へ移動中...');
                         
                         setTimeout(() => {
                             redirectToScenario();
@@ -306,7 +306,7 @@
             
             // 入力値検証
             if (!password) {
-                showError('Please enter a password');
+                showError('パスワードを入力してください');
                 return;
             }
             
@@ -335,7 +335,7 @@
                     console.log('💾 Authentication data saved to sessionStorage');
                     
                     // 成功メッセージを表示
-                    showSuccess('🎉 Authentication successful! Redirecting to scenario selection...');
+                    showSuccess('🎉 認証成功！シナリオ選択画面へ移動中...');
                     
                     // 1.5秒後にリダイレクト
                     setTimeout(() => {
@@ -346,7 +346,7 @@
                     console.log('❌ Password incorrect');
                     
                     // 認証失敗処理
-                    showError('❌ Invalid password. Please try again.');
+                    showError('❌ 無効なパスワードです。再度お試しください。');
                     setLoadingState(false);
                     passwordInput.value = '';
                     passwordInput.focus();

@@ -232,57 +232,57 @@
     <div class="container">
         <div class="header">
             <h1>Situational AI English</h1>
-            <p>Select Difficulty Level</p>
+            <p>難易度レベルを選択してください</p>
         </div>
         
         <div class="scenario-display">
-            <h3>📋 Selected Scenario:</h3>
-            <p id="scenarioDisplay">Loading scenario...</p>
+            <h3>📋 選択されたシナリオ:</h3>
+            <p id="scenarioDisplay">シナリオを読み込み中...</p>
         </div>
         
         <div class="difficulty-options">
             <div class="difficulty-card" onclick="selectDifficulty('normal')" id="normalCard">
-                <h3>Normal Mode</h3>
-                <div class="subtitle">Evaluates basic communication ability</div>
+                <h3>ノーマルモード</h3>
+                <div class="subtitle">基本的なコミュニケーション能力を評価</div>
                 
                 <ul class="features">
-                    <li>Focus on communication</li>
-                    <li>Minor grammar errors allowed</li>
-                    <li>Business tone check</li>
-                    <li>Supportive feedback</li>
+                    <li>コミュニケーションを重視</li>
+                    <li>軽微な文法ミスは許容</li>
+                    <li>ビジネストーンのチェック</li>
+                    <li>サポート的なフィードバック</li>
                 </ul>
                 
                 <div class="recommendation">
-                    Recommended: Beginner to Intermediate
+                    推奨: 初級～中級レベル
                 </div>
             </div>
             
             <div class="difficulty-card" onclick="selectDifficulty('hard')" id="hardCard">
-                <h3>Hard Mode</h3>
-                <div class="subtitle">Advanced challenge with strict evaluation</div>
+                <h3>ハードモード</h3>
+                <div class="subtitle">厳格な評価による上級チャレンジ</div>
                 
                 <ul class="features">
-                    <li>Perfect grammar required</li>
-                    <li>Professional vocabulary</li>
-                    <li>Complex business scenarios</li>
-                    <li>Detailed feedback</li>
+                    <li>完璧な文法が必要</li>
+                    <li>専門的なビジネス語彙</li>
+                    <li>複雑なビジネスシナリオ</li>
+                    <li>詳細なフィードバック</li>
                 </ul>
                 
                 <div class="recommendation">
-                    Recommended: Advanced Level
+                    推奨: 上級レベル
                 </div>
             </div>
         </div>
         
         <div class="action-buttons">
             <button id="startButton" class="button primary" onclick="startPractice()" disabled>
-                Start Learning Session
+                学習セッションを開始
             </button>
             <button class="button secondary" onclick="goBack()">
-                Back to Scenario Selection
+                シナリオ選択に戻る
             </button>
             <button class="button secondary" onclick="logout()">
-                Logout
+                ログアウト
             </button>
         </div>
         
@@ -332,7 +332,7 @@
         function loadScenario() {
             const scenario = sessionStorage.getItem('selectedScenario');
             if (!scenario) {
-                alert('No scenario selected. Redirecting to scenario selection.');
+                alert('シナリオが選択されていません。シナリオ選択画面に戻ります。');
                 window.location.href = 'scenario.html';
                 return;
             }
@@ -360,14 +360,14 @@
         
         function startPractice() {
             if (!selectedDifficulty) {
-                alert('Please select a difficulty level.');
+                alert('難易度レベルを選択してください。');
                 return;
             }
             
             // 選択した難易度を保存
             sessionStorage.setItem('selectedDifficulty', selectedDifficulty);
             
-            // 会話ページに遷移（会話ページがない場合は適切なページに変更）
+            // 会話ページに遷移
             window.location.href = 'conversation.html';
         }
         
@@ -376,7 +376,7 @@
         }
         
         function logout() {
-            if (confirm('Are you sure you want to logout?')) {
+            if (confirm('ログアウトしてもよろしいですか？')) {
                 sessionStorage.clear();
                 window.location.replace('index.html');
             }
