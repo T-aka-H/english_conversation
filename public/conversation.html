@@ -362,7 +362,7 @@
         const recordButton = document.getElementById('recordButton');
         const typingIndicator = document.getElementById('typingIndicator');
         const statusMessageDiv = document.getElementById('statusMessage');
-        const endTrainingButton = document.getElementById('endTrainingButton');
+        const endTrainingButton = document.getElementById('endTrainingButton'); // ★追加
 
         let conversationHistory = [{ role: 'ai', content: 'Hello! How can I help you practice your English today?' }];
         let messageCounter = 0;
@@ -546,7 +546,7 @@
                     userMessageInput.placeholder = '話しています...';
                     userMessageInput.disabled = true;
                     sendButton.disabled = true;
-                    endTrainingButton.disabled = true;
+                    endTrainingButton.disabled = true; // ★追加
                     showStatus('録音を開始しました。話し終わったら「録音中」ボタンをもう一度タップしてください。', 'info'); // ★変更
                 };
 
@@ -619,7 +619,7 @@
             userMessageInput.disabled = false;
             // 録音終了時に、入力フィールドにテキストがあれば送信ボタンを有効にする
             sendButton.disabled = (userMessageInput.value.trim() === ''); 
-            endTrainingButton.disabled = false;
+            endTrainingButton.disabled = false; // ★追加
         }
 
         // --- イベントリスナー ---
@@ -630,7 +630,7 @@
             }
         });
         recordButton.addEventListener('click', toggleRecording);
-        endTrainingButton.addEventListener('click', evaluateUserConversation);
+        endTrainingButton.addEventListener('click', evaluateUserConversation); // ★追加
 
         // --- 初期化 ---
         window.addEventListener('load', () => {
