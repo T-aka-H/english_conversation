@@ -439,26 +439,17 @@
             }
         }
 
-        function addMessageToChat(role, text, feedback = null, score = null) {
-            const messageBubble = document.createElement('div');
-            messageBubble.classList.add('message-bubble');
-            messageBubble.classList.add(role === 'user' ? 'message-user' : 'message-ai');
-            messageBubble.textContent = text;
-            chatArea.appendChild(messageBubble);
-
-            if (feedback && role === 'ai') {
-                const feedbackBubble = document.createElement('div');
-                feedbackBubble.classList.add('message-bubble', 'message-feedback');
-                feedbackBubble.textContent = `フィードバック: ${feedback}`;
-                chatArea.appendChild(feedbackBubble);
-
-                const scoreElement = document.createElement('div');
-                scoreElement.classList.add('message-score');
-                scoreElement.textContent = `スコア: ${score}/100`;
-                chatArea.appendChild(scoreElement);
+        function addMessageToChat(role, content, feedback = null, score = null) {
+            const chatContainer = document.querySelector('.chat-container');
+            if (!chatContainer) return;
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + (role === 'user' ? 'user-message' : 'ai-message');
+            messageDiv.innerHTML = `<div>${role === 'user' ? '<strong>あなた:</strong>' : '<strong>AI:</strong>'} ${content}</div>`;
+            if (feedback || score !== null) {
+                messageDiv.innerHTML += `<div class="feedback">${feedback ? `<div><strong>フィードバック:</strong> ${feedback}</div>` : ''}${score !== null ? `<div><strong>スコア:</strong> <span class="score">${score}</span></div>` : ''}</div>`;
             }
-
-            chatArea.scrollTop = chatArea.scrollHeight; // Scroll to bottom
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
             messageCounter++;
         }
 
@@ -546,9 +537,8 @@
         async function sendMessage() {
             const inputField = document.getElementById('userMessageInput');
             const message = inputField.value.trim();
-            
             if (!message) return;
-
+            addMessageToChat('user', message); // ユーザーのメッセージを履歴に追加
             try {
                 showLoading(true);
                 await generateAIResponse(message);
@@ -670,7 +660,6 @@
                 initializeSpeechRecognition();
                 return;
             }
-
             try {
                 if (isRecording) {
                     recognition.stop();
@@ -687,10 +676,15 @@
         function updateRecordingUI(isRecording) {
             const micButton = document.getElementById('startRecordingBtn');
             if (micButton) {
-                micButton.innerHTML = isRecording ? 
-                    '<i class="fas fa-stop"></i>' : 
-                    '<i class="fas fa-microphone"></i>';
-                micButton.classList.toggle('recording', isRecording);
+                if (isRecording) {
+                    micButton.innerHTML = '<i class="fas fa-stop"></i>';
+                    micButton.classList.add('recording');
+                    micButton.title = '録音停止';
+                } else {
+                    micButton.innerHTML = '<i class="fas fa-microphone"></i>';
+                    micButton.classList.remove('recording');
+                    micButton.title = '音声入力開始';
+                }
             }
         }
 
