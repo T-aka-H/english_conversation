@@ -440,8 +440,13 @@
         }
 
         function addMessageToChat(role, content, feedback = null, score = null) {
-            const chatContainer = document.querySelector('.chat-container');
-            if (!chatContainer) return;
+            let chatContainer = document.querySelector('.chat-container');
+            if (!chatContainer) {
+                // なければ作る
+                chatContainer = document.createElement('div');
+                chatContainer.className = 'chat-container';
+                document.querySelector('.container').insertBefore(chatContainer, document.querySelector('.input-container'));
+            }
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message ' + (role === 'user' ? 'user-message' : 'ai-message');
             messageDiv.innerHTML = `<div>${role === 'user' ? '<strong>あなた:</strong>' : '<strong>AI:</strong>'} ${content}</div>`;
@@ -554,58 +559,35 @@
         // --- Speech Recognition ---
         function initializeSpeechRecognition() {
             try {
-                // ブラウザの互換性チェック
                 if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
                     console.warn('Speech recognition is not supported in this browser.');
                     return;
                 }
-
-                // 音声認識のインスタンスを作成
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 recognition = new SpeechRecognition();
-
-                // 音声認識の設定
                 recognition.continuous = true;
                 recognition.interimResults = true;
                 recognition.lang = 'en-US';
 
-                // 音声認識のイベントハンドラ
                 recognition.onstart = () => {
-                    console.log('🎤 Speech recognition started');
                     isRecording = true;
                     updateRecordingUI(true);
                 };
-
                 recognition.onend = () => {
-                    console.log('🎤 Speech recognition ended');
+                    // 停止要求時のみisRecordingをfalseに
                     isRecording = false;
                     updateRecordingUI(false);
                     clearTimeout(silenceTimer);
                 };
-
                 recognition.onerror = (event) => {
-                    console.error('🎤 Speech recognition error:', event.error);
                     isRecording = false;
                     updateRecordingUI(false);
                     clearTimeout(silenceTimer);
-                    
-                    // エラーメッセージを表示
-                    if (event.error === 'no-speech') {
-                        showError('音声が検出されませんでした。もう一度お試しください。');
-                    } else if (event.error === 'audio-capture') {
-                        showError('マイクへのアクセスが拒否されました。ブラウザの設定を確認してください。');
-                    } else if (event.error === 'not-allowed') {
-                        showError('音声認識の許可が必要です。ブラウザの設定を確認してください。');
-                    } else {
-                        showError('音声認識でエラーが発生しました。もう一度お試しください。');
-                    }
+                    showError('音声認識エラー: ' + event.error);
                 };
-
                 recognition.onresult = (event) => {
                     let finalTranscript = '';
                     let interimTranscript = '';
-
-                    // 結果の処理
                     for (let i = event.resultIndex; i < event.results.length; i++) {
                         const transcript = event.results[i][0].transcript;
                         if (event.results[i].isFinal) {
@@ -614,8 +596,6 @@
                             interimTranscript += transcript;
                         }
                     }
-
-                    // 入力フィールドの更新
                     const inputField = document.getElementById('userMessageInput');
                     if (finalTranscript) {
                         inputField.value = finalTranscript;
@@ -629,28 +609,8 @@
                         inputField.value = interimTranscript;
                     }
                 };
-
-                // 音声認識の再開処理
-                recognition.onend = () => {
-                    console.log('🎤 Speech recognition ended');
-                    isRecording = false;
-                    updateRecordingUI(false);
-                    clearTimeout(silenceTimer);
-
-                    // 自動的に再開（エラーで終了した場合は除く）
-                    if (!recognition.error) {
-                        setTimeout(() => {
-                            if (!isRecording) {
-                                recognition.start();
-                            }
-                        }, 100);
-                    }
-                };
-
-                console.log('✅ Speech recognition initialized');
             } catch (error) {
-                console.error('❌ Error initializing speech recognition:', error);
-                showError('音声認識の初期化に失敗しました。ブラウザの設定を確認してください。');
+                showError('音声認識の初期化に失敗しました。');
             }
         }
 
@@ -662,13 +622,22 @@
             }
             try {
                 if (isRecording) {
+                    recognition.onend = () => {
+                        isRecording = false;
+                        updateRecordingUI(false);
+                        clearTimeout(silenceTimer);
+                    };
                     recognition.stop();
                 } else {
+                    recognition.onend = () => {
+                        isRecording = false;
+                        updateRecordingUI(false);
+                        clearTimeout(silenceTimer);
+                    };
                     recognition.start();
                 }
             } catch (error) {
-                console.error('❌ Error toggling recording:', error);
-                showError('音声認識の切り替えに失敗しました。もう一度お試しください。');
+                showError('音声認識の切り替えに失敗しました。');
             }
         }
 
