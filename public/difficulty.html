@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Situational AI English - Difficulty Selection</title>
+    <link rel="icon" href="data:,">
+    
+    <!-- Authentication Check -->
+    <script>
+        // Check authentication immediately
+        function checkAuthentication() {
+            const isAuthenticated = sessionStorage.getItem('isAuthenticated');
+            const authTime = sessionStorage.getItem('authTime');
+            const currentTime = new Date().getTime();
+            
+            // Check if authenticated and within 24 hours
+            if (!isAuthenticated || !authTime || (currentTime - parseInt(authTime)) > 24 * 60 * 60 * 1000) {
+                console.log('Authentication required - redirecting to login');
+                window.location.href = 'index.html';
+                return false;
+            }
+            
+            console.log('Authentication verified');
+            return true;
+        }
+        
+        // Check on page load
+        if (!checkAuthentication()) {
+            // Redirect will happen in checkAuthentication
+        }
+    </script>
+    
+    <style>
+        /* Base styles - Monochrome Cool Design */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
+            color: white; 
+            padding: 20px; 
+            min-height: 100vh;
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: rgba(255,255,255,0.05); 
+            padding: 40px; 
+            border-radius: 20px; 
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        /* Header */
+        .header h1 { 
+            text-align: center; 
+            font-size: 32px; 
+            margin-bottom: 20px; 
+            color: white;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+        
+        /* Difficulty Selection Styles */
+        .difficulty-options {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .difficulty-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 30px;
+            width: 300px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .difficulty-card:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+            transform: translateY(-5px);
+        }
+
+        .difficulty-card.selected {
+            border-color: #4A90E2;
+            background: rgba(74, 144, 226, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+        }
+
+        .difficulty-card h3 {
+            color: white;
+            margin: 20px 0;
+            font-size: 24px;
+            font-weight: 500;
+        }
+
+        .difficulty-card p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .difficulty-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .difficulty-card li {
+            color: rgba(255, 255, 255, 0.7);
+            margin: 8px 0;
+            font-size: 14px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .difficulty-card li:before {
+            content: "✓ ";
+            color: #4A90E2;
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        .recommended {
+            background: rgba(74, 144, 226, 0.2);
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            display: inline-block;
+            margin-top: 15px;
+            border: 1px solid rgba(74, 144, 226, 0.3);
+        }
+        
+        /* Button Styles */
+        .button { 
+            width: 100%; 
+            padding: 15px; 
+            background: linear-gradient(135deg, #4A90E2, #357ABD);
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            margin: 20px 0; 
+            cursor: pointer; 
+            font-size: 16px;
+            font-weight: 400;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+        .button:hover { 
+            background: linear-gradient(135deg, #357ABD, #2E6DA4);
+            transform: translateY(-2px);
+        }
+        .button:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: auto;
+            padding: 12px 25px;
+            margin: 20px auto;
+            display: block;
+        }
+        .button.secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* Selection Info */
+        .selection-info {
+            text-align: center; 
+            margin: 30px 0; 
+            padding: 20px; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .selection-info.hidden {
+            display: none;
+        }
+        
+        .selected-difficulty {
+            color: #4A90E2; 
+            font-weight: 500;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .selection-description {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .container {
+            animation: fadeIn 0.6s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Situational AI English</h1>
+        </div>
+        
+        <h2 style="text-align: center; margin-bottom: 40px; font-weight: 400; color: rgba(255,255,255,0.9);">
+            Select Your Difficulty Level
+        </h2>
+        
+        <div class="difficulty-options">
+            <div class="difficulty-card normal-mode" onclick="selectDifficulty('normal')">
+                <h3>Normal Mode</h3>
+                <p>Focus on basic communication skills and natural conversation flow</p>
+                <ul>
+                    <li>Emphasis on communication effectiveness</li>
+                    <li>Minor grammar errors are acceptable</li>
+                    <li>Business tone and politeness check</li>
+                    <li>Vocabulary building support</li>
+                    <li>Confidence building approach</li>
+                </ul>
+                <span class="recommended">Recommended: Beginner to Intermediate</span>
+            </div>
+            
+            <div class="difficulty-card hard-mode" onclick="selectDifficulty('hard')">
+                <h3>Hard Mode</h3>
+                <p>Demanding high accuracy in grammar, vocabulary, and professional expression</p>
+                <ul>
+                    <li>Strict grammar accuracy required</li>
+                    <li>Advanced vocabulary selection</li>
+                    <li>Sophisticated business expressions</li>
+                    <li>Cultural nuance awareness</li>
+                    <li>Professional presentation skills</li>
+                </ul>
+                <span class="recommended">Recommended: Intermediate to Advanced</span>
+            </div>
+        </div>
+        
+        <div id="selectionInfo" class="selection-info hidden">
+            <div id="selectedDifficultyDisplay" class="selected-difficulty"></div>
+            <div id="selectionDescription" class="selection-description"></div>
+        </div>
+        
+        <button class="button" id="continueButton" onclick="continueToScenario()" disabled>
+            Continue to Scenario Setup
+        </button>
+        
+        <button class="button secondary" onclick="logout()">
+            Logout
+        </button>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>developed by T.H.</p>
+        </div>
+    </div>
+
+    <script>
+        let selectedDifficulty = null;
+        
+        function selectDifficulty(difficulty) {
+            selectedDifficulty = difficulty;
+            
+            // Remove selection from all cards
+            document.querySelectorAll('.difficulty-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selection to chosen card
+            if (difficulty === 'normal') {
+                document.querySelector('.normal-mode').classList.add('selected');
+                document.getElementById('selectedDifficultyDisplay').textContent = 'Normal Mode Selected';
+                document.getElementById('selectionDescription').textContent = 'Perfect for building confidence and focusing on communication effectiveness.';
+            } else {
+                document.querySelector('.hard-mode').classList.add('selected');
+                document.getElementById('selectedDifficultyDisplay').textContent = 'Hard Mode Selected';
+                document.getElementById('selectionDescription').textContent = 'Challenge yourself with strict accuracy requirements and advanced expressions.';
+            }
+            
+            // Show selection info and enable continue button
+            document.getElementById('selectionInfo').classList.remove('hidden');
+            document.getElementById('continueButton').disabled = false;
+            
+            // Store selection
+            sessionStorage.setItem('selectedDifficulty', difficulty);
+            
+            console.log('Difficulty selected:', difficulty);
+        }
+        
+        function continueToScenario() {
+            if (!selectedDifficulty) {
+                alert('Please select a difficulty level first.');
+                return;
+            }
+            
+            console.log('Proceeding to scenario setup with difficulty:', selectedDifficulty);
+            
+            // Store difficulty in sessionStorage
+            sessionStorage.setItem('selectedDifficulty', selectedDifficulty);
+            
+            // Redirect to scenario setup page
+            window.location.href = 'scenario.html';
+        }
+        
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear authentication
+                sessionStorage.clear();
+                
+                // Redirect to login page
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // Check for existing difficulty selection on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedDifficulty = sessionStorage.getItem('selectedDifficulty');
+            if (savedDifficulty) {
+                selectDifficulty(savedDifficulty);
+            }
+        });
+    </script>
+</body>
+</html>
