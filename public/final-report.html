@@ -201,7 +201,7 @@
     <script>
         // セッションストレージから会話データを取得
         function loadConversationData() {
-            const conversation = JSON.parse(sessionStorage.getItem('conversation') || '[]');
+            const conversation = JSON.parse(sessionStorage.getItem('conversationHistory') || '[]');
             const scenario = sessionStorage.getItem('scenario') || '未設定';
             const difficulty = sessionStorage.getItem('difficulty') || '未設定';
             const startTime = sessionStorage.getItem('startTime') || '未記録';
