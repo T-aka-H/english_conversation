@@ -374,6 +374,10 @@
                 <button type="button" class="nav-button logout" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> ログアウト</button>
             </div>
         </footer>
+
+        <div class="footer">
+            KOSO-REN App developed by T.H.
+        </div>
     </div>
 
     <script>
@@ -549,7 +553,9 @@
             const inputField = document.getElementById('userMessageInput');
             const message = inputField.value.trim();
             if (!message) return;
-            addMessageToChat('user', message); // ユーザーのメッセージを履歴に追加
+            addMessageToChat('user', message);
+            conversationHistory.push({ role: 'user', content: message });
+            saveConversationState();
             try {
                 showLoading(true);
                 await generateAIResponse(message);
