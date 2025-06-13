@@ -687,8 +687,8 @@
                 return;
             }
 
-            currentScenario = sessionStorage.getItem('selectedScenario');
-            currentDifficulty = sessionStorage.getItem('selectedDifficulty');
+            currentScenario = sessionStorage.getItem('scenario');
+            currentDifficulty = sessionStorage.getItem('difficulty');
 
             if (!currentScenario || !currentDifficulty) {
                 alert('シナリオまたは難易度が選択されていません。シナリオ選択ページに戻ります。');
@@ -754,8 +754,8 @@
             if (confirm('現在の会話データは失われますが、よろしいですか？')) {
                 sessionStorage.removeItem('conversationHistory');
                 sessionStorage.removeItem('messageCounter');
-                sessionStorage.removeItem('selectedScenario');
-                sessionStorage.removeItem('selectedDifficulty');
+                sessionStorage.removeItem('scenario');
+                sessionStorage.removeItem('difficulty');
                 window.location.href = 'scenario.html';
             }
         });
