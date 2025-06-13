@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Situational AI English - Difficulty Selection</title>
+    <title>Situational AI English - Scenario Selection</title>
     <link rel="icon" href="data:,">
     
     <style>
@@ -17,7 +17,7 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             background: rgba(255,255,255,0.05);
             padding: 40px;
@@ -44,96 +44,88 @@
             color: rgba(255, 255, 255, 0.7);
         }
         
-        .scenario-display {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 20px;
-            border-radius: 12px;
+        .scenario-form {
             margin-bottom: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
-        .scenario-display h3 {
-            color: #4A90E2;
-            font-size: 16px;
-            margin-bottom: 10px;
+        .form-group {
+            margin-bottom: 30px;
         }
         
-        .scenario-display p {
+        .form-label {
+            display: block;
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 15px;
             color: rgba(255, 255, 255, 0.9);
-            line-height: 1.6;
-            font-size: 15px;
         }
         
-        .difficulty-options {
+        .scenario-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            color: white;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        .scenario-textarea:focus {
+            outline: none;
+            border-color: #4A90E2;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 20px rgba(74, 144, 226, 0.3);
+        }
+        
+        .scenario-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .suggested-scenarios {
+            margin-top: 20px;
+        }
+        
+        .suggested-scenarios h3 {
+            font-size: 16px;
+            color: #4A90E2;
+            margin-bottom: 15px;
+        }
+        
+        .scenario-suggestions {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 30px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
         }
         
-        .difficulty-card {
+        .suggestion-item {
             background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
         }
         
-        .difficulty-card:hover {
+        .suggestion-item:hover {
+            background: rgba(255, 255, 255, 0.1);
             border-color: #4A90E2;
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(74, 144, 226, 0.2);
+            transform: translateY(-2px);
         }
         
-        .difficulty-card.selected {
-            border-color: #4A90E2;
-            background: rgba(74, 144, 226, 0.1);
-        }
-        
-        .difficulty-card h3 {
-            font-size: 24px;
-            margin-bottom: 15px;
+        .suggestion-item h4 {
             color: #4A90E2;
-        }
-        
-        .difficulty-card .subtitle {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 20px;
-        }
-        
-        .difficulty-card .features {
-            text-align: left;
-            margin-bottom: 20px;
-        }
-        
-        .difficulty-card .features li {
-            color: rgba(255, 255, 255, 0.7);
             font-size: 14px;
             margin-bottom: 8px;
-            list-style: none;
-            position: relative;
-            padding-left: 20px;
         }
         
-        .difficulty-card .features li:before {
-            content: "•";
-            color: #4A90E2;
-            font-weight: bold;
-            position: absolute;
-            left: 0;
-        }
-        
-        .difficulty-card .recommendation {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
+        .suggestion-item p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.4;
         }
         
         .action-buttons {
@@ -176,13 +168,6 @@
             background: linear-gradient(135deg, #20A042, #1E7E3A);
         }
         
-        .button.primary:disabled {
-            background: rgba(255, 255, 255, 0.1);
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
         .button.secondary {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -190,6 +175,17 @@
         
         .button.secondary:hover {
             background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .auth-info {
+            background: rgba(40, 167, 69, 0.1);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+            color: #28a745;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 14px;
         }
         
         .footer {
@@ -211,10 +207,6 @@
                 padding: 20px;
             }
             
-            .difficulty-options {
-                grid-template-columns: 1fr;
-            }
-            
             .action-buttons {
                 flex-direction: column;
                 align-items: center;
@@ -224,6 +216,10 @@
                 width: 100%;
                 max-width: 300px;
             }
+            
+            .scenario-suggestions {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -232,59 +228,68 @@
     <div class="container">
         <div class="header">
             <h1>Situational AI English</h1>
-            <p>Select Difficulty Level</p>
+            <p>Select Your Business English Practice Scenario</p>
         </div>
         
-        <div class="scenario-display">
-            <h3>📋 Selected Scenario:</h3>
-            <p id="scenarioDisplay">Loading scenario...</p>
+        <div class="auth-info">
+            ✅ Authentication successful! Welcome to the scenario selection.
         </div>
         
-        <div class="difficulty-options">
-            <div class="difficulty-card" onclick="selectDifficulty('normal')" id="normalCard">
-                <h3>Normal Mode</h3>
-                <div class="subtitle">Evaluates basic communication ability</div>
+        <form class="scenario-form" id="scenarioForm">
+            <div class="form-group">
+                <label for="scenarioInput" class="form-label">Enter business scenario for practice:</label>
+                <textarea 
+                    id="scenarioInput" 
+                    class="scenario-textarea"
+                    placeholder="Example: Meeting discussion, presentation, client phone call, new project proposal, performance review, negotiation, customer service inquiry..."
+                    required
+                ></textarea>
                 
-                <ul class="features">
-                    <li>Focus on communication</li>
-                    <li>Minor grammar errors allowed</li>
-                    <li>Business tone check</li>
-                    <li>Supportive feedback</li>
-                </ul>
-                
-                <div class="recommendation">
-                    Recommended: Beginner to Intermediate
+                <div class="suggested-scenarios">
+                    <h3>💡 Suggested Scenarios (Click to use):</h3>
+                    <div class="scenario-suggestions">
+                        <div class="suggestion-item" onclick="selectScenario('Leading a team meeting to discuss quarterly results and plan next quarter strategies')">
+                            <h4>📊 Team Meeting</h4>
+                            <p>Lead a quarterly results discussion and strategic planning session</p>
+                        </div>
+                        
+                        <div class="suggestion-item" onclick="selectScenario('Presenting a new product proposal to potential investors and answering their questions')">
+                            <h4>🎯 Product Presentation</h4>
+                            <p>Present a new product to investors and handle Q&A session</p>
+                        </div>
+                        
+                        <div class="suggestion-item" onclick="selectScenario('Conducting a phone call with an international client to resolve service issues')">
+                            <h4>☎️ Client Service Call</h4>
+                            <p>Handle international client concerns and provide solutions</p>
+                        </div>
+                        
+                        <div class="suggestion-item" onclick="selectScenario('Job interview for a senior management position with behavioral and technical questions')">
+                            <h4>💼 Job Interview</h4>
+                            <p>Senior management interview with behavioral and technical questions</p>
+                        </div>
+                        
+                        <div class="suggestion-item" onclick="selectScenario('Negotiating contract terms with a vendor including pricing and delivery schedules')">
+                            <h4>🤝 Contract Negotiation</h4>
+                            <p>Negotiate pricing, terms, and delivery schedules with vendors</p>
+                        </div>
+                        
+                        <div class="suggestion-item" onclick="selectScenario('Performance review meeting with a team member discussing achievements and areas for improvement')">
+                            <h4>📈 Performance Review</h4>
+                            <p>Conduct employee performance evaluation and development planning</p>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="difficulty-card" onclick="selectDifficulty('hard')" id="hardCard">
-                <h3>Hard Mode</h3>
-                <div class="subtitle">Advanced challenge with strict evaluation</div>
-                
-                <ul class="features">
-                    <li>Perfect grammar required</li>
-                    <li>Professional vocabulary</li>
-                    <li>Complex business scenarios</li>
-                    <li>Detailed feedback</li>
-                </ul>
-                
-                <div class="recommendation">
-                    Recommended: Advanced Level
-                </div>
+            <div class="action-buttons">
+                <button type="submit" class="button primary">
+                    Continue to Difficulty Selection
+                </button>
+                <button type="button" class="button secondary" onclick="logout()">
+                    Logout
+                </button>
             </div>
-        </div>
-        
-        <div class="action-buttons">
-            <button id="startButton" class="button primary" onclick="startPractice()" disabled>
-                Start Learning Session
-            </button>
-            <button class="button secondary" onclick="goBack()">
-                Back to Scenario Selection
-            </button>
-            <button class="button secondary" onclick="logout()">
-                Logout
-            </button>
-        </div>
+        </form>
         
         <div class="footer">
             <p>developed by T.H.</p>
@@ -292,95 +297,119 @@
     </div>
 
     <script>
-        let selectedDifficulty = null;
+        console.log('🎬 Scenario selection page loaded');
         
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔍 Checking authentication status...');
+            
             // 認証チェック
             if (!checkAuthentication()) {
                 return;
             }
             
-            // シナリオ表示
-            loadScenario();
+            console.log('✅ Authentication verified successfully');
+            
+            // フォーム処理
+            const scenarioForm = document.getElementById('scenarioForm');
+            const scenarioInput = document.getElementById('scenarioInput');
+            
+            scenarioForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleScenarioSubmission();
+            });
+            
+            // フォーカスを当てる
+            scenarioInput.focus();
+            
+            console.log('📝 Scenario selection page initialized');
         });
         
         function checkAuthentication() {
-            const isAuthenticated = sessionStorage.getItem('isAuthenticated');
-            const authTime = sessionStorage.getItem('authTime');
-            
-            if (!isAuthenticated) {
-                alert('Please login first.');
+            try {
+                const isAuthenticated = sessionStorage.getItem('isAuthenticated');
+                const authTime = sessionStorage.getItem('authTime');
+                
+                console.log('🔐 Auth status:', isAuthenticated);
+                console.log('⏰ Auth time:', authTime);
+                
+                if (!isAuthenticated) {
+                    console.log('❌ No authentication found - redirecting to login');
+                    alert('Please login first.');
+                    window.location.replace('index.html');
+                    return false;
+                }
+                
+                // 認証の有効期限をチェック（24時間）
+                if (authTime) {
+                    const currentTime = new Date().getTime();
+                    const authTimeStamp = parseInt(authTime);
+                    const hoursDiff = (currentTime - authTimeStamp) / (1000 * 60 * 60);
+                    
+                    console.log('⏱️ Hours since auth:', hoursDiff.toFixed(2));
+                    
+                    if (hoursDiff > 24) {
+                        console.log('⏰ Authentication expired - clearing session');
+                        sessionStorage.clear();
+                        alert('Session expired. Please login again.');
+                        window.location.replace('index.html');
+                        return false;
+                    }
+                }
+                
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Authentication check error:', error);
+                alert('Authentication error. Please login again.');
                 window.location.replace('index.html');
                 return false;
             }
-            
-            // 認証の有効期限をチェック（24時間）
-            const currentTime = new Date().getTime();
-            const authTimeStamp = parseInt(authTime);
-            const hoursDiff = (currentTime - authTimeStamp) / (1000 * 60 * 60);
-            
-            if (hoursDiff > 24) {
-                sessionStorage.clear();
-                alert('Session expired. Please login again.');
-                window.location.replace('index.html');
-                return false;
-            }
-            
-            return true;
         }
         
-        function loadScenario() {
-            const scenario = sessionStorage.getItem('selectedScenario');
+        function selectScenario(scenarioText) {
+            console.log('📋 Scenario selected:', scenarioText);
+            document.getElementById('scenarioInput').value = scenarioText;
+        }
+        
+        function handleScenarioSubmission() {
+            const scenario = document.getElementById('scenarioInput').value.trim();
+            
+            console.log('🚀 Submitting scenario:', scenario);
+            
             if (!scenario) {
-                alert('No scenario selected. Redirecting to scenario selection.');
-                window.location.href = 'scenario.html';
+                alert('Please enter a business scenario.');
                 return;
             }
             
-            document.getElementById('scenarioDisplay').textContent = scenario;
-        }
-        
-        function selectDifficulty(difficulty) {
-            selectedDifficulty = difficulty;
-            
-            // カードの選択状態を更新
-            document.querySelectorAll('.difficulty-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            
-            if (difficulty === 'normal') {
-                document.getElementById('normalCard').classList.add('selected');
-            } else {
-                document.getElementById('hardCard').classList.add('selected');
+            try {
+                // シナリオをsessionStorageに保存
+                sessionStorage.setItem('selectedScenario', scenario);
+                console.log('💾 Scenario saved to sessionStorage');
+                
+                // 難易度選択ページに遷移
+                console.log('➡️ Redirecting to difficulty selection...');
+                window.location.href = 'difficulty.html';
+                
+            } catch (error) {
+                console.error('❌ Error saving scenario:', error);
+                alert('Error occurred while saving scenario. Please try again.');
             }
-            
-            // ボタンを有効化
-            document.getElementById('startButton').disabled = false;
-        }
-        
-        function startPractice() {
-            if (!selectedDifficulty) {
-                alert('Please select a difficulty level.');
-                return;
-            }
-            
-            // 選択した難易度を保存
-            sessionStorage.setItem('selectedDifficulty', selectedDifficulty);
-            
-            // 会話ページに遷移（会話ページがない場合は適切なページに変更）
-            window.location.href = 'conversation.html';
-        }
-        
-        function goBack() {
-            window.location.href = 'scenario.html';
         }
         
         function logout() {
             if (confirm('Are you sure you want to logout?')) {
+                console.log('👋 User logging out...');
                 sessionStorage.clear();
                 window.location.replace('index.html');
             }
         }
+        
+        // エラーハンドリング
+        window.addEventListener('error', function(e) {
+            console.error('❌ Page error:', e.error);
+        });
+        
+        console.log('📜 Scenario selection script loaded');
     </script>
 </body>
 </html>
