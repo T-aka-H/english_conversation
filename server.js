@@ -127,60 +127,77 @@ app.post('/api/chat', verifyPassword, async (req, res) => {
     if (isFirstMessage) {
         // AIからの最初のメッセージ生成プロンプト
         prompt = `
-あなたは英語のビジネス会話練習AIです。以下のシナリオと難易度に基づいて、ユーザーとの会話を始めてください。
-あなたの目的は、ユーザーが与えられたシナリオで英語のコミュニケーション能力を向上させることです。
-ユーザーの発言を評価し、適切なフィードバックと次の発言を提供してください。
-難易度は以下の通りです。
-- Normal: 自然な会話の流れを重視し、一般的なビジネス英語を使用。
-- Hard: より専門的、または複雑な表現、交渉、意見の主張を促すような会話を意識。
+You are an English business conversation practice AI. Based on the following scenario and difficulty level, start a conversation with the user.
+Your goal is to help the user improve their English communication skills in the given scenario.
+Evaluate the user's responses and provide appropriate feedback and next responses.
 
-シナリオ: ${scenario}
-難易度: ${difficulty}
+Scenario: ${scenario}
+Difficulty: ${difficulty}
 
-制約事項:
-- 応答は英語のみ。
-- 最初の一言として、シナリオに沿った質問や状況説明を行い、ユーザーの返答を促してください。
-- ユーザーの発言に対しては、必ず評価（点数とフィードバック）と、それに対する次の質問や返答をセットで返してください。
-- 各応答はJSON形式で返すこと。フォーマットは以下の通りです。
+Constraints:
+- Respond only in English.
+- Start with a question or situation description based on the scenario to prompt user response.
+- For each response, provide an evaluation (score and feedback) and a next question or response.
+- Return each response in JSON format as follows:
 {
-  "aiResponse": "AIの次の発言（英語）",
-  "feedback": "ユーザーの発言に対する評価と改善点（日本語で簡潔に）",
-  "score": ユーザーの発言に対する点数（0-100の整数）
+  "aiResponse": "Your next response in English",
+  "feedback": "Evaluation and improvement points in Japanese (brief)",
+  "score": 100  // For first message, always return 100 as there's no user input to evaluate
 }
-`;
+
+Remember to maintain a natural conversation flow and keep responses concise and business-appropriate.`;
     } else {
         // 会話が続いている場合のプロンプト
-        // ここで会話履歴とユーザーの最新の発言を含める
-        // 評価と次のAIの発言を生成するよう指示
         prompt = `
-あなたは英語のビジネス会話練習AIです。以下の会話履歴と最新のユーザーの発言に基づいて、ユーザーの発言を評価し、会話を続けてください。
-現在のシナリオ: ${scenario}
-現在の難易度: ${difficulty}
+You are an English business conversation practice AI. Based on the conversation history and the user's latest message, evaluate the user's response and continue the conversation.
 
-会話履歴（AIとユーザーの発言が交互に）：
+Current Scenario: ${scenario}
+Current Difficulty: ${difficulty}
+
+Conversation History (alternating between AI and user):
 ${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
-ユーザー: ${userMessage}
+User: ${userMessage}
 
-あなたのタスク：
-1. ユーザーの最新の発言を100点満点で評価してください。文法、語彙、流暢さ、シナリオへの適切さを考慮してください。
-2. その評価に基づいて、具体的なフィードバックと改善点を日本語で簡潔に提供してください。
-3. 会話の流れを自然に保ちつつ、次のAIの発言（英語）を生成してください。
-4. 各応答はJSON形式で返すこと。フォーマットは以下の通りです。
+Your tasks:
+1. Evaluate the user's latest message on a scale of 0-100, considering grammar, vocabulary, fluency, and appropriateness to the scenario.
+2. Provide specific feedback and improvement points in Japanese (brief).
+3. Generate your next response in English, maintaining a natural conversation flow.
+4. Return your response in JSON format as follows:
 {
-  "aiResponse": "AIの次の発言（英語）",
-  "feedback": "ユーザーの発言に対する評価と改善点（日本語で簡潔に）",
-  "score": ユーザーの発言に対する点数（0-100の整数）
+  "aiResponse": "Your next response in English",
+  "feedback": "Evaluation and improvement points in Japanese (brief)",
+  "score": <evaluation score between 0-100>
 }
-`;
+
+Keep responses concise and business-appropriate.`;
     }
 
     try {
-        const geminiResponse = await callGeminiAPI(prompt); // オブジェクトとして受け取る
-        const { aiResponse, feedback, score } = geminiResponse; // 分割代入
+        const geminiResponse = await callGeminiAPI(prompt);
+        
+        // 応答の検証と整形
+        let aiResponse = geminiResponse.aiResponse;
+        let feedback = geminiResponse.feedback;
+        let score = geminiResponse.score;
 
-        if (typeof aiResponse !== 'string' || typeof feedback !== 'string' || typeof score !== 'number') {
-            throw new Error('AI response is not in the expected format.');
+        // 型チェックとデフォルト値の設定
+        if (typeof aiResponse !== 'string') {
+            console.error('Invalid aiResponse type:', typeof aiResponse);
+            aiResponse = "I apologize, but I'm having trouble generating a proper response. Could you please try again?";
         }
+
+        if (typeof feedback !== 'string') {
+            console.error('Invalid feedback type:', typeof feedback);
+            feedback = "評価を生成できませんでした。もう一度お試しください。";
+        }
+
+        if (typeof score !== 'number' || isNaN(score)) {
+            console.error('Invalid score type:', typeof score);
+            score = isFirstMessage ? 100 : 50; // 最初のメッセージなら100、それ以外は50をデフォルト値に
+        }
+
+        // スコアの範囲を0-100に制限
+        score = Math.max(0, Math.min(100, Math.round(score)));
 
         res.json({ aiResponse, feedback, score });
 
