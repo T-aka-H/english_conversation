@@ -367,6 +367,7 @@
             
             // 選択した難易度を保存
             sessionStorage.setItem('difficulty', selectedDifficulty);
+            console.log('✅ difficulty saved:', sessionStorage.getItem('difficulty'));
             
             // 会話ページに遷移
             window.location.href = 'conversation.html';
