@@ -332,6 +332,7 @@
                     sessionStorage.setItem('isAuthenticated', 'true');
                     sessionStorage.setItem('authTime', new Date().getTime());
                     sessionStorage.setItem('loginTime', new Date().toISOString());
+                    sessionStorage.setItem('appPassword', password);
                     
                     console.log('💾 Authentication data saved to sessionStorage');
                     
