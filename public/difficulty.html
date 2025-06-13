@@ -284,6 +284,26 @@
     </div>
 
     <script>
+        // difficulty.htmlの<script>タグ内の最初に追加
+        document.addEventListener('DOMContentLoaded', function() {
+            // 認証チェック
+            if (!checkAuthentication()) {
+                return;
+            }
+            
+            // 既存の難易度選択初期化処理
+            initializeDifficulty(); // または既存の初期化関数
+        });
+
+        function checkAuthentication() {
+            const isAuthenticated = sessionStorage.getItem('isAuthenticated');
+            if (!isAuthenticated) {
+                window.location.replace('index.html');
+                return false;
+            }
+            return true;
+        }
+        
         let selectedDifficulty = null;
         
         function selectDifficulty(difficulty) {
