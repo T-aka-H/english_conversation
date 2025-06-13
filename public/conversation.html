@@ -289,14 +289,19 @@
         let isRecording = false;
         let recognition; // SpeechRecognition API
 
-        // 初期シナリオと難易度（適宜変更可能）
-        const currentScenario = document.getElementById('scenarioName').textContent;
-        const currentDifficulty = document.getElementById('difficultyLevel').textContent;
+        // ★変更点: sessionStorageからシナリオと難易度を読み込む
+        // もしsessionStorageに値がなければ、HTMLのデフォルト値を使用
+        const currentScenario = sessionStorage.getItem('selectedScenario') || document.getElementById('scenarioName').textContent;
+        const currentDifficulty = sessionStorage.getItem('selectedDifficulty') || document.getElementById('difficultyLevel').textContent;
+
+        // ★変更点: 読み取った値をHTMLに反映させる (ユーザーに見えるように)
+        document.getElementById('scenarioName').textContent = currentScenario;
+        document.getElementById('difficultyLevel').textContent = currentDifficulty;
 
         // !!! IMPORTANT !!!
         // RENDERのAPP_PASSWORD環境変数と同じ値をここに設定してください。
         // セキュリティのため、本番環境ではよりセキュアな認証メカニズムを導入してください。
-        const APP_ACCESS_PASSWORD = "2025_July"; // <-- RENDERのAPP_PASSWORDと一致させる
+        const APP_ACCESS_PASSWORD = "YOUR_APP_PASSWORD_HERE"; // <-- RENDERのAPP_PASSWORDと一致させる
 
         // --- UI 操作関数 ---
         function addMessage(role, text) {
@@ -352,17 +357,17 @@
             
             try {
                 // バックエンドAPIへのリクエスト
-                const response = await fetch('/api/chat', { // エンドポイントは /api/chat
+                const response = await fetch('/api/chat', { 
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ 
                         userMessage: userMessage,
-                        conversationHistory: conversationHistory, // 会話履歴全体を送信
-                        scenarioName: currentScenario, // 現在のシナリオを送信
-                        difficultyLevel: currentDifficulty, // 現在の難易度を送信
-                        password: APP_ACCESS_PASSWORD // ★ここが変更点: APP_ACCESS_PASSWORD を送信
+                        conversationHistory: conversationHistory, 
+                        scenarioName: currentScenario, 
+                        difficultyLevel: currentDifficulty, 
+                        password: APP_ACCESS_PASSWORD // ★ここをRENDERのAPP_PASSWORDと一致させる
                     }),
                 });
 
@@ -388,9 +393,9 @@
         function initSpeechRecognition() {
             if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
                 recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-                recognition.lang = 'en-US'; // 英語を設定
-                recognition.interimResults = false; // 中間結果は不要
-                recognition.maxAlternatives = 1; // 候補は1つで十分
+                recognition.lang = 'en-US'; 
+                recognition.interimResults = false; 
+                recognition.maxAlternatives = 1; 
 
                 recognition.onstart = () => {
                     isRecording = true;
@@ -405,7 +410,7 @@
                 recognition.onresult = (event) => {
                     const transcript = event.results[0][0].transcript;
                     userMessageInput.value = transcript;
-                    sendMessage(); // 認識結果を送信
+                    sendMessage(); 
                 };
 
                 recognition.onerror = (event) => {
@@ -415,8 +420,6 @@
                 };
 
                 recognition.onend = () => {
-                    // 録音終了時、自動的にメッセージを送信しない（ユーザーが確認・編集できるように）
-                    // ここで `sendMessage()` を呼び出すと、ユーザーが認識結果を確認する前に送信されてしまう
                     resetRecordingState();
                 };
 
@@ -495,7 +498,7 @@
                 userAgent: navigator.userAgent
             });
         }
-        window.showDebugInfo = showDebugInfo; // コンソールでデバッグ情報を確認できるように
+        window.showDebugInfo = showDebugInfo; 
     </script>
 </body>
 </html>
