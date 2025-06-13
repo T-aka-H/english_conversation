@@ -2,10 +2,8 @@
 const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
-// dotenv はローカル環境でのみ使用します。
-// RENDER環境変数を使う場合は、この行と dotenv.config(); は不要です。
+// dotenv は RENDER環境変数を使うため不要です。
 // ローカルでのテスト時に.envを使いたい場合は require('dotenv').config(); を追加してください。
-require('dotenv').config(); // ★追加: .envファイルから環境変数を読み込む
 
 const app = express();
 const port = process.env.PORT || 3000; // 環境変数PORTがあればそれを使用、なければ3000
@@ -25,177 +23,223 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 
 // Password verification middleware
 // APP_PASSWORDもRENDER環境変数から読み込みます
-const VALID_PASSWORD = process.env.APP_ACCESS_PASSWORD; // ★修正: APP_PASSWORD から APP_ACCESS_PASSWORD に変更 (フロントエンドと合わせる)
+const VALID_PASSWORD = process.env.APP_PASSWORD; 
 if (!VALID_PASSWORD) {
-    console.error('Error: APP_ACCESS_PASSWORD is not set in environment variables.'); // ★修正
+    console.error('Error: APP_PASSWORD is not set in environment variables.');
     console.error('Please set it in RENDER\'s Environment Variables for authentication.');
     process.exit(1); // パスワードがない場合はサーバーを終了
 }
 
 function verifyPassword(req, res, next) {
     const { password } = req.body;
-
-    // Health check endpoint allows access without password
+    
+    // Health checkはパスワードなしで許可
     if (req.path === '/api/health') {
         return next();
     }
-
+    
     if (!password || password !== VALID_PASSWORD) {
-        console.warn('Unauthorized access attempt from IP:', req.ip, 'with password:', password); // ログ強化
-        return res.status(401).json({
-            error: 'Unauthorized',
-            message: 'Valid password required'
+        return res.status(401).json({ 
+            error: 'Unauthorized', 
+            message: 'Valid password required' 
         });
     }
-
+    
     next();
 }
 
-// Apply password verification to API routes
-// '/api' プレフィックスを持つすべてのルートに認証ミドルウェアを適用
+// APIルートにパスワード認証を適用
 app.use('/api', (req, res, next) => {
-    // '/api/health' は認証をスキップ
-    if (req.path === '/health' || req.path === '/health/') { // 両方のパターンに対応
+    // '/api/health' 以外の /api ルートに適用
+    if (req.path === '/api/health') { // req.path は '/api/health' となるはず
         return next();
     }
     verifyPassword(req, res, next);
 });
 
 // Function to call Gemini API (Gemini 1.5 Flash)
-async function callGeminiAPI(promptContent, history = [], isEvaluation = false) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    if (isEvaluation) {
-        const result = await model.generateContent(promptContent);
+async function callGeminiAPI(prompt, isEvaluation = false) {
+    try {
+        const modelName = isEvaluation ? "gemini-1.5-flash" : "gemini-1.5-flash"; // 評価用も同じモデル
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
         const response = await result.response;
         return response.text();
+    } catch (error) {
+        console.error("Error calling Gemini API:", error);
+        throw new Error("Failed to get response from AI. Please try again.");
     }
-
-    // Chat logic
-    const chat = model.startChat({
-        history: history,
-        generationConfig: {
-            maxOutputTokens: 200,
-        },
-    });
-
-    const result = await chat.sendMessage(promptContent);
-    const response = await result.response;
-    return response.text();
 }
 
-// Chat endpoint
-app.post('/api/chat', async (req, res) => { // verifyPasswordはapp.useで既に適用されているため、ここからは削除
-    const { userMessage, conversationHistory, scenarioName, difficultyLevel } = req.body;
+// API endpoint to handle chat messages
+app.post('/api/chat', verifyPassword, async (req, res) => {
+    const { history, userMessage, scenario, difficulty, isFirstMessage } = req.body;
+
+    if (!userMessage && !isFirstMessage) {
+        return res.status(400).json({ error: 'User message is required.' });
+    }
+
+    let conversationHistory = history || [];
+
+    // プロンプト生成ロジックの修正
+    let prompt = "";
+    if (isFirstMessage) {
+        // AIからの最初のメッセージ生成プロンプト
+        prompt = `
+あなたは英語のビジネス会話練習AIです。以下のシナリオと難易度に基づいて、ユーザーとの会話を始めてください。
+あなたの目的は、ユーザーが与えられたシナリオで英語のコミュニケーション能力を向上させることです。
+ユーザーの発言を評価し、適切なフィードバックと次の発言を提供してください。
+難易度は以下の通りです。
+- Normal: 自然な会話の流れを重視し、一般的なビジネス英語を使用。
+- Hard: より専門的、または複雑な表現、交渉、意見の主張を促すような会話を意識。
+
+シナリオ: ${scenario}
+難易度: ${difficulty}
+
+制約事項:
+- 応答は英語のみ。
+- 最初の一言として、シナリオに沿った質問や状況説明を行い、ユーザーの返答を促してください。
+- ユーザーの発言に対しては、必ず評価（点数とフィードバック）と、それに対する次の質問や返答をセットで返してください。
+- 評価は100点満点。具体的なフィードバックを簡潔に提供してください。
+- 各応答はJSON形式で返すこと。フォーマットは以下の通りです。
+{
+  "aiResponse": "AIの次の発言（英語）",
+  "feedback": "ユーザーの発言に対する評価と改善点（日本語で簡潔に）",
+  "score": ユーザーの発言に対する点数（0-100の整数）
+}
+`;
+    } else {
+        // 会話が続いている場合のプロンプト
+        // ここで会話履歴とユーザーの最新の発言を含める
+        // 評価と次のAIの発言を生成するよう指示
+        prompt = `
+あなたは英語のビジネス会話練習AIです。以下の会話履歴と最新のユーザーの発言に基づいて、ユーザーの発言を評価し、会話を続けてください。
+現在のシナリオ: ${scenario}
+現在の難易度: ${difficulty}
+
+会話履歴（AIとユーザーの発言が交互に）：
+${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+ユーザー: ${userMessage}
+
+あなたのタスク：
+1. ユーザーの最新の発言を100点満点で評価してください。文法、語彙、流暢さ、シナリオへの適切さを考慮してください。
+2. その評価に基づいて、具体的なフィードバックと改善点を日本語で簡潔に提供してください。
+3. 会話の流れを自然に保ちつつ、次のAIの発言（英語）を生成してください。
+4. 各応答はJSON形式で返すこと。フォーマットは以下の通りです。
+{
+  "aiResponse": "AIの次の発言（英語）",
+  "feedback": "ユーザーの発言に対する評価と改善点（日本語で簡潔に）",
+  "score": ユーザーの発言に対する点数（0-100の整数）
+}
+`;
+    }
 
     try {
-        let chatHistoryForGemini = [];
-        let promptForGemini;
+        const geminiResponseText = await callGeminiAPI(prompt);
+        console.log("Gemini Raw Response:", geminiResponseText); // デバッグ用
 
-        // Check if this is the very first message request from the frontend's load event
-        // This is indicated by conversationHistory containing only the initial prompt from the client
-        const isInitialPromptForFirstMessage = conversationHistory.length === 1 &&
-                                               conversationHistory[0].role === 'user' &&
-                                               conversationHistory[0].content.includes("Start the conversation with an appropriate opening sentence based on this scenario and difficulty.");
-
-        if (isInitialPromptForFirstMessage) {
-            // For the AI's first utterance (triggered by the client on page load)
-            promptForGemini = `You are an English conversation partner. The user wants to practice English in a scenario: "${scenarioName}" at a "${difficultyLevel}" level. Your task is to start the conversation with a single, appropriate opening sentence based on this context. Do not ask for user's input, just start the conversation.`;
-            chatHistoryForGemini = []; // Start with an empty history for this specific AI-driven prompt
-            console.log("AI initiating conversation with prompt:", promptForGemini);
-        } else {
-            // For subsequent messages, reconstruct chat history from the client
-            chatHistoryForGemini = conversationHistory.map(msg => ({
-                role: msg.role === 'user' ? 'user' : 'model', // Gemini API expects 'model' for AI responses
-                parts: [{ text: msg.content }]
-            }));
-            // The actual user message for this turn is passed to sendMessage
-            promptForGemini = userMessage;
-            console.log("Continuing conversation with user message:", userMessage, "History length:", chatHistoryForGemini.length);
+        // JSONパースの堅牢化
+        let parsedResponse;
+        try {
+            // Gemini APIがJSON文字列をそのまま返すことを想定
+            parsedResponse = JSON.parse(geminiResponseText);
+        } catch (parseError) {
+            console.error("Failed to parse Gemini response as JSON, attempting cleanup:", parseError);
+            // JSONPや余分なテキストが含まれる場合に対応
+            const jsonMatch = geminiResponseText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+            if (jsonMatch && jsonMatch[1]) {
+                parsedResponse = JSON.parse(jsonMatch[1]);
+            } else {
+                throw new Error("Invalid JSON response from AI: " + geminiResponseText);
+            }
         }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const chat = model.startChat({
-            history: chatHistoryForGemini, // Use the prepared history
-            generationConfig: {
-                maxOutputTokens: 200,
-            },
-        });
+        const { aiResponse, feedback, score } = parsedResponse;
 
-        const result = await chat.sendMessage(promptForGemini); // Send the correct prompt/message
-        const responseText = result.response.text();
+        if (typeof aiResponse !== 'string' || typeof feedback !== 'string' || typeof score !== 'number') {
+            throw new Error('AI response is not in the expected format.');
+        }
 
-        res.json({ generatedText: responseText });
+        res.json({ aiResponse, feedback, score });
 
     } catch (error) {
-        console.error('Error generating AI response:', error);
-        res.status(500).json({ error: 'Failed to generate AI response', message: error.message });
+        console.error('Error in /api/chat:', error);
+        res.status(500).json({ 
+            error: 'Failed to process chat message', 
+            message: error.message || 'An unexpected error occurred.' 
+        });
     }
 });
 
 
-// Evaluation endpoint
-app.post('/api/evaluate', async (req, res) => { // verifyPasswordはapp.useで既に適用されているため、ここからは削除
-    const { targetMessage, fullConversationHistory, scenarioName, difficultyLevel } = req.body;
+// API endpoint to finalize conversation and get overall report
+app.post('/api/finalize', verifyPassword, async (req, res) => {
+    const { conversationHistory, scenario, difficulty } = req.body;
 
-    if (!targetMessage) {
-        return res.status(400).json({ error: 'Evaluation target message is required.' });
+    if (!conversationHistory || conversationHistory.length === 0) {
+        return res.status(400).json({ error: 'Conversation history is empty.' });
     }
 
+    const evaluationPrompt = `
+あなたは英語のビジネス会話練習AIです。以下のシナリオと会話履歴全体を評価し、最終レポートを作成してください。
+シナリオ: ${scenario}
+難易度: ${difficulty}
+会話履歴:
+${conversationHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+
+あなたのタスク：
+1. 会話全体を通じたユーザーの英語力（文法、語彙、流暢さ、発音など）について総合的に評価してください（日本語）。
+2. シナリオへの対応、コミュニケーション能力、ビジネス英語の適切さについて具体的にフィードバックしてください（日本語）。
+3. 今後の学習に向けた推奨事項や改善点を提供してください（日本語）。
+4. 会話全体の総合点数を100点満点で算出してください（整数）。
+5. 各評価項目は以下のようにJSON形式で提供してください。
+{
+  "overallEvaluation": "総合評価（日本語）",
+  "scenarioPerformance": "シナリオ対応とコミュニケーション能力（日本語）",
+  "recommendations": "今後の推奨事項（日本語）",
+  "overallScore": 総合点数（0-100の整数）
+}
+`;
+
     try {
-        // fullConversationHistory を使用して、より詳細な評価プロンプトを構築
-        const evaluationPrompt = `
-        You are an English conversation evaluator. Evaluate the user's English proficiency based on their full conversation history in the context of the "${scenarioName}" scenario at a "${difficultyLevel}" difficulty level.
+        const geminiResponseText = await callGeminiAPI(evaluationPrompt, true);
+        console.log("Gemini Evaluation Raw Response:", geminiResponseText); // デバッグ用
 
-        User's full conversation transcript (your responses are included for context):
-        ${fullConversationHistory.map(msg => `${msg.role === 'user' ? 'User' : 'AI'}: ${msg.content}`).join('\n')}
+        let parsedResponse;
+        try {
+            parsedResponse = JSON.parse(geminiResponseText);
+        } catch (parseError) {
+            console.error("Failed to parse Gemini evaluation response as JSON, attempting cleanup:", parseError);
+            const jsonMatch = geminiResponseText.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+            if (jsonMatch && jsonMatch[1]) {
+                parsedResponse = JSON.parse(jsonMatch[1]);
+            } else {
+                throw new Error("Invalid JSON evaluation response from AI: " + geminiResponseText);
+            }
+        }
 
-        Based on the user's contributions (messages with 'User:' prefix), provide a numerical score from 1 to 100 for their overall English proficiency (grammar, vocabulary, fluency, relevance to scenario).
-        Then, provide detailed feedback in Japanese, focusing on:
-        1.  **文法 (Grammar)**: 具体的な誤りを挙げ、修正案を提示してください。
-        2.  **語彙 (Vocabulary)**: より適切または豊富な語彙の提案をしてください。
-        3.  **流暢さ (Fluency)**: 会話の流れ、自然さについてコメントしてください。
-        4.  **シナリオへの適合性 (Relevance to Scenario)**: シナリオに沿った発言であったか、改善点があれば教えてください。
-        5.  **総合的なアドバイス (Overall Advice)**: 今後の学習に向けた具体的なアドバイスを提案してください。
+        const { overallEvaluation, scenarioPerformance, recommendations, overallScore } = parsedResponse;
 
-        Format your response as follows:
+        if (typeof overallEvaluation !== 'string' || typeof scenarioPerformance !== 'string' || typeof recommendations !== 'string' || typeof overallScore !== 'number') {
+            throw new Error('AI evaluation response is not in the expected format.');
+        }
 
-        SCORE: [数値スコア]
-        FEEDBACK:
-        **文法**: ...
-        **語彙**: ...
-        **流暢さ**: ...
-        **シナリオへの適合性**: ...
-        **総合的なアドバイス**: ...
-        `;
-
-        const evaluationResult = await callGeminiAPI(evaluationPrompt, [], true); // isEvaluation = true
-
-        const scoreMatch = evaluationResult.match(/SCORE:\s*(\d+)/);
-        const score = scoreMatch ? parseInt(scoreMatch[1], 10) : 0;
-
-        const feedbackMatch = evaluationResult.match(/FEEDBACK:([\s\S]*)/);
-        const feedback = feedbackMatch ? feedbackMatch[1].trim() : "フィードバックを生成できませんでした。";
-
-        res.json({ score, feedback });
+        res.json({ overallEvaluation, scenarioPerformance, recommendations, overallScore });
 
     } catch (error) {
-        console.error('Error during evaluation:', error);
-        // Fallback for evaluation failure
-        const fallbackScore = Math.floor(Math.random() * 20) + 70; // 70-90のランダムスコア
-        const fallbackFeedback = `
-        評価中に問題が発生しました。一時的なエラーの可能性があります。
-        仮のスコアは ${fallbackScore} です。
+        console.error('Error in /api/finalize:', error);
+        // フォールバックレスポンスを返す
+        const fallbackResponse = `
+総合評価: AIからの評価を取得できませんでした。ネットワーク接続を確認するか、後で再度お試しください。
+シナリオ対応とコミュニケーション能力: AIからの評価を取得できませんでした。
+今後の推奨事項: AIからの推奨事項を取得できませんでした。今回の経験を活かして、より複雑なビジネス状況にも挑戦してみましょう。`;
+        const score = 50; // エラー時のデフォルトスコア
 
-        【今後の学習の推奨】
-        今回の経験を活かして、より複雑なビジネス状況にも挑戦してみましょう。
-        `;
-
-        res.status(500).json({
-            error: 'Failed to evaluate conversation',
-            message: error.message,
-            score: fallbackScore, // エラー時も仮のスコアとフィードバックを返す
-            feedback: fallbackFeedback
+        res.json({ 
+            overallEvaluation: fallbackResponse,
+            scenarioPerformance: "", // フォールバックでは省略
+            recommendations: "", // フォールバックでは省略
+            overallScore: Math.round(score)
         });
     }
 });
@@ -204,8 +248,8 @@ app.post('/api/evaluate', async (req, res) => { // verifyPasswordはapp.useで�
 // Health check endpoint
 // サーバーが正常に動作しているか外部から確認できます。
 app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'OK',
+    res.json({ 
+        status: 'OK', 
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development',
         model: 'gemini-1.5-flash', // 使用しているモデル
@@ -215,9 +259,9 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve the main HTML file
-// ルートパス (http://your-render-url.com/) で index.html を提供（ログインページ）
+// ルートパス (http://your-render-url.com/) で index.html を提供
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html')); // ★修正: index.html に変更
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Error handling middleware (すべての一時的なエラーをここで捕捉)
@@ -225,7 +269,7 @@ app.use((error, req, res, next) => {
     console.error('Global Server Error:', error); // エラー内容をサーバーログに出力
 
     // 開発環境では詳細なエラーメッセージを、本番環境では一般的なメッセージを返す
-    res.status(500).json({
+    res.status(500).json({ 
         error: 'Internal server error',
         message: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong. Please try again later.'
     });
@@ -239,8 +283,6 @@ app.use((req, res) => {
 // Start server
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-    console.log(`Access password from .env: ${process.env.APP_ACCESS_PASSWORD ? 'Loaded' : 'Not Loaded'}`); // ★修正
-    if (!process.env.GEMINI_API_KEY) {
-        console.warn('WARNING: GEMINI_API_KEY is not set in .env file!');
-    }
+    console.log(`Access the application at http://localhost:${port}`);
+    console.log(`Health check: http://localhost:${port}/api/health`);
 });
