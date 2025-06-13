@@ -206,6 +206,19 @@
             100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0); }
         }
 
+        .end-training-area { /* ★追加 */
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #endTrainingButton { /* ★追加 */
+            background-color: #007bff; /* 青系の色 */
+        }
+
+        #endTrainingButton:hover { /* ★追加 */
+            background-color: #0056b3;
+        }
+
         .status-message {
             text-align: center;
             margin-top: 15px;
@@ -234,6 +247,66 @@
             margin-top: 40px;
             font-size: 0.9em;
             color: #aaa;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px; /* 全体のパディングを減らす */
+            }
+
+            .container {
+                padding: 20px; /* コンテナのパディングを減らす */
+                border-radius: 10px; /* 角丸を小さく */
+            }
+
+            h1 {
+                font-size: 2em; /* タイトルを小さく */
+            }
+
+            .scenario-info {
+                font-size: 0.9em; /* シナリオ情報を小さく */
+            }
+
+            .chat-area {
+                min-height: 300px; /* チャットエリアの高さを調整 */
+                max-height: 450px;
+                padding: 15px;
+            }
+
+            .message-bubble {
+                max-width: 85%; /* 吹き出しの幅を広げる */
+                padding: 10px 15px;
+            }
+
+            .input-area {
+                flex-direction: column; /* 入力エリアを縦積みに */
+                gap: 10px; /* ギャップを調整 */
+            }
+
+            #userMessageInput {
+                width: 100%; /* 入力フィールドを幅100%に */
+                font-size: 1em;
+                padding: 12px 15px;
+            }
+
+            .action-buttons {
+                width: 100%; /* ボタンコンテナを幅100%に */
+                justify-content: stretch; /* ボタンを横いっぱいに広げる */
+                gap: 10px; /* ボタン間のギャップを調整 */
+            }
+
+            button {
+                flex-grow: 1; /* ボタンを均等に広げる */
+                font-size: 1em;
+                padding: 12px 20px;
+                border-radius: 20px;
+            }
+
+            .end-training-area button { /* ★追加 */
+                width: 100%;
+                padding: 12px 20px;
+            }
         }
     </style>
 </head>
@@ -269,6 +342,9 @@
             </div>
         </div>
         
+        <div class="end-training-area"> <button id="endTrainingButton">トレーニングを終える</button>
+        </div>
+        
         <div id="statusMessage" class="status-message"></div>
 
         <footer class="footer">
@@ -283,18 +359,19 @@
         const recordButton = document.getElementById('recordButton');
         const typingIndicator = document.getElementById('typingIndicator');
         const statusMessageDiv = document.getElementById('statusMessage');
+        const endTrainingButton = document.getElementById('endTrainingButton'); // ★追加
 
         let conversationHistory = [{ role: 'ai', content: 'Hello! How can I help you practice your English today?' }];
         let messageCounter = 0;
         let isRecording = false;
         let recognition; // SpeechRecognition API
 
-        // ★変更点: sessionStorageからシナリオと難易度を読み込む
+        // sessionStorageからシナリオと難易度を読み込む
         // もしsessionStorageに値がなければ、HTMLのデフォルト値を使用
         const currentScenario = sessionStorage.getItem('selectedScenario') || document.getElementById('scenarioName').textContent;
         const currentDifficulty = sessionStorage.getItem('selectedDifficulty') || document.getElementById('difficultyLevel').textContent;
 
-        // ★変更点: 読み取った値をHTMLに反映させる (ユーザーに見えるように)
+        // 読み取った値をHTMLに反映させる (ユーザーに見えるように)
         document.getElementById('scenarioName').textContent = currentScenario;
         document.getElementById('difficultyLevel').textContent = currentDifficulty;
 
@@ -389,6 +466,60 @@
             }
         }
 
+        // --- ユーザーの会話全体を評価する関数 --- ★追加
+        async function evaluateUserConversation() {
+            showStatus('会話履歴を評価しています...', 'info');
+            showTypingIndicator(); // AIが評価中であることを示すために表示
+
+            try {
+                const userConversationOnly = conversationHistory.filter(msg => msg.role === 'user');
+                // ユーザーの会話履歴全体を一つの文字列として結合（評価用）
+                const fullUserTranscript = userConversationOnly.map(msg => msg.content).join('\n');
+
+                const response = await fetch('/api/evaluate', { // /api/evaluate エンドポイントを呼び出す
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        targetMessage: fullUserTranscript, // 評価対象は全会話履歴
+                        fullConversationHistory: conversationHistory, // 会話全体も参考として送る
+                        scenarioName: currentScenario,
+                        difficultyLevel: currentDifficulty,
+                        password: APP_ACCESS_PASSWORD
+                    }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Evaluation API error! status: ${response.status}, message: ${errorData.message || errorData.error || 'Unknown error'}`);
+                }
+
+                const data = await response.json();
+                const evaluationResult = {
+                    score: data.score,
+                    feedback: data.feedback,
+                    scenario: currentScenario,
+                    difficulty: currentDifficulty,
+                    timestamp: new Date().toISOString()
+                };
+
+                // 評価結果を sessionStorage に保存
+                sessionStorage.setItem('lastEvaluationResult', JSON.stringify(evaluationResult));
+                console.log('Evaluation result saved to sessionStorage:', evaluationResult);
+
+                showStatus('評価が完了しました。レポートページへ移動します。', 'success');
+                hideTypingIndicator();
+                window.location.href = 'final-report.html'; // レポートページへ遷移
+
+            } catch (error) {
+                console.error('Error during evaluation:', error);
+                showStatus(`評価中にエラーが発生しました: ${error.message}`, 'error');
+                hideTypingIndicator();
+            }
+        }
+
+
         // --- 音声認識（Web Speech API） ---
         function initSpeechRecognition() {
             if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
@@ -456,6 +587,7 @@
             }
         });
         recordButton.addEventListener('click', toggleRecording);
+        endTrainingButton.addEventListener('click', evaluateUserConversation); // ★追加: トレーニング終了ボタンのイベント
 
         // --- 初期化 ---
         window.addEventListener('load', () => {
