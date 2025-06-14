@@ -1,0 +1,417 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+    color: #ffffff;
+    min-height: 100vh;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 480px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 30px;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    font-size: 28px;
+    font-weight: 300;
+    margin-bottom: 20px;
+    background: linear-gradient(45deg, #ffffff, #a0a0a0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4a4a4a, #7a7a7a, #9a9a9a);
+    width: 0%;
+    transition: width 0.5s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.turn-counter {
+    font-size: 14px;
+    color: #cccccc;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.input-section {
+    margin-bottom: 25px;
+}
+
+.input-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.input-section input, 
+.input-section textarea {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    resize: vertical;
+}
+
+.input-section input:focus, 
+.input-section textarea:focus {
+    outline: none;
+    border-color: #666666;
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(102, 102, 102, 0.1);
+}
+
+.input-section textarea {
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.button {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(45deg, #3a3a3a, #5a5a5a);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+    position: relative;
+    overflow: hidden;
+}
+
+.button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
+}
+
+.button:hover::before {
+    left: 100%;
+}
+
+.button:hover {
+    background: linear-gradient(45deg, #4a4a4a, #6a6a6a);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.button:active {
+    transform: translateY(0);
+}
+
+.button:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    cursor: not-allowed;
+    transform: none;
+    opacity: 0.6;
+}
+
+.button:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.voice-button {
+    background: linear-gradient(45deg, #2a2a2a, #4a4a4a);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+}
+
+.voice-button.recording {
+    background: linear-gradient(45deg, #cc0000, #ff3333);
+    animation: pulse 1.5s infinite;
+    border-color: rgba(255, 51, 51, 0.5);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 51, 51, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 51, 51, 0); }
+}
+
+.conversation {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+.conversation::-webkit-scrollbar {
+    width: 4px;
+}
+
+.conversation::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.conversation::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+}
+
+.message {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 12px;
+    line-height: 1.6;
+    position: relative;
+    animation: messageSlide 0.3s ease-out;
+}
+
+@keyframes messageSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.message.ai {
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 4px solid #666666;
+    margin-right: 20px;
+}
+
+.message.ai::before {
+    content: "🤖 AI";
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #cccccc;
+}
+
+.message.user {
+    background: rgba(255, 255, 255, 0.1);
+    border-left: 4px solid #999999;
+    text-align: right;
+    margin-left: 20px;
+}
+
+.message.user::before {
+    content: "👤 You";
+    position: absolute;
+    top: -10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #cccccc;
+}
+
+.message.feedback {
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 4px solid #444444;
+    font-style: italic;
+    color: #cccccc;
+    font-size: 14px;
+}
+
+.message.feedback::before {
+    content: "💡 Feedback";
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #cccccc;
+}
+
+.hidden {
+    display: none;
+}
+
+.final-report {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 30px;
+    margin-top: 20px;
+    text-align: center;
+}
+
+.score {
+    font-size: 64px;
+    font-weight: bold;
+    background: linear-gradient(45deg, #ffffff, #a0a0a0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 25px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.feedback-content {
+    text-align: left;
+    line-height: 1.8;
+    margin-bottom: 30px;
+    color: #f0f0f0;
+    white-space: pre-wrap;
+}
+
+.report-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.loading {
+    text-align: center;
+    color: #cccccc;
+    padding: 30px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left: 4px solid #666666;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error {
+    color: #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.speech-status {
+    text-align: center;
+    font-size: 14px;
+    color: #cccccc;
+    margin: 10px 0;
+    min-height: 20px;
+    font-style: italic;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+    .container {
+        margin: 10px;
+        padding: 20px;
+    }
+    
+    .header h1 {
+        font-size: 24px;
+    }
+    
+    .score {
+        font-size: 48px;
+    }
+    
+    .conversation {
+        max-height: 300px;
+    }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .container {
+        border: 2px solid #ffffff;
+    }
+    
+    .button {
+        border: 1px solid #ffffff;
+    }
+}

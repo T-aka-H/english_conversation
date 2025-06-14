@@ -14,6 +14,8 @@
             padding: 0;
             background: #ffffff;
             color: #333333;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .container {
@@ -59,6 +61,7 @@
             border: 1px solid #e0e0e0;
             height: 400px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .message {
@@ -117,9 +120,10 @@
             padding: 12px;
             border: 1px solid #e0e0e0;
             border-radius: 6px;
-            font-size: 1em;
+            font-size: 16px; /* iOSのズーム防止 */
             background: #ffffff;
-            min-height: 44px; /* タッチターゲットの最小サイズ */
+            min-height: 44px;
+            -webkit-appearance: none;
         }
 
         .button-group {
@@ -142,6 +146,8 @@
             min-height: 44px;
             min-width: 44px;
             text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         .button i {
@@ -153,7 +159,7 @@
             color: white;
         }
 
-        .primary-button:hover {
+        .primary-button:hover, .primary-button:active {
             background: #1976d2;
         }
 
@@ -163,16 +169,23 @@
             border: 1px solid #e0e0e0;
         }
 
-        .secondary-button:hover {
+        .secondary-button:hover, .secondary-button:active {
             background: #e0e0e0;
         }
 
         .recording {
             background: #f44336 !important;
             color: white !important;
+            animation: pulse 1.5s infinite;
         }
 
-        .recording:hover {
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .recording:hover, .recording:active {
             background: #d32f2f !important;
         }
 
@@ -185,6 +198,9 @@
             position: fixed;
             top: 20px;
             right: 20px;
+            left: 20px;
+            max-width: 400px;
+            margin: 0 auto;
             background: #f44336;
             color: white;
             padding: 12px 24px;
@@ -192,15 +208,16 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             z-index: 1000;
             animation: slideIn 0.3s ease-out;
+            text-align: center;
         }
 
         @keyframes slideIn {
             from {
-                transform: translateX(100%);
+                transform: translateY(-100%);
                 opacity: 0;
             }
             to {
-                transform: translateX(0);
+                transform: translateY(0);
                 opacity: 1;
             }
         }
@@ -240,10 +257,26 @@
             font-size: 0.9em;
         }
 
+        .speech-status {
+            display: none;
+            padding: 8px 12px;
+            margin: 10px 0;
+            background: #e3f2fd;
+            border-radius: 6px;
+            font-size: 0.9em;
+            text-align: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 10px;
-                padding-bottom: 80px; /* 入力エリアの高さ分の余白を確保 */
+                padding-bottom: 80px;
             }
 
             .header h1 {
@@ -287,7 +320,8 @@
             }
 
             .chat-container {
-                margin-bottom: 70px; /* 入力エリアの高さ分の余白を確保 */
+                margin-bottom: 70px;
+                height: calc(100vh - 300px);
             }
         }
 
@@ -295,7 +329,9 @@
             display: flex;
             gap: 12px;
             margin-top: 16px;
+            flex-wrap: wrap;
         }
+
         .nav-button {
             display: flex;
             align-items: center;
@@ -309,32 +345,41 @@
             color: #333;
             transition: background 0.2s, color 0.2s;
             text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
         }
+
         .nav-button i {
             font-size: 1.1em;
         }
-        .nav-button:hover {
+
+        .nav-button:hover, .nav-button:active {
             background: #e0e0e0;
         }
+
         .nav-button.logout {
             background: #f44336;
             color: #fff;
         }
-        .nav-button.logout:hover {
+
+        .nav-button.logout:hover, .nav-button.logout:active {
             background: #d32f2f;
         }
+
         .nav-button.end {
             background: #2196f3;
             color: #fff;
         }
-        .nav-button.end:hover {
+
+        .nav-button.end:hover, .nav-button.end:active {
             background: #1976d2;
         }
+
         .nav-button.scenario {
             background: #4caf50;
             color: #fff;
         }
-        .nav-button.scenario:hover {
+
+        .nav-button.scenario:hover, .nav-button.scenario:active {
             background: #388e3c;
         }
     </style>
@@ -349,17 +394,17 @@
 
         <main>
             <div class="status-message" id="statusMessage"></div>
-            <div class="chat-area" id="chatArea">
-                </div>
+            <div class="speech-status" id="speechStatus"></div>
+            <div class="chat-area" id="chatArea"></div>
 
             <div class="input-container">
                 <div class="input-wrapper">
-                    <input type="text" id="userMessageInput" placeholder="メッセージを入力...">
+                    <input type="text" id="userMessageInput" placeholder="メッセージを入力..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                     <div class="button-group">
-                        <button type="button" id="startRecordingBtn" class="button secondary-button">
+                        <button type="button" id="startRecordingBtn" class="button secondary-button" aria-label="音声入力">
                             <i class="fas fa-microphone"></i>
                         </button>
-                        <button type="button" id="sendMessageBtn" class="button primary-button">
+                        <button type="button" id="sendMessageBtn" class="button primary-button" aria-label="送信">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
@@ -380,6 +425,10 @@
         </div>
     </div>
 
+    <div class="loading" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
     <script>
         // DOM Elements
         const scenarioDisplay = document.getElementById('scenarioDisplay');
@@ -388,9 +437,8 @@
         const userMessageInput = document.getElementById('userMessageInput');
         const sendMessageBtn = document.getElementById('sendMessageBtn');
         const startRecordingBtn = document.getElementById('startRecordingBtn');
-        const stopRecordingBtn = document.getElementById('stopRecordingBtn');
         const statusMessageDiv = document.getElementById('statusMessage');
-        const backToScenarioBtn = document.getElementById('backToScenarioBtn');
+        const speechStatusDiv = document.getElementById('speechStatus');
         const endConversationBtn = document.getElementById('endConversationBtn');
         const logoutBtn = document.getElementById('logoutBtn');
 
@@ -401,8 +449,13 @@
         let isRecording = false;
         let recognition = null;
         let silenceTimer = null;
-        const SILENCE_THRESHOLD = 2000; // 2秒間の無音で録音を停止
-        let messageCounter = 0; // メッセージ数をカウント（会話終了確認用）
+        let messageCounter = 0;
+        let finalTranscript = '';
+        let isProcessingSpeech = false;
+
+        // モバイルデバイスの検出
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
         // --- Utility Functions ---
 
@@ -410,14 +463,23 @@
             statusMessageDiv.textContent = message;
             statusMessageDiv.className = `status-message ${type}`;
             statusMessageDiv.style.display = 'block';
-            statusMessageDiv.style.opacity = '1'; /* 強制的に表示アニメーションをリセット */
-            // Optional: Auto-hide after a few seconds for info/warning
+            statusMessageDiv.style.opacity = '1';
+            
             if (type === 'info' || type === 'warning') {
                 setTimeout(() => {
                     statusMessageDiv.style.opacity = '0';
-                    setTimeout(() => statusMessageDiv.style.display = 'none', 500); // フェードアウト後に非表示
+                    setTimeout(() => statusMessageDiv.style.display = 'none', 500);
                 }, 5000);
             }
+        }
+
+        function showSpeechStatus(message) {
+            speechStatusDiv.textContent = message;
+            speechStatusDiv.style.display = 'block';
+        }
+
+        function hideSpeechStatus() {
+            speechStatusDiv.style.display = 'none';
         }
 
         function showLoading(isLoading) {
@@ -438,7 +500,7 @@
                 sendButton.disabled = isLoading;
             }
 
-            if (micButton) {
+            if (micButton && !isRecording) {
                 micButton.disabled = isLoading;
             }
         }
@@ -446,23 +508,22 @@
         function addMessageToChat(role, content, feedback = null, score = null) {
             let chatContainer = document.querySelector('.chat-container');
             if (!chatContainer) {
-                // なければ作る
                 chatContainer = document.createElement('div');
                 chatContainer.className = 'chat-container';
-                const container = document.querySelector('.container');
-                const inputContainer = document.querySelector('.input-container');
-                if (container && inputContainer && inputContainer.parentNode === container) {
-                    container.insertBefore(chatContainer, inputContainer);
-                } else if (container) {
-                    container.appendChild(chatContainer);
+                const chatArea = document.getElementById('chatArea');
+                if (chatArea) {
+                    chatArea.appendChild(chatContainer);
                 }
             }
+            
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message ' + (role === 'user' ? 'user-message' : 'ai-message');
             messageDiv.innerHTML = `<div>${role === 'user' ? '<strong>あなた:</strong>' : '<strong>AI:</strong>'} ${content}</div>`;
+            
             if (feedback || score !== null) {
                 messageDiv.innerHTML += `<div class="feedback">${feedback ? `<div><strong>フィードバック:</strong> ${feedback}</div>` : ''}${score !== null ? `<div><strong>スコア:</strong> <span class="score">${score}</span></div>` : ''}</div>`;
             }
+            
             chatContainer.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
             messageCounter++;
@@ -481,9 +542,6 @@
             if (savedHistory) {
                 conversationHistory = JSON.parse(savedHistory);
                 conversationHistory.forEach(msg => {
-                    // feedbackとscoreはAIメッセージにのみ関連し、かつ画面表示でのみ利用
-                    // 履歴にこれらを含める必要はない (AIの応答自体はaiResponseで十分)
-                    // ただし、もし履歴に評価を表示したいならここを調整
                     addMessageToChat(msg.role, msg.content, msg.feedback, msg.score);
                 });
                 messageCounter = parseInt(savedCounter, 10) || 0;
@@ -498,27 +556,27 @@
         async function generateAIResponse(userMessage = '', isFirstMessage = false) {
             showLoading(true);
             try {
-                const password = sessionStorage.getItem('appPassword'); // Retrieve password
+                const password = sessionStorage.getItem('appPassword');
                 if (!password) {
                     throw new Error('Authentication password not found. Please log in again.');
                 }
 
                 const payload = {
                     history: conversationHistory,
-                    userMessage: userMessage, // Pass userMessage directly
+                    userMessage: userMessage,
                     scenario: currentScenario,
                     difficulty: currentDifficulty,
                     isFirstMessage: isFirstMessage
                 };
 
-                console.log('Sending payload to /api/chat:', payload); // Debugging
+                console.log('Sending payload to /api/chat:', payload);
 
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ ...payload, password: password }) // Add password to body
+                    body: JSON.stringify({ ...payload, password: password })
                 });
 
                 if (!response.ok) {
@@ -527,17 +585,15 @@
                 }
 
                 const data = await response.json();
-                console.log('Received data from /api/chat:', data); // Debugging
+                console.log('Received data from /api/chat:', data);
 
                 const aiResponse = data.aiResponse;
                 const feedback = data.feedback;
                 const score = data.score;
 
-                // Add AI's message to chat history
                 conversationHistory.push({ role: 'ai', content: aiResponse });
-                // Display AI's message with feedback and score
                 addMessageToChat('ai', aiResponse, feedback, score);
-                saveConversationState(); // Save state after AI response
+                saveConversationState();
 
             } catch (error) {
                 console.error('Error calling Gemini API:', error);
@@ -553,9 +609,11 @@
             const inputField = document.getElementById('userMessageInput');
             const message = inputField.value.trim();
             if (!message) return;
+            
             addMessageToChat('user', message);
             conversationHistory.push({ role: 'user', content: message });
             saveConversationState();
+            
             try {
                 showLoading(true);
                 await generateAIResponse(message);
@@ -568,103 +626,178 @@
             }
         }
 
-        // --- Speech Recognition ---
+        // --- Speech Recognition (Mobile Optimized) ---
         function initializeSpeechRecognition() {
             try {
-                if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                    console.warn('Speech recognition is not supported in this browser.');
-                    return;
-                }
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                
+                if (!SpeechRecognition) {
+                    console.warn('Speech recognition is not supported in this browser.');
+                    showError('このブラウザでは音声認識がサポートされていません。');
+                    startRecordingBtn.style.display = 'none';
+                    return false;
+                }
+
                 recognition = new SpeechRecognition();
-                recognition.continuous = true;
+                
+                // モバイル向けの設定
+                recognition.continuous = !isMobile; // モバイルでは単発認識
                 recognition.interimResults = true;
+                recognition.maxAlternatives = 1;
                 recognition.lang = 'en-US';
 
                 recognition.onstart = () => {
+                    console.log('Speech recognition started');
                     isRecording = true;
+                    isProcessingSpeech = false;
                     updateRecordingUI(true);
+                    showSpeechStatus('聞き取り中...');
+                    
+                    // モバイルでの振動フィードバック
+                    if (isMobile && navigator.vibrate) {
+                        navigator.vibrate(50);
+                    }
                 };
+
                 recognition.onend = () => {
-                    // 停止要求時のみisRecordingをfalseに
+                    console.log('Speech recognition ended');
                     isRecording = false;
                     updateRecordingUI(false);
+                    hideSpeechStatus();
                     clearTimeout(silenceTimer);
+                    
+                    // 最終的な転写結果がある場合は送信
+                    if (finalTranscript && !isProcessingSpeech) {
+                        userMessageInput.value = finalTranscript;
+                        finalTranscript = '';
+                    }
                 };
+
                 recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
                     isRecording = false;
                     updateRecordingUI(false);
+                    hideSpeechStatus();
                     clearTimeout(silenceTimer);
-                    showError('音声認識エラー: ' + event.error);
+                    
+                    let errorMessage = '音声認識エラー: ';
+                    switch(event.error) {
+                        case 'no-speech':
+                            errorMessage += '音声が検出されませんでした。';
+                            break;
+                        case 'audio-capture':
+                            errorMessage += 'マイクが使用できません。';
+                            break;
+                        case 'not-allowed':
+                            errorMessage += 'マイクへのアクセスが許可されていません。';
+                            break;
+                        case 'network':
+                            errorMessage += 'ネットワークエラーです。';
+                            break;
+                        default:
+                            errorMessage += event.error;
+                    }
+                    showError(errorMessage);
                 };
+
                 recognition.onresult = (event) => {
-                    let finalTranscript = '';
                     let interimTranscript = '';
+                    
                     for (let i = event.resultIndex; i < event.results.length; i++) {
                         const transcript = event.results[i][0].transcript;
                         if (event.results[i].isFinal) {
-                            finalTranscript += transcript;
+                            finalTranscript += transcript + ' ';
+                            showSpeechStatus('認識完了');
+                            
+                            // モバイルでは自動的に認識を停止
+                            if (isMobile && !isProcessingSpeech) {
+                                isProcessingSpeech = true;
+                                setTimeout(() => {
+                                    if (isRecording) {
+                                        recognition.stop();
+                                    }
+                                }, 500);
+                            }
                         } else {
                             interimTranscript += transcript;
                         }
                     }
-                    const inputField = document.getElementById('userMessageInput');
-                    if (finalTranscript) {
-                        inputField.value = finalTranscript;
+                    
+                    // リアルタイムで入力フィールドに表示
+                    userMessageInput.value = finalTranscript + interimTranscript;
+                    
+                    // 無音タイマーのリセット（デスクトップのみ）
+                    if (!isMobile && finalTranscript) {
                         clearTimeout(silenceTimer);
                         silenceTimer = setTimeout(() => {
                             if (isRecording) {
                                 recognition.stop();
                             }
-                        }, SILENCE_THRESHOLD);
-                    } else if (interimTranscript) {
-                        inputField.value = interimTranscript;
+                        }, 2000);
                     }
                 };
+
+                return true;
             } catch (error) {
+                console.error('Failed to initialize speech recognition:', error);
                 showError('音声認識の初期化に失敗しました。');
+                return false;
             }
         }
 
-        // 音声認識の開始/停止
-        function toggleRecording() {
+        // 音声認識の開始/停止（モバイル最適化版）
+        async function toggleRecording() {
             if (!recognition) {
-                initializeSpeechRecognition();
-                return;
+                const initialized = initializeSpeechRecognition();
+                if (!initialized) return;
             }
+
             try {
                 if (isRecording) {
-                    recognition.onend = () => {
-                        isRecording = false;
-                        updateRecordingUI(false);
-                        clearTimeout(silenceTimer);
-                    };
                     recognition.stop();
                 } else {
-                    recognition.onend = () => {
-                        isRecording = false;
-                        updateRecordingUI(false);
-                        clearTimeout(silenceTimer);
-                    };
+                    // iOSでのオーディオコンテキスト初期化
+                    if (isIOS && window.AudioContext) {
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        await audioContext.resume();
+                    }
+
+                    // マイクの権限を確認（モバイル向け）
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        try {
+                            await navigator.mediaDevices.getUserMedia({ audio: true });
+                        } catch (err) {
+                            showError('マイクへのアクセスを許可してください。');
+                            return;
+                        }
+                    }
+
+                    finalTranscript = '';
+                    userMessageInput.value = '';
                     recognition.start();
                 }
             } catch (error) {
-                showError('音声認識の切り替えに失敗しました。');
+                console.error('Failed to toggle recording:', error);
+                showError('音声認識の開始に失敗しました。');
+                isRecording = false;
+                updateRecordingUI(false);
             }
         }
 
         // 録音状態のUI更新
-        function updateRecordingUI(isRecording) {
+        function updateRecordingUI(recording) {
             const micButton = document.getElementById('startRecordingBtn');
             if (micButton) {
-                if (isRecording) {
+                if (recording) {
                     micButton.innerHTML = '<i class="fas fa-stop"></i>';
                     micButton.classList.add('recording');
                     micButton.title = '録音停止';
+                    micButton.setAttribute('aria-label', '録音停止');
                 } else {
                     micButton.innerHTML = '<i class="fas fa-microphone"></i>';
                     micButton.classList.remove('recording');
                     micButton.title = '音声入力開始';
+                    micButton.setAttribute('aria-label', '音声入力開始');
                 }
             }
         }
@@ -675,7 +808,11 @@
             errorDiv.className = 'error-message';
             errorDiv.textContent = message;
             document.body.appendChild(errorDiv);
-            setTimeout(() => errorDiv.remove(), 3000);
+            
+            setTimeout(() => {
+                errorDiv.style.opacity = '0';
+                setTimeout(() => errorDiv.remove(), 300);
+            }, 4000);
         }
 
         // --- Page Initialization ---
@@ -706,108 +843,114 @@
             // 会話状態をロード、なければAIからの最初のメッセージを生成
             if (!loadConversationState()) {
                 console.log('No saved conversation found. Generating first AI response...');
-                generateAIResponse('', true); // 最初のメッセージを生成
+                generateAIResponse('', true);
             } else {
                 console.log('Conversation state loaded. Ready to continue.');
-                showLoading(false); // UIを有効化
+                showLoading(false);
             }
 
             // マイクボタンのイベントリスナーを設定
             const micButton = document.getElementById('startRecordingBtn');
             if (micButton) {
-                micButton.addEventListener('click', toggleRecording);
+                // タッチイベントの処理（モバイル向け）
+                if (isMobile) {
+                    micButton.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        toggleRecording();
+                    });
+                } else {
+                    micButton.addEventListener('click', toggleRecording);
+                }
             }
 
             // 音声認識の初期化
             initializeSpeechRecognition();
 
-            // 送信ボタンのイベントリスナーを再設定
-            setupSendButton();
+            // 送信ボタンのイベントリスナー
+            sendMessageBtn.addEventListener('click', sendMessage);
+            
+            // エンターキーでの送信
+            userMessageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
 
             // ナビゲーションボタンのイベント
-            const endBtn = document.getElementById('endConversationBtn');
-            if (endBtn) {
-                endBtn.onclick = () => {
-                    if (confirm('会話を終了してレポート画面に進みますか？')) {
+            endConversationBtn.addEventListener('click', async () => {
+                if (confirm('会話を終了し、評価レポートを作成しますか？')) {
+                    showLoading(true);
+                    try {
+                        const password = sessionStorage.getItem('appPassword');
+                        if (!password) {
+                            throw new Error('Authentication password not found. Please log in again.');
+                        }
+
+                        const response = await fetch('/api/finalize', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                conversationHistory: conversationHistory,
+                                scenario: currentScenario,
+                                difficulty: currentDifficulty,
+                                password: password
+                            })
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(`API error! status: ${response.status}, message: ${errorData.message || response.statusText}`);
+                        }
+
+                        const finalReport = await response.json();
+                        sessionStorage.setItem('lastEvaluationResult', JSON.stringify(finalReport));
+
+                        sessionStorage.removeItem('conversationHistory');
+                        sessionStorage.removeItem('messageCounter');
+                        
                         window.location.href = 'final-report.html';
+
+                    } catch (error) {
+                        console.error('Error finalizing conversation:', error);
+                        showStatus(`会話の終了とレポート作成に失敗しました: ${error.message}`, 'error');
+                        showLoading(false);
                     }
-                };
-            }
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.onclick = () => {
-                    if (confirm('ログアウトしますか？')) {
-                        sessionStorage.clear();
-                        window.location.href = 'index.html';
-                    }
-                };
-            }
+                }
+            });
+
+            logoutBtn.addEventListener('click', () => {
+                if (confirm('ログアウトしてもよろしいですか？現在の会話データは失われます。')) {
+                    sessionStorage.clear();
+                    window.location.replace('index.html');
+                }
+            });
 
             // 会話開始時
             if (!sessionStorage.getItem('startTime')) {
                 sessionStorage.setItem('startTime', new Date().toLocaleString());
             }
-        });
 
-        // --- Navigation Buttons ---
-        backToScenarioBtn.addEventListener('click', () => {
-            if (confirm('現在の会話データは失われますが、よろしいですか？')) {
-                sessionStorage.removeItem('conversationHistory');
-                sessionStorage.removeItem('messageCounter');
-                sessionStorage.removeItem('scenario');
-                sessionStorage.removeItem('difficulty');
-                window.location.href = 'scenario.html';
-            }
-        });
+            // モバイル向けのビューポート調整
+            if (isMobile) {
+                // キーボード表示時のスクロール調整
+                userMessageInput.addEventListener('focus', () => {
+                    setTimeout(() => {
+                        window.scrollTo(0, document.body.scrollHeight);
+                    }, 300);
+                });
 
-        endConversationBtn.addEventListener('click', async () => {
-            if (confirm('会話を終了し、評価レポートを作成しますか？')) {
-                showLoading(true);
-                try {
-                    const password = sessionStorage.getItem('appPassword');
-                    if (!password) {
-                        throw new Error('Authentication password not found. Please log in again.');
-                    }
-
-                    const response = await fetch('/api/finalize', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            conversationHistory: conversationHistory,
-                            scenario: currentScenario,
-                            difficulty: currentDifficulty,
-                            password: password // パスワードを含める
-                        })
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(`API error! status: ${response.status}, message: ${errorData.message || response.statusText}`);
-                    }
-
-                    const finalReport = await response.json();
-                    sessionStorage.setItem('lastEvaluationResult', JSON.stringify(finalReport)); // レポートを保存
-
-                    // 会話履歴をクリア
-                    sessionStorage.removeItem('conversationHistory');
-                    sessionStorage.removeItem('messageCounter');
-                    
-                    window.location.href = 'final-report.html'; // レポートページへ遷移
-
-                } catch (error) {
-                    console.error('Error finalizing conversation:', error);
-                    showStatus(`会話の終了とレポート作成に失敗しました: ${error.message}`, 'error');
-                    showLoading(false);
+                // iOSでのスクロール問題対策
+                if (isIOS) {
+                    document.addEventListener('touchmove', (e) => {
+                        if (e.target.closest('.chat-container')) {
+                            // チャットコンテナ内のスクロールは許可
+                            return;
+                        }
+                    }, { passive: true });
                 }
-            }
-        });
-
-        logoutBtn.addEventListener('click', () => {
-            if (confirm('ログアウトしてもよろしいですか？現在の会話データは失われます。')) {
-                sessionStorage.clear(); // 全てのセッションデータをクリア
-                window.location.replace('index.html');
             }
         });
 
@@ -841,30 +984,16 @@
                 currentScenario,
                 currentDifficulty,
                 speechRecognitionAvailable: !!recognition,
+                isMobile,
+                isIOS,
                 userAgent: navigator.userAgent
             });
         }
-        window.showDebugInfo = showDebugInfo; // コンソールでデバッグ情報を確認できるように
+        window.showDebugInfo = showDebugInfo;
 
         console.log('✅ Application fully loaded and ready');
         console.log('💡 Type showDebugInfo() in console for debug information');
-
-        // 送信ボタンのイベントリスナーを再設定
-        function setupSendButton() {
-            const sendButton = document.getElementById('sendMessageBtn');
-            if (sendButton) {
-                sendButton.addEventListener('click', sendMessage);
-            }
-            const inputField = document.getElementById('userMessageInput');
-            if (inputField) {
-                inputField.onkeypress = (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage();
-                    }
-                };
-            }
-        }
+        console.log(`📱 Device: ${isMobile ? 'Mobile' : 'Desktop'} ${isIOS ? '(iOS)' : ''}`);
     </script>
 </body>
 </html>
