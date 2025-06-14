@@ -591,7 +591,20 @@
                 const feedback = data.feedback;
                 const score = data.score;
 
+                // AIの応答を会話履歴に追加
                 conversationHistory.push({ role: 'ai', content: aiResponse });
+                
+                // ユーザーメッセージがある場合、評価データも履歴に追加
+                if (userMessage && (feedback || score !== null)) {
+                    conversationHistory.push({ 
+                        role: 'evaluation',
+                        feedback: feedback,
+                        score: score,
+                        forMessage: userMessage
+                    });
+                }
+                
+                // 画面に表示
                 addMessageToChat('ai', aiResponse, feedback, score);
                 saveConversationState();
 
@@ -887,35 +900,94 @@
                             throw new Error('Authentication password not found. Please log in again.');
                         }
 
+                        // 会話履歴を整形（各メッセージにフィードバックとスコアを含める）
+                        const messagesWithEvaluation = [];
+                        let currentUserMessage = null;
+                        let totalScore = 0;
+                        let scoreCount = 0;
+
+                        // 会話履歴を走査して、ユーザーメッセージに対応する評価を関連付ける
+                        for (let i = 0; i < conversationHistory.length; i++) {
+                            const msg = conversationHistory[i];
+                            
+                            if (msg.role === 'user') {
+                                currentUserMessage = {
+                                    role: 'user',
+                                    content: msg.content,
+                                    feedback: null,
+                                    score: null
+                                };
+                                messagesWithEvaluation.push(currentUserMessage);
+                            } else if (msg.role === 'ai') {
+                                // AIメッセージに評価が含まれているか確認
+                                const nextMsg = conversationHistory[i + 1];
+                                if (currentUserMessage && nextMsg && nextMsg.feedback) {
+                                    currentUserMessage.feedback = nextMsg.feedback;
+                                    currentUserMessage.score = nextMsg.score;
+                                    if (nextMsg.score) {
+                                        totalScore += nextMsg.score;
+                                        scoreCount++;
+                                    }
+                                }
+                                messagesWithEvaluation.push({
+                                    role: 'ai',
+                                    content: msg.content
+                                });
+                            }
+                        }
+
+                        // APIに送信する前に、セッションストレージに一時保存
+                        const evaluationData = {
+                            messages: messagesWithEvaluation,
+                            averageScore: scoreCount > 0 ? Math.round(totalScore / scoreCount) : 0,
+                            totalMessages: Math.floor(messagesWithEvaluation.length / 2), // ユーザーメッセージの数
+                            scenario: currentScenario,
+                            difficulty: currentDifficulty,
+                            startTime: sessionStorage.getItem('startTime'),
+                            endTime: new Date().toLocaleString()
+                        };
+
+                        // 評価データを保存
+                        sessionStorage.setItem('lastEvaluationResult', JSON.stringify(evaluationData));
+
+                        // APIにも送信（オプション - サーバー側で追加の評価を行う場合）
                         const response = await fetch('/api/finalize', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
-                                conversationHistory: conversationHistory,
+                                conversationHistory: messagesWithEvaluation,
                                 scenario: currentScenario,
                                 difficulty: currentDifficulty,
                                 password: password
                             })
                         });
 
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(`API error! status: ${response.status}, message: ${errorData.message || response.statusText}`);
+                        if (response.ok) {
+                            const serverReport = await response.json();
+                            // サーバーからの追加情報があれば、既存のデータとマージ
+                            const mergedReport = {
+                                ...evaluationData,
+                                ...serverReport,
+                                messages: messagesWithEvaluation // メッセージは元のものを保持
+                            };
+                            sessionStorage.setItem('lastEvaluationResult', JSON.stringify(mergedReport));
                         }
-
-                        const finalReport = await response.json();
-                        sessionStorage.setItem('lastEvaluationResult', JSON.stringify(finalReport));
-
-                        sessionStorage.removeItem('conversationHistory');
-                        sessionStorage.removeItem('messageCounter');
                         
+                        // レポートページへ遷移
                         window.location.href = 'final-report.html';
 
                     } catch (error) {
                         console.error('Error finalizing conversation:', error);
                         showStatus(`会話の終了とレポート作成に失敗しました: ${error.message}`, 'error');
+                        
+                        // エラーが発生してもローカルデータがあればレポートページへ
+                        if (sessionStorage.getItem('lastEvaluationResult')) {
+                            if (confirm('サーバーエラーが発生しましたが、ローカルデータでレポートを表示しますか？')) {
+                                window.location.href = 'final-report.html';
+                            }
+                        }
                         showLoading(false);
                     }
                 }
